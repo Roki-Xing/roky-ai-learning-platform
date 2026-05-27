@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "aegis.schema.v0",
+  "requestedOutcome": "Complete and harden Thought Review Coach integration for Roky Learn Phase 7",
+  "goal": "Complete and harden Thought Review Coach integration for Roky Learn Phase 7",
+  "successEvidence": [],
+  "stopCondition": "Stop when success evidence is satisfied or a blocker/risk requires pause.",
+  "nonGoals": [],
+  "scope": "Coach service layer, context, review persistence, flashcard generation, library/progress evidence",
+  "changeKinds": [
+    "feature"
+  ],
+  "riskHints": []
+}

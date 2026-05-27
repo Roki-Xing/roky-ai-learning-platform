@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "aegis.schema.v0",
+  "requestedOutcome": "Complete Phase 8 server-side voice upload and transcription path",
+  "goal": "Complete Phase 8 server-side voice upload and transcription path",
+  "successEvidence": [],
+  "stopCondition": "Stop when success evidence is satisfied or a blocker/risk requires pause.",
+  "nonGoals": [],
+  "scope": "Voice upload validation, transcription adapter, voice note save service, /voice UI",
+  "changeKinds": [
+    "feature"
+  ],
+  "riskHints": []
+}

@@ -1,0 +1,3 @@
+ALTER TABLE "UserProfile" ADD COLUMN IF NOT EXISTS "preferredTermSlugs" JSONB;
+ALTER TABLE "UserProfile" ADD COLUMN IF NOT EXISTS "preferredEntitySlugs" JSONB;
+ALTER TABLE "UserProfile" ADD COLUMN IF NOT EXISTS "knowledgeAvoidDays" INTEGER NOT NULL DEFAULT 7;

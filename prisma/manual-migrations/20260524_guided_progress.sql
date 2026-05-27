@@ -1,0 +1,2 @@
+ALTER TABLE "DailyPlan"
+  ADD COLUMN IF NOT EXISTS "guidedProgress" JSONB;
