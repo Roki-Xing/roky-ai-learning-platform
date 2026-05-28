@@ -18,7 +18,11 @@
 - 本地：`npm run lint` 通过。
 - 本地：`npm test` 160 项通过。
 - 本地：`npm run build` 通过。
-- 生产：待部署后补充线上验收。
+- GitHub：`Roki-Xing/roky-ai-learning-platform` 确认为 `PRIVATE`，默认分支为 `main`。
+- 生产：`118.25.15.72:/home/ubuntu/ai-learning-platform` 已 fast-forward 到 `a0c4659`。
+- 生产：Docker 容器 `ai-learning-platform` 内 `npm run build` 通过。
+- 生产：容器重启后 `https://learn.roky.chat/api/health` 返回 `ok`。
+- 生产：带 `Cookie: ral_demo=1` 抓取 `https://learn.roky.chat/projects` 可见 `Mission Mode`、`今日只做这一小步`、`复习队列`、`项目复盘`、`里程碑路线`。
 
 ## [0.58.0] - 2026-05-25
 
