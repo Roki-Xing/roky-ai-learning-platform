@@ -29,6 +29,10 @@ import {
   saveMilestoneDraftAction,
   startProjectAction,
 } from "@/app/projects/actions";
+import { LearningProgressBar } from "@/components/learning/learning-progress-bar";
+import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
+import { LearningSectionCard } from "@/components/learning/learning-section-card";
+import { LearningCTAGroup } from "@/components/learning/learning-cta-group";
 
 function strings(value: unknown) {
   return Array.isArray(value) ? value.filter((x): x is string => typeof x === "string") : [];
@@ -232,11 +236,15 @@ export default async function ProjectsPage({
         <div className="grid gap-4">
           {selectedProject && selectedProgress ? (
             <>
-              <Card className="rounded-lg">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">项目详情</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4">
+              <LearningSectionCard
+                title="项目概览"
+                description="你在做什么，以及离完成还有多远。"
+                action={
+                  <Button asChild size="sm" variant="secondary">
+                    <Link href="/review">去复习</Link>
+                  </Button>
+                }
+              >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="text-lg font-semibold">{selectedProject.title}</div>
@@ -245,13 +253,19 @@ export default async function ProjectsPage({
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary">
+                      <LearningStatusBadge tone="neutral">
                         {PROJECT_TYPE_LABELS[normalizeProjectType(selectedProject.type)]}
-                      </Badge>
-                      <Badge variant="outline">{selectedProject.status}</Badge>
-                      <Badge variant="outline">{selectedProgress.percent}%</Badge>
+                      </LearningStatusBadge>
+                      <LearningStatusBadge
+                        tone={selectedProject.status === "completed" ? "success" : "info"}
+                      >
+                        {selectedProject.status}
+                      </LearningStatusBadge>
+                      <LearningStatusBadge tone="neutral">{selectedProgress.percent}%</LearningStatusBadge>
                     </div>
                   </div>
+
+                  <LearningProgressBar value={selectedProgress.percent / 100} />
 
                   <div className="grid gap-3 sm:grid-cols-4">
                     <div className="rounded-md border px-3 py-2 text-sm">
@@ -333,14 +347,21 @@ export default async function ProjectsPage({
                       </Button>
                     </form>
                   )}
-                </CardContent>
-              </Card>
+              </LearningSectionCard>
 
-              <Card className="rounded-lg">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">当前任务</CardTitle>
-                </CardHeader>
-                <CardContent>
+              <LearningSectionCard
+                title="今日项目任务"
+                description="今天只做这一小步。保存草稿 -> 评审 -> 完成。"
+                action={
+                  activeMilestone ? (
+                    <LearningStatusBadge tone={activeMilestone.status === "completed" ? "success" : "warning"}>
+                      {activeMilestone.status}
+                    </LearningStatusBadge>
+                  ) : (
+                    <LearningStatusBadge tone="success">all done</LearningStatusBadge>
+                  )
+                }
+              >
                   {activeMilestone ? (
                     <form action={completeMilestoneAction} className="grid gap-3">
                       <input type="hidden" name="projectId" value={selectedProject.id} />
@@ -361,6 +382,15 @@ export default async function ProjectsPage({
                         <div className="mt-2 rounded-md bg-muted px-3 py-2 font-mono text-xs">
                           {activeMilestone.codePrompt}
                         </div>
+                      </div>
+
+                      <div className="rounded-md border bg-muted/20 p-3 text-sm">
+                        <div className="text-sm font-medium">完成条件</div>
+                        <ul className="mt-2 grid list-disc gap-1 pl-5 text-sm text-muted-foreground">
+                          <li>代码与思路已保存（允许未完全正确）</li>
+                          <li>至少写出 1 个边界/测试用例</li>
+                          <li>有需要时先点“保存并评审代码”，再修正一次</li>
+                        </ul>
                       </div>
 
                       <div className="grid gap-3 sm:grid-cols-2">
@@ -408,17 +438,19 @@ export default async function ProjectsPage({
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2">
-                        <Button type="submit">完成里程碑</Button>
-                        <Button formAction={saveMilestoneDraftAction} type="submit" variant="secondary">
-                          保存草稿
-                        </Button>
-                        <Button formAction={reviewMilestoneCodeAction} type="submit" variant="outline">
-                          保存并评审代码
-                        </Button>
+                        <LearningCTAGroup>
+                          <Button type="submit">完成里程碑</Button>
+                          <Button formAction={saveMilestoneDraftAction} type="submit" variant="secondary">
+                            保存草稿
+                          </Button>
+                          <Button formAction={reviewMilestoneCodeAction} type="submit" variant="outline">
+                            保存并评审代码
+                          </Button>
+                        </LearningCTAGroup>
                         {activeMilestone.codeSubmissionId ? (
-                          <Badge variant="secondary">
-                            反馈 {activeMilestone.codeSubmissionId.slice(0, 8)}
-                          </Badge>
+                          <LearningStatusBadge tone="info">
+                            feedback {activeMilestone.codeSubmissionId.slice(0, 8)}
+                          </LearningStatusBadge>
                         ) : null}
                       </div>
                       {activeMilestoneFeedback ? (
@@ -447,8 +479,7 @@ export default async function ProjectsPage({
                   ) : (
                     <div className="text-sm text-muted-foreground">所有里程碑已完成。</div>
                   )}
-                </CardContent>
-              </Card>
+              </LearningSectionCard>
 
               <Card className="rounded-lg">
                 <CardHeader className="pb-2">
