@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { BookOpen, Code2, Lightbulb, MessageSquareText, RotateCcw } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { requireUserId } from "@/server/auth/user";
@@ -14,6 +14,21 @@ import {
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningEmptyState } from "@/components/learning/learning-empty-state";
+import {
+  CoachClaimCard,
+  CoachContextGroup,
+  CoachFlashcardPanel,
+  CoachHero,
+  CoachIssueList,
+  CoachListBlock,
+  CoachMetricPill,
+  CoachMissingConcepts,
+  CoachModeRail,
+  CoachQuickLinks,
+  CoachResultBlock,
+  CoachSignalStrip,
+  coachIcons,
+} from "@/app/coach/ui/coach-workspace";
 
 type ReviewJson = {
   provider?: string;
@@ -134,201 +149,151 @@ export default async function CoachPage({
     subtitle: [k.kind, k.tag].filter(Boolean).join(" / ") || undefined,
     tone: "neutral",
   }));
+  const contextSignalCount =
+    dueCardItems.length +
+    quizMistakes.length +
+    codeFeedbackItems.length +
+    misconceptionItems.length +
+    recentKnowledgeItems.length;
 
   return (
     <AppShell activePath="/coach" title="思路评审">
       <PageHeader
         title="思路评审"
-        subtitle="输入自己的理解、代码思路或疑问，让 Coach 帮你找出正确点、误区和下一步。"
+        subtitle="写出你的理解，Coach 会结合最近课程、错题、代码反馈和到期卡片做结构化评审。"
         badge="Coach"
       />
 
-      <div className="grid gap-4 lg:grid-cols-[360px_1fr_320px]">
+      <div className="mb-4">
+        <CoachHero
+          lessonTitle={coachContext.lessonTitle}
+          localDate={coachContext.todayLocalDate}
+          dueCount={dueCardItems.length}
+          issueCount={possibleIssues.length + missingConcepts.length}
+        />
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)_340px]">
         <LearningSectionCard
-          title="我的输入"
-          description="把你的理解写出来，Coach 才能指出概念混淆与下一步。"
-          className="rounded-lg"
+          title="我的理解"
+          description="先说判断，再写证据或代码思路。越具体，反馈越可用。"
+          className="self-start rounded-lg"
         >
           <form action={submitThoughtReviewAction} className="grid gap-3">
-            <div className="grid gap-2">
-              <div className="text-sm font-medium">模式</div>
-              <select
-                name="mode"
-                defaultValue="today_lesson"
-                className="h-9 rounded-md border bg-background px-3 text-sm outline-none"
-              >
-                {MODES.map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <label className="flex items-center gap-2 text-sm">
+            <CoachModeRail modes={MODES} />
+            <label className="flex items-center gap-2 rounded-md border bg-muted/20 px-3 py-2 text-sm">
               <input type="checkbox" name="includeTodayLesson" defaultChecked className="size-4" />
               关联最近课程
             </label>
             {todayPlan ? <input type="hidden" name="lessonId" value={todayPlan.lessonId} /> : null}
             <div className="grid gap-2">
-              <div className="text-sm font-medium">我的理解</div>
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm font-medium">输入内容</div>
+                <LearningStatusBadge tone="info">required</LearningStatusBadge>
+              </div>
               <Textarea
                 name="rawText"
-                className="min-h-64"
+                className="min-h-72 resize-y text-sm leading-6"
                 placeholder="例如：我觉得 Self-Attention 就是把所有 token 平均一下；或者贴一段代码思路让 Coach 找问题。"
                 required
               />
             </div>
             {todayPlan ? (
-              <div className="text-xs text-muted-foreground">
+              <div className="rounded-md border bg-indigo-50/50 px-3 py-2 text-xs text-indigo-900">
                 当前关联：{todayPlan.localDate} / {todayPlan.lesson.title}
               </div>
             ) : null}
-            <Button type="submit">提交评审</Button>
+            <Button type="submit" className="w-full">提交给 Coach</Button>
           </form>
         </LearningSectionCard>
 
         <LearningSectionCard
-          title="Coach 反馈"
-          description="按结构阅读：观点 -> 正确点 -> 问题 -> 缺失概念 -> 追问 -> 下一步。"
+          title="导师反馈"
+          description="先看主张是否成立，再处理问题、缺口和下一步。"
           className="rounded-lg"
         >
           <div className="grid gap-4">
               {selected ? (
                 <>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <LearningStatusBadge tone="neutral">{selected.mode}</LearningStatusBadge>
-                    <LearningStatusBadge tone={review.provider === "deepseek" ? "info" : "neutral"}>
-                      {review.provider ?? "template"}
-                    </LearningStatusBadge>
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/20 px-3 py-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <LearningStatusBadge tone="neutral">{selected.mode}</LearningStatusBadge>
+                      <LearningStatusBadge tone={review.provider === "deepseek" ? "info" : "neutral"}>
+                        {review.provider ?? "template"}
+                      </LearningStatusBadge>
+                      <LearningStatusBadge tone={possibleIssues.length ? "danger" : "success"}>
+                        问题 {possibleIssues.length}
+                      </LearningStatusBadge>
+                      <LearningStatusBadge tone={missingConcepts.length ? "warning" : "success"}>
+                        缺口 {missingConcepts.length}
+                      </LearningStatusBadge>
+                    </div>
                     {selected.lessonId ? (
                       <Button asChild size="sm" variant="outline">
                         <Link href={`/library?lessonId=${encodeURIComponent(selected.lessonId)}`}>
-                          查看关联课程
+                          查看课程
                         </Link>
                       </Button>
                     ) : null}
                   </div>
 
-                  <div className="rounded-md border p-3">
-                    <div className="text-sm font-medium">整理后的观点</div>
-                    <div className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
-                      {review.normalizedText ?? selected.normalizedText ?? selected.rawText}
-                    </div>
-                    <div className="mt-3 text-sm">
-                      <span className="font-medium">主张：</span>
-                      {review.mainClaim ?? selected.mainClaim}
-                    </div>
-                  </div>
+                  <CoachSignalStrip
+                    items={[
+                      { label: "正确点", value: correctParts.length, tone: "success" },
+                      { label: "追问", value: questions.length, tone: "info" },
+                      { label: "建议卡片", value: flashcards.length, tone: "warning" },
+                    ]}
+                  />
 
                   <div className="grid gap-3 lg:grid-cols-2">
-                    <div className="rounded-md border p-3">
-                      <div className="text-sm font-medium">正确部分</div>
-                      <ul className="mt-2 grid list-disc gap-1 pl-5 text-sm text-muted-foreground">
-                        {correctParts.length ? (
-                          correctParts.map((x) => <li key={x}>{x}</li>)
-                        ) : (
-                          <li>Coach 需要更多上下文来确认正确点。</li>
-                        )}
-                      </ul>
+                    <div className="lg:col-span-2">
+                      <CoachClaimCard
+                        normalizedText={review.normalizedText ?? selected.normalizedText ?? selected.rawText}
+                        mainClaim={review.mainClaim ?? selected.mainClaim}
+                      />
                     </div>
-                    <div className="rounded-md border p-3">
-                      <div className="text-sm font-medium">缺失概念</div>
-                      <div className="mt-2 grid gap-2">
-                        {missingConcepts.length ? (
-                          missingConcepts.map((x, idx) => (
-                            <div key={`${x.term}:${idx}`} className="text-sm text-muted-foreground">
-                              <span className="font-medium text-foreground">{x.term}</span>：
-                              {x.reason}
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-sm text-muted-foreground">暂无明显缺失概念。</div>
-                        )}
-                      </div>
+                    <CoachListBlock
+                      title="正确部分"
+                      icon={coachIcons.check}
+                      tone="success"
+                      items={correctParts}
+                      empty="Coach 需要更多上下文来确认正确点。"
+                    />
+                    <CoachMissingConcepts concepts={missingConcepts} />
+                    <div className="lg:col-span-2">
+                      <CoachIssueList issues={possibleIssues} />
                     </div>
-                  </div>
-
-                  <div className="rounded-md border p-3">
-                    <div className="text-sm font-medium">可能问题</div>
-                    <div className="mt-2 grid gap-2">
-                      {possibleIssues.map((x, idx) => (
-                        <div key={`${x.issue}:${idx}`} className="rounded-md border bg-muted/30 p-3">
-                          <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <Badge variant="outline">{x.type ?? "issue"}</Badge>
-                            <LearningStatusBadge
-                              tone={
-                                x.severity === "high"
-                                  ? "danger"
-                                  : x.severity === "medium"
-                                    ? "warning"
-                                    : "neutral"
-                              }
-                            >
-                              {x.severity ?? "medium"}
-                            </LearningStatusBadge>
-                          </div>
-                          <div className="mt-2 text-sm font-medium">{x.issue}</div>
-                          <div className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">
-                            {x.explanation}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="grid gap-3 lg:grid-cols-2">
-                    <div className="rounded-md border p-3">
-                      <div className="text-sm font-medium">追问</div>
-                      <ol className="mt-2 grid list-decimal gap-1 pl-5 text-sm text-muted-foreground">
-                        {questions.map((q) => <li key={q}>{q}</li>)}
-                      </ol>
-                    </div>
-                    <div className="rounded-md border p-3">
-                      <div className="text-sm font-medium">下一步</div>
-                      <div className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
-                        {review.finalAdvice}
+                    <CoachListBlock
+                      title="追问"
+                      icon={coachIcons.help}
+                      tone="info"
+                      items={questions}
+                      empty="暂无追问。你可以补一个具体例子再提交。"
+                      ordered
+                    />
+                    <CoachResultBlock title="下一步" icon={Lightbulb} tone="warning">
+                      <div className="whitespace-pre-wrap">
+                        {review.finalAdvice ?? "把当前理解改写成一个例子，再让 Coach 检查一次。"}
                       </div>
                       {nextLessons.length ? (
-                        <div className="mt-3 text-xs text-muted-foreground">
-                          推荐：{nextLessons.join(" / ")}
+                        <div className="mt-3 flex flex-wrap gap-1">
+                          {nextLessons.map((lesson) => (
+                            <LearningStatusBadge key={lesson} tone="neutral">
+                              {lesson}
+                            </LearningStatusBadge>
+                          ))}
                         </div>
                       ) : null}
-                    </div>
+                    </CoachResultBlock>
                   </div>
 
-                  <div className="rounded-md border p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <div className="text-sm font-medium">可生成卡片</div>
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          已生成：{generatedCardCount} / 建议：{flashcards.length}
-                        </div>
-                      </div>
-                      <form action={generateCardsFromThoughtReviewAction}>
-                        <input type="hidden" name="reviewId" value={selected.id} />
-                        <Button type="submit" size="sm" disabled={!flashcards.length}>
-                          生成复习卡片
-                        </Button>
-                      </form>
-                    </div>
-                    {flashcards.length ? (
-                      <div className="mt-3 grid gap-2">
-                        {flashcards.map((c, idx) => (
-                          <div key={`${c.front}:${idx}`} className="rounded-md border bg-muted/30 p-3">
-                            <div className="text-sm font-medium">{c.front}</div>
-                            <div className="mt-1 text-sm text-muted-foreground">{c.back}</div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-                    {relatedTerms.length ? (
-                      <div className="mt-3 flex flex-wrap gap-1">
-                        {relatedTerms.map((t) => (
-                          <Badge key={t} variant="outline">{t}</Badge>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
+                  <CoachFlashcardPanel
+                    reviewId={selected.id}
+                    generatedCardCount={generatedCardCount}
+                    flashcards={flashcards}
+                    action={generateCardsFromThoughtReviewAction}
+                    relatedTerms={relatedTerms}
+                  />
                 </>
               ) : (
                 <LearningEmptyState
@@ -345,125 +310,60 @@ export default async function CoachPage({
 
         <div className="grid gap-4">
           <LearningSectionCard
-            title="上下文"
-            description="Coach 会参考这些内容来给你更贴近当前学习状态的反馈。"
+            title="学习上下文"
+            description="这些信号会进入 Coach 的判断范围。"
+            className="self-start rounded-lg"
           >
             <div className="grid gap-3 text-sm">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">时区日期</span>
-                <span className="font-mono">{coachContext.todayLocalDate}</span>
+              <div className="grid grid-cols-2 gap-2">
+                <CoachMetricPill label="本地日期" value={coachContext.todayLocalDate} tone="neutral" />
+                <CoachMetricPill label="上下文信号" value={contextSignalCount} tone="info" />
               </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">关联课程</span>
-                <span className="truncate">{coachContext.lessonTitle ?? "无"}</span>
-              </div>
-
-              <div className="grid gap-3">
-                <div className="rounded-md border p-3">
-                  <div className="text-sm font-medium">到期卡片</div>
-                  <div className="mt-2 grid gap-2">
-                    {dueCardItems.length ? (
-                      dueCardItems.map((item, idx) => (
-                        <div key={`${item.title}:${idx}`} className="rounded-md border bg-muted/20 p-2">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="min-w-0 truncate text-sm font-medium">{item.title}</div>
-                            {item.subtitle ? (
-                              <LearningStatusBadge tone="warning">{item.subtitle}</LearningStatusBadge>
-                            ) : null}
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-sm text-muted-foreground">暂无到期卡片。</div>
-                    )}
-                  </div>
+              <div className="rounded-lg border bg-indigo-50/50 px-3 py-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-indigo-950">
+                  <BookOpen className="size-4" aria-hidden="true" />
+                  关联课程
                 </div>
-
-                <div className="rounded-md border p-3">
-                  <div className="text-sm font-medium">最近错题</div>
-                  <div className="mt-2 grid gap-2">
-                    {quizMistakes.length ? (
-                      quizMistakes.map((item, idx) => (
-                        <div key={`${item.title}:${idx}`} className="rounded-md border bg-muted/20 p-2">
-                          <div className="text-sm font-medium">{item.title}</div>
-                          {item.subtitle ? (
-                            <div className="mt-1 text-xs text-muted-foreground">{item.subtitle}</div>
-                          ) : null}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-sm text-muted-foreground">暂无近期错题。</div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="rounded-md border p-3">
-                  <div className="text-sm font-medium">最近代码反馈</div>
-                  <div className="mt-2 grid gap-2">
-                    {codeFeedbackItems.length ? (
-                      codeFeedbackItems.map((item, idx) => (
-                        <div key={`${item.title}:${idx}`} className="rounded-md border bg-muted/20 p-2">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="min-w-0 truncate text-sm font-medium">{item.title}</div>
-                            {item.subtitle ? (
-                              <LearningStatusBadge tone={item.tone ?? "neutral"}>
-                                {item.subtitle}
-                              </LearningStatusBadge>
-                            ) : null}
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-sm text-muted-foreground">暂无代码反馈。</div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="rounded-md border p-3">
-                  <div className="text-sm font-medium">活跃误区</div>
-                  <div className="mt-2 grid gap-2">
-                    {misconceptionItems.length ? (
-                      misconceptionItems.map((item, idx) => (
-                        <div key={`${item.title}:${idx}`} className="rounded-md border bg-muted/20 p-2">
-                          <div className="text-sm font-medium">{item.title}</div>
-                          {item.subtitle ? (
-                            <div className="mt-1 text-xs text-muted-foreground">{item.subtitle}</div>
-                          ) : null}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-sm text-muted-foreground">暂无活跃误区。</div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="rounded-md border p-3">
-                  <div className="text-sm font-medium">最近术语/实体</div>
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {recentKnowledgeItems.length ? (
-                      recentKnowledgeItems.map((item, idx) => (
-                        <Badge key={`${item.title}:${idx}`} variant="outline">
-                          {item.title}
-                        </Badge>
-                      ))
-                    ) : (
-                      <div className="text-sm text-muted-foreground">暂无记录。</div>
-                    )}
-                  </div>
+                <div className="mt-1 line-clamp-2 text-sm text-indigo-900">
+                  {coachContext.lessonTitle ?? "暂无"}
                 </div>
               </div>
-
-              {coachContext.lessonId ? (
-                <Button asChild size="sm" variant="secondary">
-                  <Link href={`/library?lessonId=${encodeURIComponent(coachContext.lessonId)}`}>
-                    查看课程详情
-                  </Link>
-                </Button>
-              ) : null}
+              <CoachContextGroup
+                title="到期卡片"
+                icon={RotateCcw}
+                items={dueCardItems}
+                empty="暂无到期卡片。"
+              />
+              <CoachContextGroup
+                title="最近错题"
+                icon={MessageSquareText}
+                items={quizMistakes}
+                empty="暂无近期错题。"
+              />
+              <CoachContextGroup
+                title="代码反馈"
+                icon={Code2}
+                items={codeFeedbackItems}
+                empty="暂无代码反馈。"
+              />
+              <CoachContextGroup
+                title="活跃误区"
+                icon={Lightbulb}
+                items={misconceptionItems}
+                empty="暂无活跃误区。"
+              />
+              <CoachContextGroup
+                title="最近术语/实体"
+                icon={coachIcons.book}
+                items={recentKnowledgeItems}
+                empty="暂无记录。"
+                maxItems={5}
+              />
+              <CoachQuickLinks lessonId={coachContext.lessonId} />
             </div>
           </LearningSectionCard>
 
-          <LearningSectionCard title="最近评审" description="点击回看历史记录。">
+          <LearningSectionCard title="最近评审" description="点击回看历史记录。" className="rounded-lg">
             <div className="grid gap-2">
               {reviews.length ? (
                 reviews.map((r) => (
