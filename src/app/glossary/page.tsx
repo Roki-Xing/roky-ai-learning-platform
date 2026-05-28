@@ -9,6 +9,7 @@ import { requireUserId } from "@/server/auth/user";
 import { prisma } from "@/server/db";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import { buildKnowledgeLink } from "@/server/knowledge/base";
+import { DEFAULT_KNOWLEDGE_PATHS } from "@/server/knowledge/paths";
 import { generateGlossaryFlashcardAction } from "@/app/glossary/actions";
 
 type SourceRef = { title?: string; url?: string };
@@ -89,6 +90,17 @@ export default async function GlossaryPage({
   const selectedCardId = selectedTerm ? `glossary:${userId}:${selectedTerm.slug}` : null;
   const selectedHasCard = selectedCardId ? generatedCardIds.has(selectedCardId) : false;
 
+  const selectedRelated = selectedTerm ? strings(selectedTerm.relatedTerms) : [];
+  const relatedChain = selectedRelated
+    .map((term) => {
+      const slug = term.trim().toLowerCase();
+      const hit = terms.find((t) => t.slug === slug);
+      return hit ?? null;
+    })
+    .filter((x): x is NonNullable<typeof x> => Boolean(x))
+    .slice(0, 5);
+  const recommendedPaths = DEFAULT_KNOWLEDGE_PATHS.filter((p) => p.kind === "glossary").slice(0, 2);
+
   return (
     <AppShell
       activePath="/glossary"
@@ -111,6 +123,27 @@ export default async function GlossaryPage({
             <CardTitle className="text-base">检索与分类</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
+            <div className="rounded-md border bg-muted/20 p-3">
+              <div className="text-sm font-medium">今日推荐链路</div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                不是看词典，而是在建立概念地图。
+              </div>
+              <div className="mt-2 grid gap-2">
+                {recommendedPaths.map((p) => (
+                  <div key={p.id} className="rounded-md border bg-background p-2">
+                    <div className="text-sm font-medium">{p.label}</div>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {p.slugs.slice(0, 5).map((slug) => (
+                        <Badge key={slug} asChild variant="outline">
+                          <Link href={`/glossary?term=${encodeURIComponent(slug)}`}>{slug}</Link>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <form className="grid gap-2">
               <Input name="q" placeholder="搜索 CoT / RAG / SWE-bench" defaultValue={q} />
               {selectedCategory ? <input type="hidden" name="category" value={selectedCategory} /> : null}
@@ -203,6 +236,33 @@ export default async function GlossaryPage({
                 <div className="rounded-md border p-3">
                   <div className="text-sm font-medium">一句话</div>
                   <div className="mt-2 text-sm text-muted-foreground">{selectedTerm.oneLine}</div>
+                </div>
+
+                <div className="rounded-md border p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <div className="text-sm font-medium">相关术语链</div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        用“路径”方式复习：从一个术语串到另一个术语。
+                      </div>
+                    </div>
+                    <Button asChild size="sm" variant="secondary">
+                      <Link href="/review">去复习</Link>
+                    </Button>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {relatedChain.length ? (
+                      relatedChain.map((t) => (
+                        <Badge key={t.slug} asChild variant="outline">
+                          <Link href={`/glossary?term=${encodeURIComponent(t.slug)}`}>
+                            {t.abbreviation ?? t.fullName}
+                          </Link>
+                        </Badge>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground">暂无可用相关链路。</div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">

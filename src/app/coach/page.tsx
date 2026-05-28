@@ -53,6 +53,8 @@ function list(value: unknown) {
   return Array.isArray(value) ? value.filter((x): x is string => typeof x === "string") : [];
 }
 
+type ContextItem = { title: string; subtitle?: string; tone?: "neutral" | "info" | "success" | "warning" | "danger" };
+
 export default async function CoachPage({
   searchParams,
 }: {
@@ -107,6 +109,32 @@ export default async function CoachPage({
         where: { id: { startsWith: `thought:${selected.id}:` }, userId },
       })
     : 0;
+
+  const dueCardItems: ContextItem[] = coachContext.dueCardItems.map((c) => ({
+    title: c.front,
+    subtitle: c.type ?? undefined,
+    tone: "warning",
+  }));
+  const quizMistakes: ContextItem[] = coachContext.quizMistakes.map((m) => ({
+    title: m.question,
+    subtitle: m.explanation ? m.explanation.slice(0, 80) : undefined,
+    tone: "danger",
+  }));
+  const codeFeedbackItems: ContextItem[] = coachContext.codeFeedbackItems.map((f) => ({
+    title: f.summary,
+    subtitle: [f.localDate, f.overall].filter(Boolean).join(" / ") || undefined,
+    tone: f.overall === "good" || f.overall === "excellent" ? "success" : "info",
+  }));
+  const misconceptionItems: ContextItem[] = coachContext.misconceptionItems.map((m) => ({
+    title: `${m.summary} (x${m.occurrenceCount})`,
+    subtitle: m.explanation ? m.explanation.slice(0, 80) : undefined,
+    tone: "warning",
+  }));
+  const recentKnowledgeItems: ContextItem[] = coachContext.recentKnowledgeItems.map((k) => ({
+    title: k.title,
+    subtitle: [k.kind, k.tag].filter(Boolean).join(" / ") || undefined,
+    tone: "neutral",
+  }));
 
   return (
     <AppShell activePath="/coach" title="思路评审">
@@ -330,9 +358,102 @@ export default async function CoachPage({
                 <span className="text-muted-foreground">关联课程</span>
                 <span className="truncate">{coachContext.lessonTitle ?? "无"}</span>
               </div>
-              <div className="rounded-md border bg-muted/20 p-3 text-xs text-muted-foreground whitespace-pre-wrap">
-                {coachContext.summary}
+
+              <div className="grid gap-3">
+                <div className="rounded-md border p-3">
+                  <div className="text-sm font-medium">到期卡片</div>
+                  <div className="mt-2 grid gap-2">
+                    {dueCardItems.length ? (
+                      dueCardItems.map((item, idx) => (
+                        <div key={`${item.title}:${idx}`} className="rounded-md border bg-muted/20 p-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0 truncate text-sm font-medium">{item.title}</div>
+                            {item.subtitle ? (
+                              <LearningStatusBadge tone="warning">{item.subtitle}</LearningStatusBadge>
+                            ) : null}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground">暂无到期卡片。</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-md border p-3">
+                  <div className="text-sm font-medium">最近错题</div>
+                  <div className="mt-2 grid gap-2">
+                    {quizMistakes.length ? (
+                      quizMistakes.map((item, idx) => (
+                        <div key={`${item.title}:${idx}`} className="rounded-md border bg-muted/20 p-2">
+                          <div className="text-sm font-medium">{item.title}</div>
+                          {item.subtitle ? (
+                            <div className="mt-1 text-xs text-muted-foreground">{item.subtitle}</div>
+                          ) : null}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground">暂无近期错题。</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-md border p-3">
+                  <div className="text-sm font-medium">最近代码反馈</div>
+                  <div className="mt-2 grid gap-2">
+                    {codeFeedbackItems.length ? (
+                      codeFeedbackItems.map((item, idx) => (
+                        <div key={`${item.title}:${idx}`} className="rounded-md border bg-muted/20 p-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0 truncate text-sm font-medium">{item.title}</div>
+                            {item.subtitle ? (
+                              <LearningStatusBadge tone={item.tone ?? "neutral"}>
+                                {item.subtitle}
+                              </LearningStatusBadge>
+                            ) : null}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground">暂无代码反馈。</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-md border p-3">
+                  <div className="text-sm font-medium">活跃误区</div>
+                  <div className="mt-2 grid gap-2">
+                    {misconceptionItems.length ? (
+                      misconceptionItems.map((item, idx) => (
+                        <div key={`${item.title}:${idx}`} className="rounded-md border bg-muted/20 p-2">
+                          <div className="text-sm font-medium">{item.title}</div>
+                          {item.subtitle ? (
+                            <div className="mt-1 text-xs text-muted-foreground">{item.subtitle}</div>
+                          ) : null}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground">暂无活跃误区。</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-md border p-3">
+                  <div className="text-sm font-medium">最近术语/实体</div>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {recentKnowledgeItems.length ? (
+                      recentKnowledgeItems.map((item, idx) => (
+                        <Badge key={`${item.title}:${idx}`} variant="outline">
+                          {item.title}
+                        </Badge>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground">暂无记录。</div>
+                    )}
+                  </div>
+                </div>
               </div>
+
               {coachContext.lessonId ? (
                 <Button asChild size="sm" variant="secondary">
                   <Link href={`/library?lessonId=${encodeURIComponent(coachContext.lessonId)}`}>

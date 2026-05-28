@@ -14,6 +14,7 @@ import {
   sendVoiceNoteToCoachAction,
 } from "@/app/voice/actions";
 import { VoiceCapture } from "@/app/voice/ui/voice-capture";
+import { VoiceWorkspaceForm } from "@/app/voice/ui/voice-workspace-form";
 
 const MODES = [
   ["free_thought", "自由想法"],
@@ -72,54 +73,10 @@ export default async function VoicePage({
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">录音 / 上传</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form action={saveVoiceNoteAction} className="grid gap-3">
-              <VoiceCapture />
-              <div className="grid gap-2">
-                <div className="text-sm font-medium">模式</div>
-                <select
-                  name="mode"
-                  defaultValue="free_thought"
-                  className="h-9 rounded-md border bg-background px-3 text-sm outline-none"
-                >
-                  {MODES.map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {recentPlan ? <input type="hidden" name="lessonId" value={recentPlan.lessonId} /> : null}
-              <div className="grid gap-2">
-                <div className="text-sm font-medium">Transcript</div>
-                <Textarea
-                  name="transcript"
-                  className="min-h-48"
-                  placeholder="把语音转写粘贴到这里，或直接写下你刚才说的内容..."
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="text-sm font-medium">编辑后 Transcript（可选）</div>
-                <Textarea
-                  name="editedTranscript"
-                  className="min-h-32"
-                  placeholder="如果需要，可以在这里放整理后的版本；留空则使用原 transcript。"
-                />
-              </div>
-              {recentPlan ? (
-                <div className="text-xs text-muted-foreground">
-                  默认关联：{recentPlan.localDate} / {recentPlan.lesson.title}
-                </div>
-              ) : null}
-              <Button type="submit">保存 Voice Note</Button>
-            </form>
-          </CardContent>
-        </Card>
+        <VoiceWorkspaceForm
+          modes={MODES as unknown as Array<readonly [string, string]>}
+          recentPlan={recentPlan ? { lessonId: recentPlan.lessonId, localDate: recentPlan.localDate, title: recentPlan.lesson.title } : null}
+        />
 
         <div className="lg:col-span-2 grid gap-4">
           <Card className="rounded-lg">

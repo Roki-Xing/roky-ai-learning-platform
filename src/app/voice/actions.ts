@@ -9,6 +9,7 @@ import {
   saveVoiceNoteAsNote,
   sendVoiceNoteToCoach,
 } from "@/server/voice/submit";
+import { transcribeVoiceAudio } from "@/server/voice/transcription";
 
 function audioFileFromForm(formData: FormData) {
   const value = formData.get("audioFile");
@@ -30,6 +31,25 @@ export async function saveVoiceNoteAction(formData: FormData) {
   revalidatePath("/voice");
   revalidatePath("/progress");
   redirect(`/voice?voiceNoteId=${encodeURIComponent(result.voiceNoteId)}`);
+}
+
+export async function transcribeAudioAction(formData: FormData) {
+  const userId = await requireUserId();
+  void userId;
+
+  const mode = String(formData.get("mode") ?? "");
+  const audioFile = audioFileFromForm(formData);
+  const result = await transcribeVoiceAudio({ file: audioFile, mode });
+
+  return {
+    ok: result.status === "success",
+    status: result.status,
+    provider: result.provider,
+    transcript: result.status === "success" ? result.transcript : "",
+    audioName: result.audioName,
+    reason: result.status === "manual_required" ? result.reason : null,
+    model: result.status === "success" ? result.model : null,
+  };
 }
 
 export async function sendVoiceNoteToCoachAction(formData: FormData) {

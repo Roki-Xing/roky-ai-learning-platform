@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireUserId } from "@/server/auth/user";
 import { getDueFlashcards } from "@/server/review/queue";
-import { ReviewCard } from "@/app/review/ui/review-card";
 import { prisma } from "@/server/db";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import {
@@ -16,6 +15,7 @@ import { addDaysUTC, localDateInTimeZone, utcStartOfLocalDay } from "@/server/ti
 import { buildReviewableFlashcardWhere, normalizeReviewSource } from "@/server/review/filter";
 import { buildReviewScheduleSummary } from "@/server/review/schedule";
 import { buildReviewEmptyState } from "@/server/review/empty-state";
+import { ReviewTrainer } from "@/app/review/ui/review-trainer";
 
 export default async function ReviewPage({
   searchParams,
@@ -75,6 +75,16 @@ export default async function ReviewPage({
   });
   const emptyState = buildReviewEmptyState({ source, projectId });
 
+  const scopeKey = `${source}:${projectId ?? ""}`;
+  const currentDto = current
+    ? {
+        id: current.id,
+        front: current.front,
+        back: current.back,
+        type: current.type ?? null,
+      }
+    : null;
+
   return (
     <AppShell
       activePath="/review"
@@ -107,25 +117,12 @@ export default async function ReviewPage({
         <div className="lg:col-span-2 grid gap-4">
           <div id="card" className="rounded-lg border bg-card p-4">
             <div className="text-sm font-medium">卡片</div>
-            {current ? (
-              <ReviewCard key={current.id} card={current} queueSize={due.length} />
-            ) : (
-              <div className="mt-3 grid gap-3 rounded-md border bg-muted/30 p-3">
-                <div>
-                  <div className="text-sm font-medium">{emptyState.title}</div>
-                  <div className="mt-1 text-sm text-muted-foreground">
-                    {emptyState.description}
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {emptyState.actions.map((action) => (
-                    <Button key={action.href} asChild size="sm" variant="secondary">
-                      <a href={action.href}>{action.label}</a>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
+            <ReviewTrainer
+              scopeKey={scopeKey}
+              card={currentDto}
+              queueSize={due.length}
+              emptyState={emptyState}
+            />
           </div>
           <Card className="rounded-lg">
             <CardHeader className="pb-2">

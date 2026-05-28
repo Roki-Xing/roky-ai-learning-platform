@@ -12,6 +12,7 @@ import {
   buildKnowledgeLink,
   knowledgeEntityVerificationBadge,
 } from "@/server/knowledge/base";
+import { DEFAULT_KNOWLEDGE_PATHS } from "@/server/knowledge/paths";
 import { generateRadarFlashcardAction } from "@/app/radar/actions";
 
 type SourceRef = { title?: string; url?: string };
@@ -99,6 +100,17 @@ export default async function RadarPage({
       })
     : null;
 
+  const selectedRelatedSlugs = selectedEntity ? strings(selectedEntity.relatedTerms) : [];
+  const relatedGlossaryTerms = selectedRelatedSlugs.length
+    ? await prisma.glossaryTerm.findMany({
+        where: { slug: { in: selectedRelatedSlugs.map((x) => x.trim().toLowerCase()) } },
+        select: { slug: true, fullName: true, abbreviation: true, category: true },
+        take: 8,
+      })
+    : [];
+
+  const recommendedPaths = DEFAULT_KNOWLEDGE_PATHS.slice(0, 2);
+
   return (
     <AppShell
       activePath="/radar"
@@ -121,6 +133,27 @@ export default async function RadarPage({
             <CardTitle className="text-base">筛选实体</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
+            <div className="rounded-md border bg-muted/20 p-3">
+              <div className="text-sm font-medium">探索路径</div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                从一个实体出发，串起相关术语与下一步学习。
+              </div>
+              <div className="mt-2 grid gap-2">
+                {recommendedPaths.map((p) => (
+                  <div key={p.id} className="rounded-md border bg-background p-2">
+                    <div className="text-sm font-medium">{p.label}</div>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {p.slugs.slice(0, 5).map((slug) => (
+                        <Badge key={slug} asChild variant="outline">
+                          <Link href={`/glossary?term=${encodeURIComponent(slug)}`}>{slug}</Link>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <form className="grid gap-2">
               <Input name="q" placeholder="搜索 OpenAI / SWE-bench / Cursor" defaultValue={q} />
               {selectedType ? <input type="hidden" name="type" value={selectedType} /> : null}
@@ -259,6 +292,33 @@ export default async function RadarPage({
                         </div>
                       ))}
                     </div>
+                  </div>
+                </div>
+
+                <div className="rounded-md border p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <div className="text-sm font-medium">关系卡</div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        从实体跳到相关术语，再回到课程与复习。
+                      </div>
+                    </div>
+                    <Button asChild size="sm" variant="secondary">
+                      <Link href="/review">去复习</Link>
+                    </Button>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {relatedGlossaryTerms.length ? (
+                      relatedGlossaryTerms.map((term) => (
+                        <Badge key={term.slug} asChild variant="outline">
+                          <Link href={`/glossary?term=${encodeURIComponent(term.slug)}`}>
+                            {term.abbreviation ?? term.fullName}
+                          </Link>
+                        </Badge>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground">暂无可用关系术语。</div>
+                    )}
                   </div>
                 </div>
 

@@ -8,6 +8,10 @@ function compact(value: string | null | undefined, max = 240) {
   return `${s.slice(0, max - 1)}…`;
 }
 
+function safeJsonArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
 export async function buildCoachContext(args: {
   userId: string;
   mode: string;
@@ -144,6 +148,31 @@ export async function buildCoachContext(args: {
     }).catch(() => []),
   ]);
 
+  const recentGlossarySlugs = safeJsonArray(profile.preferredTermSlugs)
+    .map((x) => (typeof x === "string" ? x.trim() : ""))
+    .filter(Boolean)
+    .slice(0, 6);
+  const recentRadarSlugs = safeJsonArray(profile.preferredEntitySlugs)
+    .map((x) => (typeof x === "string" ? x.trim() : ""))
+    .filter(Boolean)
+    .slice(0, 6);
+  const [recentGlossaryTerms, recentRadarEntities] = await Promise.all([
+    recentGlossarySlugs.length
+      ? prisma.glossaryTerm.findMany({
+          where: { slug: { in: recentGlossarySlugs } },
+          select: { slug: true, fullName: true, abbreviation: true, oneLine: true, category: true },
+          take: 6,
+        })
+      : Promise.resolve([]),
+    recentRadarSlugs.length
+      ? prisma.knowledgeEntity.findMany({
+          where: { slug: { in: recentRadarSlugs } },
+          select: { slug: true, name: true, oneLine: true, type: true },
+          take: 6,
+        })
+      : Promise.resolve([]),
+  ]);
+
   const lessonConnections =
     typeof lesson?.connections === "object" && lesson.connections !== null
       ? (lesson.connections as {
@@ -154,6 +183,48 @@ export async function buildCoachContext(args: {
   const glossaryTerm = lessonConnections?.glossary?.term?.trim() || "none";
   const breadthKind = lessonConnections?.breadth?.kind?.trim() || "none";
   const breadthTitle = lessonConnections?.breadth?.title?.trim() || "none";
+
+  const dueCardItems = dueCards.map((c) => ({
+    type: c.type ?? null,
+    front: c.front,
+  }));
+
+  const quizMistakes = recentAttempts
+    .filter((a) => !a.isCorrect)
+    .slice(0, 4)
+    .map((a) => ({
+      question: a.question.question,
+      explanation: a.question.explanation,
+    }));
+
+  const codeFeedbackItems = recentCodeFeedback.map((f) => ({
+    localDate: f.localDate ?? null,
+    overall: f.overall ?? null,
+    summary: f.summary,
+  }));
+
+  const misconceptionItems = activeMisconceptions.map((m) => ({
+    summary: m.summary,
+    explanation: m.explanation ?? null,
+    occurrenceCount: m.occurrenceCount,
+  }));
+
+  const recentKnowledgeItems = [
+    ...recentGlossaryTerms.map((t) => ({
+      kind: "glossary" as const,
+      slug: t.slug,
+      title: t.abbreviation ?? t.fullName,
+      oneLine: t.oneLine,
+      tag: t.category,
+    })),
+    ...recentRadarEntities.map((e) => ({
+      kind: "radar" as const,
+      slug: e.slug,
+      title: e.name,
+      oneLine: e.oneLine,
+      tag: e.type,
+    })),
+  ].slice(0, 8);
 
   const summary = [
     `profile: level=${profile.level}, goal=${profile.goal}, dailyMinutes=${profile.dailyMinutes}, difficulty=${profile.difficulty}, language=${profile.language}`,
@@ -187,6 +258,11 @@ export async function buildCoachContext(args: {
     todayLocalDate,
     lessonId: lesson?.id ?? null,
     lessonTitle: lesson?.title ?? null,
+    dueCardItems,
+    quizMistakes,
+    codeFeedbackItems,
+    misconceptionItems,
+    recentKnowledgeItems,
     summary,
   };
 }
