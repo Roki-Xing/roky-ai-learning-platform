@@ -4,6 +4,9 @@ import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LearningProgressBar } from "@/components/learning/learning-progress-bar";
+import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
+import { LearningInsightCard } from "@/components/learning/learning-insight-card";
 import { requireUser } from "@/server/auth/require-user";
 import { prisma } from "@/server/db";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
@@ -370,45 +373,56 @@ export default async function MapPage({
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">领域列表</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-2">
-            {domains.length ? (
-              domains.map((domain) => {
-                const stat = domainStats.get(domain.slug) ?? createEmptyKnowledgeMapStat();
-                const active = selectedDomain?.slug === domain.slug;
-                return (
-                  <Link
-                    key={domain.id}
-                    href={`/map?domain=${encodeURIComponent(domain.slug)}`}
-                    className={[
-                      "rounded-md border px-3 py-2 text-sm transition-colors",
-                      active ? "bg-muted" : "hover:bg-muted/50",
-                    ].join(" ")}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="truncate font-medium">{domain.name}</div>
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          {domain.description ?? domain.slug}
-                        </div>
-                      </div>
-                      <Badge variant="secondary">{stat.masteryScore}</Badge>
-                    </div>
-                    <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-                      <div>完成 {stat.completedLessons}</div>
-                      <div>卡片 {stat.flashcardCount}</div>
-                      <div>错题 {stat.activeMisconceptionCount}</div>
-                      <div>测验 {stat.quizAccuracy}%</div>
-                      <div>代码 {stat.codeSubmissionCount}</div>
-                      <div>到期 {stat.dueFlashcardCount}</div>
-                    </div>
-                  </Link>
-                );
-              })
+	      <div className="grid gap-4 lg:grid-cols-3">
+	        <Card className="rounded-lg">
+	          <CardHeader className="pb-2">
+	            <CardTitle className="text-base">领域列表</CardTitle>
+	          </CardHeader>
+	          <CardContent className="grid gap-2">
+	            {domains.length ? (
+	              domains.map((domain) => {
+	                const stat = domainStats.get(domain.slug) ?? createEmptyKnowledgeMapStat();
+	                const progress = Math.max(
+	                  0,
+	                  Math.min(1, stat.completedLessons / Math.max(1, stat.planCount)),
+	                );
+	                const active = selectedDomain?.slug === domain.slug;
+	                return (
+	                  <Link
+	                    key={domain.id}
+	                    href={`/map?domain=${encodeURIComponent(domain.slug)}`}
+	                    className={[
+	                      "rounded-md border px-3 py-2 text-sm transition-colors",
+	                      active ? "bg-muted" : "hover:bg-muted/50",
+	                    ].join(" ")}
+	                  >
+	                    <div className="flex items-start justify-between gap-3">
+	                      <div className="min-w-0">
+	                        <div className="truncate font-medium">{domain.name}</div>
+	                        <div className="mt-1 text-xs text-muted-foreground">
+	                          {domain.description ?? domain.slug}
+	                        </div>
+	                      </div>
+	                      <LearningStatusBadge
+	                        tone={stat.dueFlashcardCount > 0 ? "warning" : "neutral"}
+	                      >
+	                        {stat.masteryScore}
+	                      </LearningStatusBadge>
+	                    </div>
+	                    <div className="mt-2">
+	                      <LearningProgressBar value={progress} />
+	                    </div>
+	                    <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+	                      <div>完成 {stat.completedLessons}</div>
+	                      <div>卡片 {stat.flashcardCount}</div>
+	                      <div>错题 {stat.activeMisconceptionCount}</div>
+	                      <div>测验 {stat.quizAccuracy}%</div>
+	                      <div>代码 {stat.codeSubmissionCount}</div>
+	                      <div>到期 {stat.dueFlashcardCount}</div>
+	                    </div>
+	                  </Link>
+	                );
+	              })
             ) : (
               <div className="text-sm text-muted-foreground">
                 暂无领域数据。请先在 /admin 执行 seed domains/topics。
@@ -465,26 +479,37 @@ export default async function MapPage({
           </CardContent>
         </Card>
 
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">领域详情</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4 text-sm">
-            {selectedDomain ? (
-              <>
-                {(() => {
-                  const stat = domainStats.get(selectedDomain.slug) ?? createEmptyKnowledgeMapStat();
-                  return (
-                    <div className="grid gap-2 rounded-md border p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="font-medium">{selectedDomain.name}</div>
-                        <Badge variant="secondary">score {stat.masteryScore}</Badge>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                        <div>计划：{stat.planCount}</div>
-                        <div>待学：{stat.plannedLessons}</div>
-                        <div>完成：{stat.completedLessons}</div>
-                        <div>卡片：{stat.flashcardCount}</div>
+	        <Card className="rounded-lg">
+	          <CardHeader className="pb-2">
+	            <CardTitle className="text-base">领域详情</CardTitle>
+	          </CardHeader>
+	          <CardContent className="grid gap-4 text-sm">
+	            {selectedDomain ? (
+	              <>
+	                {(() => {
+	                  const stat = domainStats.get(selectedDomain.slug) ?? createEmptyKnowledgeMapStat();
+	                  return (
+	                    <div className="grid gap-2 rounded-md border p-3">
+	                      <div className="flex items-center justify-between gap-3">
+	                        <div className="font-medium">{selectedDomain.name}</div>
+	                        <LearningStatusBadge tone="info">score {stat.masteryScore}</LearningStatusBadge>
+	                      </div>
+	                      <LearningInsightCard
+	                        title="下一步建议"
+	                        description={
+	                          stat.dueFlashcardCount > 0
+	                            ? `先清空本领域到期卡片：${stat.dueFlashcardCount} 张`
+	                            : stat.plannedLessons > 0
+	                              ? `本领域还有 ${stat.plannedLessons} 节待学内容，建议从最近主题继续`
+	                              : "本领域暂时没有待处理项，考虑切到薄弱领域或做一个小项目"
+	                        }
+	                        tone={stat.dueFlashcardCount > 0 ? "warning" : "neutral"}
+	                      />
+	                      <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+	                        <div>计划：{stat.planCount}</div>
+	                        <div>待学：{stat.plannedLessons}</div>
+	                        <div>完成：{stat.completedLessons}</div>
+	                        <div>卡片：{stat.flashcardCount}</div>
                         <div>到期：{stat.dueFlashcardCount}</div>
                         <div>已复习卡：{stat.reviewedCardCount}</div>
                         <div>ReviewLog：{stat.reviewLogCount}</div>
