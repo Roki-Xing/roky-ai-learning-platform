@@ -4,16 +4,13 @@ import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { requireUserId } from "@/server/auth/user";
 import { prisma } from "@/server/db";
 import {
   generateVoiceNoteFlashcardsAction,
-  saveVoiceNoteAction,
   saveVoiceNoteAsNoteAction,
   sendVoiceNoteToCoachAction,
 } from "@/app/voice/actions";
-import { VoiceCapture } from "@/app/voice/ui/voice-capture";
 import { VoiceWorkspaceForm } from "@/app/voice/ui/voice-workspace-form";
 
 const MODES = [

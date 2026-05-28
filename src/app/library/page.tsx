@@ -165,8 +165,8 @@ export default async function LibraryPage({
     <AppShell activePath="/library" title="课程库">
       <PageHeader
         title="课程库"
-        subtitle="历史课程与学习记录（MVP：按 DailyPlan 记录）"
-        badge="MVP"
+        subtitle="历史课程与学习记录"
+        badge="档案"
       />
 
       <div className="grid gap-4 lg:grid-cols-3">

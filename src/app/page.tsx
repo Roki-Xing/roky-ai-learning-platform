@@ -1,7 +1,5 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { APP_ROUTE_GROUPS } from "@/lib/routes";
 import { requireUserId } from "@/server/auth/user";
 import { prisma } from "@/server/db";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
@@ -10,6 +8,39 @@ import { localDateInTimeZone } from "@/server/time/day";
 import { LearningMetricCard } from "@/components/learning/learning-metric-card";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
+
+const QUICK_ACTIONS = [
+  {
+    href: "/today",
+    label: "继续今日学习",
+    note: "主课、步骤、代码练习和小测验都在这里。",
+  },
+  {
+    href: "/review",
+    label: "去复习",
+    note: "把今天到期的卡片清掉。",
+  },
+  {
+    href: "/coach",
+    label: "让 Coach 看看",
+    note: "把自己的理解说出来，找出误区。",
+  },
+  {
+    href: "/notes",
+    label: "写今日笔记",
+    note: "把今天学到的东西沉淀下来。",
+  },
+  {
+    href: "/projects",
+    label: "项目实践",
+    note: "把知识放进任务和里程碑里。",
+  },
+  {
+    href: "/map",
+    label: "查看知识地图",
+    note: "看哪些领域正在增长，下一步补哪里。",
+  },
+] as const;
 
 export default async function HomePage() {
   const userId = await requireUserId();
@@ -74,11 +105,9 @@ export default async function HomePage() {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-10">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          AI Learning Platform
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Roky Learn</h1>
         <p className="text-sm text-muted-foreground">
-          面向“广度探索 + 适度深入 + 长期积累”的每日引导式学习系统（已接入生成与复习闭环）。
+          面向“广度探索 + 适度深入 + 长期积累”的每日引导式学习系统。
         </p>
       </div>
 
@@ -159,7 +188,7 @@ export default async function HomePage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <LearningSectionCard
           title="今日三件事"
-          description="把学习闭环跑顺，第二天自然会更轻松。"
+          description="先完成今天最重要的三步。"
           action={
             <Button asChild size="sm" variant="secondary">
               <Link href="/today">继续学习</Link>
@@ -198,22 +227,23 @@ export default async function HomePage() {
         </LearningSectionCard>
 
         <LearningSectionCard
-          title="快捷入口"
-          description="把高频动作放在同一个地方。"
+          title="常用入口"
+          description="从今天最常打开的动作开始。"
         >
-          <div className="grid gap-3 sm:grid-cols-2">
-            {APP_ROUTE_GROUPS.flatMap((g) => g.routes).map((r) => (
-              <Card key={r.href} className="rounded-lg">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">{r.label}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between gap-3">
-                  <div className="text-sm text-muted-foreground">{r.href}</div>
-                  <Button asChild size="sm" className="shrink-0" variant="secondary">
-                    <Link href={r.href}>打开</Link>
-                  </Button>
-                </CardContent>
-              </Card>
+          <div className="grid gap-2">
+            {QUICK_ACTIONS.map((action) => (
+              <div
+                key={action.href}
+                className="flex items-start justify-between gap-3 rounded-lg border bg-card px-3 py-3"
+              >
+                <div className="min-w-0">
+                  <div className="font-medium">{action.label}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">{action.note}</div>
+                </div>
+                <Button asChild size="sm" variant="secondary" className="shrink-0">
+                  <Link href={action.href}>打开</Link>
+                </Button>
+              </div>
             ))}
           </div>
         </LearningSectionCard>

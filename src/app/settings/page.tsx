@@ -28,8 +28,8 @@ export default async function SettingsPage({
     <AppShell activePath="/settings" title="设置">
       <PageHeader
         title="设置"
-        subtitle="学习偏好与生成偏好（MVP：仅保存到 UserProfile；密钥始终只在服务端环境变量）"
-        badge="MVP"
+        subtitle="学习偏好"
+        badge="偏好"
       />
 
       <div className="grid gap-4 lg:grid-cols-3">

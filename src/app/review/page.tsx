@@ -75,7 +75,6 @@ export default async function ReviewPage({
   });
   const emptyState = buildReviewEmptyState({ source, projectId });
 
-  const scopeKey = `${source}:${projectId ?? ""}`;
   const currentDto = current
     ? {
         id: current.id,
@@ -108,22 +107,21 @@ export default async function ReviewPage({
             ? "只复习当前项目生成的总结卡和里程碑卡"
             : source === "code-feedback"
               ? "只复习当前项目里程碑代码评审生成的卡片"
-            : "间隔重复（MVP 先用简化规则：1/3/7/14 天）"
+            : "主动回忆，按 1/3/7/14 天复习"
         }
-        badge="MVP"
+        badge="复习"
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2 grid gap-4">
-          <div id="card" className="rounded-lg border bg-card p-4">
-            <div className="text-sm font-medium">卡片</div>
-            <ReviewTrainer
-              scopeKey={scopeKey}
-              card={currentDto}
-              queueSize={due.length}
-              emptyState={emptyState}
-            />
-          </div>
+            <div id="card" className="rounded-lg border bg-card p-4">
+              <div className="text-sm font-medium">卡片</div>
+              <ReviewTrainer
+                card={currentDto}
+                queueSize={due.length}
+                emptyState={emptyState}
+              />
+            </div>
           <Card className="rounded-lg">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">复习统计</CardTitle>

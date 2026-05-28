@@ -5,6 +5,43 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 
+function NavLinks(props: {
+  activePath: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <nav className="flex flex-col gap-4 p-3">
+      {APP_ROUTE_GROUPS.map((group) => (
+        <div key={group.label} className="grid gap-1">
+          <div className="px-2 text-xs font-medium text-muted-foreground">
+            {group.label}
+          </div>
+          <div className="grid gap-1">
+            {group.routes.map((r) => {
+              const isActive = props.activePath === r.href;
+              return (
+                <Link
+                  key={r.href}
+                  href={r.href}
+                  onClick={props.onNavigate}
+                  className={cn(
+                    "rounded-md px-3 py-2 text-sm transition-colors",
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  )}
+                >
+                  {r.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </nav>
+  );
+}
+
 export function AppShell({
   activePath,
   title,
@@ -16,47 +53,13 @@ export function AppShell({
   actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  function NavLinks(props: { onNavigate?: () => void }) {
-    return (
-      <nav className="flex flex-col gap-4 p-3">
-        {APP_ROUTE_GROUPS.map((group) => (
-          <div key={group.label} className="grid gap-1">
-            <div className="px-2 text-xs font-medium text-muted-foreground">
-              {group.label}
-            </div>
-            <div className="grid gap-1">
-              {group.routes.map((r) => {
-                const isActive = activePath === r.href;
-                return (
-                  <Link
-                    key={r.href}
-                    href={r.href}
-                    onClick={props.onNavigate}
-                    className={cn(
-                      "rounded-md px-3 py-2 text-sm transition-colors",
-                      isActive
-                        ? "bg-accent text-accent-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                    )}
-                  >
-                    {r.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </nav>
-    );
-  }
-
   return (
     <div className="flex min-h-[calc(100vh-0px)] w-full bg-background">
       <aside className="hidden w-64 shrink-0 border-r bg-background md:block">
         <div className="flex h-14 items-center gap-2 border-b px-4">
           <div className="text-sm font-semibold">Roky Learn</div>
         </div>
-        <NavLinks />
+        <NavLinks activePath={activePath} />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -73,7 +76,7 @@ export function AppShell({
                   <div className="flex h-14 items-center gap-2 border-b px-4">
                     <div className="text-sm font-semibold">Roky Learn</div>
                   </div>
-                  <NavLinks />
+                  <NavLinks activePath={activePath} />
                 </SheetContent>
               </Sheet>
             </div>

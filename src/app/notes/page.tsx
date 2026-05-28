@@ -70,8 +70,8 @@ export default async function NotesPage({
     <AppShell activePath="/notes" title="我的笔记">
       <PageHeader
         title="我的笔记"
-        subtitle="MVP：保存 Markdown 文本；可关联到今日课程"
-        badge="MVP"
+        subtitle="学习笔记"
+        badge="笔记"
       />
 
       <div className="grid gap-4 lg:grid-cols-3">

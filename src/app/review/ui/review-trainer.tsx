@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LearningProgressBar } from "@/components/learning/learning-progress-bar";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
@@ -29,71 +29,27 @@ function clamp01(x: number) {
   return x;
 }
 
-export function ReviewTrainer(props: {
-  scopeKey: string;
-  card: ReviewCardDto | null;
-  queueSize: number;
-  emptyState: ReviewEmptyState;
+function ReviewCardStage(props: {
+  card: ReviewCardDto;
+  onRated: (rating: Rating) => void;
 }) {
-  const { scopeKey, card, queueSize, emptyState } = props;
+  const { card, onRated } = props;
   const [revealed, setRevealed] = useState(false);
   const [lastRating, setLastRating] = useState<Rating | null>(null);
-  const [sessionTotal, setSessionTotal] = useState(0);
-  const [sessionCounts, setSessionCounts] = useState<Record<Rating, number>>({
-    forgot: 0,
-    hard: 0,
-    good: 0,
-    easy: 0,
-  });
 
-  const scopeKeyRef = useRef(scopeKey);
-  if (scopeKeyRef.current !== scopeKey) scopeKeyRef.current = scopeKey;
-
-  useEffect(() => {
-    // Switching scope should reset the session.
-    setRevealed(false);
-    setLastRating(null);
-    setSessionTotal(0);
-    setSessionCounts({ forgot: 0, hard: 0, good: 0, easy: 0 });
-  }, [scopeKey]);
-
-  useEffect(() => {
-    // New card: reset the training stage state, but keep session totals/counters.
-    setRevealed(false);
-    setLastRating(null);
-  }, [card?.id]);
-
-  useEffect(() => {
-    // First time we see a non-empty queue: lock the session total.
-    if (!sessionTotal && queueSize > 0) setSessionTotal(queueSize);
-    // If the queue grows mid-session (rare), keep the larger number for progress math.
-    if (queueSize > sessionTotal) setSessionTotal(queueSize);
-  }, [queueSize, sessionTotal]);
-
-  const progress = useMemo(() => {
-    if (!sessionTotal) return 0;
-    const reviewed = Math.max(0, sessionTotal - queueSize);
-    return clamp01(reviewed / sessionTotal);
-  }, [queueSize, sessionTotal]);
-
-  const indexLabel = useMemo(() => {
-    if (!sessionTotal || !queueSize) return null;
-    const idx = Math.min(sessionTotal, Math.max(1, sessionTotal - queueSize + 1));
-    return `${idx} / ${sessionTotal}`;
-  }, [queueSize, sessionTotal]);
-
-  function submitRating(rating: Rating) {
-    if (!card) return;
-    if (lastRating) return;
-    const form = document.getElementById("review-rate-form") as HTMLFormElement | null;
-    if (!form) return;
-    const ratingInput = form.querySelector("input[name='rating']") as HTMLInputElement | null;
-    if (!ratingInput) return;
-    ratingInput.value = rating;
-    setLastRating(rating);
-    setSessionCounts((prev) => ({ ...prev, [rating]: (prev[rating] ?? 0) + 1 }));
-    form.requestSubmit();
-  }
+  const submitRating = useCallback(
+    (rating: Rating) => {
+      if (lastRating) return;
+      setLastRating(rating);
+      onRated(rating);
+      const form = document.getElementById("review-rate-form") as HTMLFormElement | null;
+      const ratingInput = form?.querySelector("input[name='rating']") as HTMLInputElement | null;
+      if (!form || !ratingInput) return;
+      ratingInput.value = rating;
+      form.requestSubmit();
+    },
+    [lastRating, onRated],
+  );
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -113,9 +69,113 @@ export function ReviewTrainer(props: {
       if (!rating) return;
       submitRating(rating);
     }
+
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [revealed, card?.id]);
+  }, [revealed, submitRating]);
+
+  return (
+    <>
+      <div className="rounded-lg border bg-card p-5 shadow-sm">
+        <div className="text-base font-semibold leading-snug">{card.front}</div>
+        {revealed ? (
+          <div className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">
+            {card.back}
+          </div>
+        ) : (
+          <div className="mt-3 text-sm text-muted-foreground">先在脑中回答，再显示答案。</div>
+        )}
+      </div>
+
+      {!revealed ? (
+        <Button type="button" variant="secondary" onClick={() => setRevealed(true)}>
+          显示答案
+        </Button>
+      ) : (
+        <form
+          id="review-rate-form"
+          action={rateFlashcardAction}
+          className="flex flex-wrap items-center gap-2"
+        >
+          <input type="hidden" name="flashcardId" value={card.id} />
+          <input type="hidden" name="rating" value="" />
+          <Button
+            type="button"
+            variant="secondary"
+            className="border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+            onClick={() => submitRating("forgot")}
+            disabled={Boolean(lastRating)}
+          >
+            1 忘了（+1d）
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            className="border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+            onClick={() => submitRating("hard")}
+            disabled={Boolean(lastRating)}
+          >
+            2 模糊（+3d）
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            className="border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+            onClick={() => submitRating("good")}
+            disabled={Boolean(lastRating)}
+          >
+            3 记得（+7d）
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            className="border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+            onClick={() => submitRating("easy")}
+            disabled={Boolean(lastRating)}
+          >
+            4 很熟（+14d）
+          </Button>
+        </form>
+      )}
+    </>
+  );
+}
+
+export function ReviewTrainer(props: {
+  card: ReviewCardDto | null;
+  queueSize: number;
+  emptyState: ReviewEmptyState;
+}) {
+  const { card, queueSize, emptyState } = props;
+  const [sessionTotal, setSessionTotal] = useState(() => queueSize);
+  const [lastRating, setLastRating] = useState<Rating | null>(null);
+  const [sessionCounts, setSessionCounts] = useState<Record<Rating, number>>({
+    forgot: 0,
+    hard: 0,
+    good: 0,
+    easy: 0,
+  });
+
+  const handleRated = useCallback(
+    (rating: Rating) => {
+      setLastRating(rating);
+      setSessionCounts((prev) => ({ ...prev, [rating]: (prev[rating] ?? 0) + 1 }));
+      setSessionTotal((prev) => Math.max(prev, queueSize));
+    },
+    [queueSize],
+  );
+
+  const progress = useMemo(() => {
+    if (!sessionTotal) return 0;
+    const reviewed = Math.max(0, sessionTotal - queueSize);
+    return clamp01(reviewed / sessionTotal);
+  }, [queueSize, sessionTotal]);
+
+  const indexLabel = useMemo(() => {
+    if (!sessionTotal || !queueSize) return null;
+    const idx = Math.min(sessionTotal, Math.max(1, sessionTotal - queueSize + 1));
+    return `${idx} / ${sessionTotal}`;
+  }, [queueSize, sessionTotal]);
 
   const sessionReviewed = Object.values(sessionCounts).reduce((a, b) => a + b, 0);
   const sessionHasStarted = sessionTotal > 0 || sessionReviewed > 0;
@@ -139,67 +199,7 @@ export function ReviewTrainer(props: {
       </div>
 
       {card ? (
-        <>
-          <div className="rounded-lg border bg-card p-5 shadow-sm">
-            <div className="text-base font-semibold leading-snug">{card.front}</div>
-            {revealed ? (
-              <div className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">{card.back}</div>
-            ) : (
-              <div className="mt-3 text-sm text-muted-foreground">先在脑中回答，再显示答案。</div>
-            )}
-          </div>
-
-          {!revealed ? (
-            <Button type="button" variant="secondary" onClick={() => setRevealed(true)}>
-              显示答案
-            </Button>
-          ) : (
-            <form
-              id="review-rate-form"
-              action={rateFlashcardAction}
-              className="flex flex-wrap items-center gap-2"
-            >
-              <input type="hidden" name="flashcardId" value={card.id} />
-              <input type="hidden" name="rating" value="" />
-              <Button
-                type="button"
-                variant="secondary"
-                className="border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
-                onClick={() => submitRating("forgot")}
-                disabled={Boolean(lastRating)}
-              >
-                1 忘了（+1d）
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                className="border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
-                onClick={() => submitRating("hard")}
-                disabled={Boolean(lastRating)}
-              >
-                2 模糊（+3d）
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                className="border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                onClick={() => submitRating("good")}
-                disabled={Boolean(lastRating)}
-              >
-                3 记得（+7d）
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                className="border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
-                onClick={() => submitRating("easy")}
-                disabled={Boolean(lastRating)}
-              >
-                4 很熟（+14d）
-              </Button>
-            </form>
-          )}
-        </>
+        <ReviewCardStage key={card.id} card={card} onRated={handleRated} />
       ) : sessionComplete ? (
         <div className="rounded-lg border bg-card p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
