@@ -496,15 +496,14 @@ export default async function MapPage({
 	                      </div>
 	                      <LearningInsightCard
 	                        title="下一步建议"
-	                        description={
-	                          stat.dueFlashcardCount > 0
-	                            ? `先清空本领域到期卡片：${stat.dueFlashcardCount} 张`
-	                            : stat.plannedLessons > 0
-	                              ? `本领域还有 ${stat.plannedLessons} 节待学内容，建议从最近主题继续`
-	                              : "本领域暂时没有待处理项，考虑切到薄弱领域或做一个小项目"
-	                        }
 	                        tone={stat.dueFlashcardCount > 0 ? "warning" : "neutral"}
-	                      />
+	                      >
+	                        {stat.dueFlashcardCount > 0
+	                          ? `先清空本领域到期卡片：${stat.dueFlashcardCount} 张`
+	                          : stat.plannedLessons > 0
+	                            ? `本领域还有 ${stat.plannedLessons} 节待学内容，建议从最近主题继续`
+	                            : "本领域暂时没有待处理项，考虑切到薄弱领域或做一个小项目"}
+	                      </LearningInsightCard>
 	                      <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
 	                        <div>计划：{stat.planCount}</div>
 	                        <div>待学：{stat.plannedLessons}</div>
