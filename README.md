@@ -1,6 +1,18 @@
-这是一个基于 [Next.js](https://nextjs.org)（App Router）的个人化 AI 学习平台（MVP 骨架）。
+这是一个基于 [Next.js](https://nextjs.org)（App Router）的个人化 AI 学习平台。
 
 目标是做一个“AI 学习广度 + 深度 + 长期积累”的系统：每日学习（/today）+ 复习（/review）+ 知识地图（/map）+ 课程库（/library）+ 笔记（/notes）+ 进度（/progress）+ 设置（/settings）。
+
+当前能力（已实现）：
+
+- DeepSeek 结构化生成每日课程与卡片（默认 Provider）
+- 今日学习闭环：生成 → 学习 → 完成 → 生成卡片 → 进入复习
+- Review（记忆训练器）：主动回忆、键盘快捷键、会话进度与统计
+- Coach（思路评审）：结构化反馈 + 可生成复习卡片 + 右侧上下文
+- Voice Note（语音笔记）：录音/上传 → 服务端转写（可选）→ 自动填 transcript → 一键送 Coach/存 Note/生成卡片
+- Glossary / Radar：术语库与实体库 + 复习卡片生成 + 探索路径/关系卡
+- Projects：项目实践（里程碑、草稿、AI 代码评审、任务感 UI）
+- Knowledge Map：领域/主题统计、masteryScore、进度条、下一步建议
+- Manual migrations：以 `prisma/manual-migrations/*.sql` 管理历史库演进
 
 ## Getting Started
 
@@ -26,9 +38,9 @@ npm run dev
 
 ## 当前状态
 
-- 已生成页面路由：`/today /review /map /library /notes /progress /settings /admin`
+- 页面路由：`/today /review /map /library /notes /progress /settings /admin /coach /voice /glossary /radar /projects`
 - UI：已初始化 `shadcn/ui`（Radix Nova 风格），并加入常用组件
-- Prisma：已提供 `prisma/schema.prisma`（与文档的模型一致）
+- Prisma：以 `prisma/schema.prisma` 为准
 - 健康检查：`GET /api/health`
 
 ## 数据库
