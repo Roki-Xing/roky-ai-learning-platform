@@ -7,10 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { requireUserId } from "@/server/auth/user";
 import { prisma } from "@/server/db";
+import { buildCoachContext } from "@/server/coach/context";
 import {
   generateCardsFromThoughtReviewAction,
   submitThoughtReviewAction,
 } from "@/app/coach/actions";
+import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
+import { LearningSectionCard } from "@/components/learning/learning-section-card";
+import { LearningEmptyState } from "@/components/learning/learning-empty-state";
 
 type ReviewJson = {
   provider?: string;
@@ -63,6 +67,14 @@ export default async function CoachPage({
     include: { lesson: { select: { id: true, title: true } } },
   });
 
+  // This is a lightweight, UI-facing context snapshot (not the full prompt summary string).
+  const coachContext = await buildCoachContext({
+    userId,
+    mode: "free_thought",
+    includeTodayLesson: true,
+    lessonId: todayPlan?.lessonId ?? null,
+  });
+
   const reviews = await prisma.thoughtReview.findMany({
     where: { userId },
     orderBy: [{ createdAt: "desc" }],
@@ -104,69 +116,63 @@ export default async function CoachPage({
         badge="Sprint 3"
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">提交思路</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form action={submitThoughtReviewAction} className="grid gap-3">
-              <div className="grid gap-2">
-                <div className="text-sm font-medium">模式</div>
-                <select
-                  name="mode"
-                  defaultValue="today_lesson"
-                  className="h-9 rounded-md border bg-background px-3 text-sm outline-none"
-                >
-                  {MODES.map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+      <div className="grid gap-4 lg:grid-cols-[360px_1fr_320px]">
+        <LearningSectionCard
+          title="我的输入"
+          description="把你的理解写出来，Coach 才能指出概念混淆与下一步。"
+          className="rounded-lg"
+        >
+          <form action={submitThoughtReviewAction} className="grid gap-3">
+            <div className="grid gap-2">
+              <div className="text-sm font-medium">模式</div>
+              <select
+                name="mode"
+                defaultValue="today_lesson"
+                className="h-9 rounded-md border bg-background px-3 text-sm outline-none"
+              >
+                {MODES.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="includeTodayLesson" defaultChecked className="size-4" />
+              关联最近课程
+            </label>
+            {todayPlan ? <input type="hidden" name="lessonId" value={todayPlan.lessonId} /> : null}
+            <div className="grid gap-2">
+              <div className="text-sm font-medium">我的理解</div>
+              <Textarea
+                name="rawText"
+                className="min-h-64"
+                placeholder="例如：我觉得 Self-Attention 就是把所有 token 平均一下；或者贴一段代码思路让 Coach 找问题。"
+                required
+              />
+            </div>
+            {todayPlan ? (
+              <div className="text-xs text-muted-foreground">
+                当前关联：{todayPlan.localDate} / {todayPlan.lesson.title}
               </div>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  name="includeTodayLesson"
-                  defaultChecked
-                  className="size-4"
-                />
-                关联最近课程
-              </label>
-              {todayPlan ? (
-                <input type="hidden" name="lessonId" value={todayPlan.lessonId} />
-              ) : null}
-              <div className="grid gap-2">
-                <div className="text-sm font-medium">我的理解</div>
-                <Textarea
-                  name="rawText"
-                  className="min-h-64"
-                  placeholder="例如：我觉得 Self-Attention 就是把所有 token 平均一下；或者贴一段代码思路让 Coach 找问题。"
-                  required
-                />
-              </div>
-              {todayPlan ? (
-                <div className="text-xs text-muted-foreground">
-                  当前关联：{todayPlan.localDate} / {todayPlan.lesson.title}
-                </div>
-              ) : null}
-              <Button type="submit">提交评审</Button>
-            </form>
-          </CardContent>
-        </Card>
+            ) : null}
+            <Button type="submit">提交评审</Button>
+          </form>
+        </LearningSectionCard>
 
-        <div className="lg:col-span-2 grid gap-4">
-          <Card className="rounded-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Coach 反馈</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4">
+        <LearningSectionCard
+          title="Coach 反馈"
+          description="按结构阅读：观点 -> 正确点 -> 问题 -> 缺失概念 -> 追问 -> 下一步。"
+          className="rounded-lg"
+        >
+          <div className="grid gap-4">
               {selected ? (
                 <>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="secondary">{selected.mode}</Badge>
-                    <Badge variant="outline">{review.provider ?? "template"}</Badge>
+                    <LearningStatusBadge tone="neutral">{selected.mode}</LearningStatusBadge>
+                    <LearningStatusBadge tone={review.provider === "deepseek" ? "info" : "neutral"}>
+                      {review.provider ?? "template"}
+                    </LearningStatusBadge>
                     {selected.lessonId ? (
                       <Button asChild size="sm" variant="outline">
                         <Link href={`/library?lessonId=${encodeURIComponent(selected.lessonId)}`}>
@@ -222,7 +228,17 @@ export default async function CoachPage({
                         <div key={`${x.issue}:${idx}`} className="rounded-md border bg-muted/30 p-3">
                           <div className="flex flex-wrap items-center gap-2 text-xs">
                             <Badge variant="outline">{x.type ?? "issue"}</Badge>
-                            <Badge variant="secondary">{x.severity ?? "medium"}</Badge>
+                            <LearningStatusBadge
+                              tone={
+                                x.severity === "high"
+                                  ? "danger"
+                                  : x.severity === "medium"
+                                    ? "warning"
+                                    : "neutral"
+                              }
+                            >
+                              {x.severity ?? "medium"}
+                            </LearningStatusBadge>
                           </div>
                           <div className="mt-2 text-sm font-medium">{x.issue}</div>
                           <div className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">
@@ -288,18 +304,47 @@ export default async function CoachPage({
                   </div>
                 </>
               ) : (
-                <div className="text-sm text-muted-foreground">
-                  暂无 Coach 记录。提交一段自己的理解后，这里会显示结构化反馈。
-                </div>
+                <LearningEmptyState
+                  title="暂无 Coach 记录"
+                  description="先在左侧写下你的理解并提交，Coach 会返回结构化反馈。"
+                  actions={[
+                    { href: "/today", label: "回到今日学习", variant: "secondary" },
+                    { href: "/review", label: "去复习中心", variant: "outline" },
+                  ]}
+                />
               )}
-            </CardContent>
-          </Card>
+          </div>
+        </LearningSectionCard>
 
-          <Card className="rounded-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">最近评审</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-2">
+        <div className="grid gap-4">
+          <LearningSectionCard
+            title="上下文"
+            description="Coach 会参考这些内容来给你更贴近当前学习状态的反馈。"
+          >
+            <div className="grid gap-3 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">时区日期</span>
+                <span className="font-mono">{coachContext.todayLocalDate}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">关联课程</span>
+                <span className="truncate">{coachContext.lessonTitle ?? "无"}</span>
+              </div>
+              <div className="rounded-md border bg-muted/20 p-3 text-xs text-muted-foreground whitespace-pre-wrap">
+                {coachContext.summary}
+              </div>
+              {coachContext.lessonId ? (
+                <Button asChild size="sm" variant="secondary">
+                  <Link href={`/library?lessonId=${encodeURIComponent(coachContext.lessonId)}`}>
+                    查看课程详情
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
+          </LearningSectionCard>
+
+          <LearningSectionCard title="最近评审" description="点击回看历史记录。">
+            <div className="grid gap-2">
               {reviews.length ? (
                 reviews.map((r) => (
                   <Link
@@ -309,7 +354,7 @@ export default async function CoachPage({
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0 font-medium">{r.mainClaim ?? "未命名评审"}</div>
-                      <Badge variant="outline">{r.mode}</Badge>
+                      <LearningStatusBadge tone="neutral">{r.mode}</LearningStatusBadge>
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       {r.createdAt.toISOString().slice(0, 16).replace("T", " ")}
@@ -319,8 +364,8 @@ export default async function CoachPage({
               ) : (
                 <div className="text-sm text-muted-foreground">暂无历史评审。</div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </LearningSectionCard>
         </div>
       </div>
     </AppShell>
