@@ -23,6 +23,13 @@ import {
   type CodeSubmissionView,
   type TodayCodingExercise,
 } from "@/app/today/ui/code-exercise";
+import { LearningTimeline } from "@/components/learning/learning-timeline";
+import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
+import { LearningCTAGroup } from "@/components/learning/learning-cta-group";
+import type {
+  LearningTimelineItem,
+  LearningTimelineItemStatus,
+} from "@/components/learning/learning-timeline";
 
 type LessonExamples = {
   guidedSteps?: unknown;
@@ -244,6 +251,66 @@ export default async function TodayPage() {
     }
   }
 
+  const guidedStatus: LearningTimelineItemStatus = (() => {
+    if (!guidedSteps.length) return "todo";
+    const answerCount = Object.values(guidedProgress.answers ?? {}).filter((x) => x.trim()).length;
+    if (answerCount >= Math.max(1, guidedSteps.length)) return "done";
+    if (answerCount > 0) return "active";
+    return "todo";
+  })();
+
+  const timelineItems: LearningTimelineItem[] = [
+    {
+      id: "goal",
+      label: "今日目标",
+      href: "#today-hero",
+      status: "done" as const,
+      hint: plan.lesson.title,
+    },
+    {
+      id: "lesson",
+      label: "主课",
+      href: "#today-lesson",
+      status: "active" as const,
+      hint: "先通读，再做步骤。",
+    },
+    {
+      id: "guided",
+      label: "引导步骤",
+      href: "#today-guided",
+      status: guidedStatus,
+      hint: guidedSteps.length ? `${guidedSteps.length} 步` : "暂无",
+    },
+    {
+      id: "code",
+      label: "代码练习",
+      href: "#today-code",
+      status: codingExercise ? (codeSubmission ? "done" : "todo") : "todo",
+      hint: codingExercise ? (codeSubmission ? "已提交" : "未提交") : "暂无",
+    },
+    {
+      id: "quiz",
+      label: "小测验",
+      href: "#today-quiz",
+      status: quizQuestions.some((q) => q.attempt) ? "done" : quizQuestions.length ? "todo" : "todo",
+      hint: quizQuestions.length ? `${quizQuestions.filter((q) => q.attempt).length}/${quizQuestions.length}` : "暂无",
+    },
+    {
+      id: "cards",
+      label: "术语/广度",
+      href: "#today-knowledge",
+      status: glossary || breadth ? "todo" : "todo",
+      hint: glossary?.term ?? breadth?.title ?? "",
+    },
+    {
+      id: "reflect",
+      label: "反思与完成",
+      href: "#today-reflection",
+      status: plan.status === "completed" ? "done" : "todo",
+      hint: plan.status === "completed" ? "已生成卡片" : "写一句话总结",
+    },
+  ];
+
   return (
     <AppShell
       activePath="/today"
@@ -262,19 +329,59 @@ export default async function TodayPage() {
         badge="Sprint 10"
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 grid gap-4">
-          <div className="grid gap-4">
-            <div className="rounded-lg border bg-card p-4">
-              <div className="text-sm font-medium">今日主课</div>
-              <div className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
-                {plan.lesson.contentMarkdown}
+      <div className="grid gap-4 lg:grid-cols-[260px_1fr_340px]">
+        <div className="hidden lg:block">
+          <div className="sticky top-16">
+            <LearningTimeline title="今日流程" items={timelineItems} />
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          <div id="today-hero" className="rounded-lg border bg-card p-4 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <div className="text-xs text-muted-foreground">今日主题</div>
+                <div className="mt-1 text-lg font-semibold leading-snug">{plan.lesson.title}</div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <LearningStatusBadge tone={plan.status === "completed" ? "success" : "info"}>
+                  {plan.status}
+                </LearningStatusBadge>
+                <LearningStatusBadge tone="neutral">{plan.localDate}</LearningStatusBadge>
               </div>
             </div>
+            <div className="mt-3 text-sm text-muted-foreground">
+              你现在要做的事很简单：按步骤走完，最后写一句自己的总结。
+            </div>
+            <LearningCTAGroup className="mt-3">
+              <Button asChild size="sm">
+                <a href="#today-guided">继续步骤</a>
+              </Button>
+              <Button asChild size="sm" variant="secondary">
+                <a href="#today-quiz">去做小测验</a>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <a href="#today-reflection">完成并生成卡片</a>
+              </Button>
+            </LearningCTAGroup>
+          </div>
+
+          <div id="today-lesson" className="rounded-lg border bg-card p-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="text-sm font-medium">今日主课</div>
+              <div className="text-xs text-muted-foreground">建议：先通读，再做步骤</div>
+            </div>
+            <div className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
+              {plan.lesson.contentMarkdown}
+            </div>
+          </div>
 
             {guidedSteps.length ? (
-              <div className="rounded-lg border bg-card p-4">
-                <div className="text-sm font-medium">引导式学习步骤</div>
+              <div id="today-guided" className="rounded-lg border bg-card p-4 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="text-sm font-medium">引导式学习步骤</div>
+                  <div className="text-xs text-muted-foreground">一步一步完成</div>
+                </div>
                 <GuidedSteps
                   planId={plan.id}
                   steps={guidedSteps}
@@ -284,8 +391,13 @@ export default async function TodayPage() {
             ) : null}
 
             {codingExercise ? (
-                <div className="rounded-lg border bg-card p-4">
-                  <div className="text-sm font-medium">今日代码练习</div>
+                <div id="today-code" className="rounded-lg border bg-card p-4 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="text-sm font-medium">今日代码练习</div>
+                    <div className="text-xs text-muted-foreground">
+                      {codeSubmission ? "已提交" : "未提交"}
+                    </div>
+                  </div>
                   <CodeExercise
                     lessonId={plan.lessonId}
                     localDate={plan.localDate}
@@ -298,9 +410,9 @@ export default async function TodayPage() {
             ) : null}
 
             {glossary || breadth ? (
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div id="today-knowledge" className="grid gap-4 lg:grid-cols-2">
                 {glossary ? (
-                  <div className="rounded-lg border bg-card p-4">
+                  <div className="rounded-lg border bg-card p-4 shadow-sm">
                     <div className="flex items-center justify-between gap-3">
                       <div className="text-sm font-medium">今日术语</div>
                       {glossaryDetail ? (
@@ -335,7 +447,7 @@ export default async function TodayPage() {
                   </div>
                 ) : null}
                 {breadth ? (
-                  <div className="rounded-lg border bg-card p-4">
+                  <div className="rounded-lg border bg-card p-4 shadow-sm">
                     <div className="flex items-center justify-between gap-3">
                       <div className="text-sm font-medium">今日广度小卡</div>
                       {breadthDetail ? (
@@ -377,7 +489,7 @@ export default async function TodayPage() {
               </div>
             ) : null}
 
-            <div className="rounded-lg border bg-card p-4">
+            <div id="today-quiz" className="rounded-lg border bg-card p-4 shadow-sm">
               <div className="text-sm font-medium">今日小测验（3 题）</div>
               {quizQuestions.length ? (
                 <TodayQuiz questions={quizQuestions} />
@@ -388,7 +500,7 @@ export default async function TodayPage() {
               )}
             </div>
 
-            <div className="rounded-lg border bg-card p-4">
+            <div id="today-reflection" className="rounded-lg border bg-card p-4 shadow-sm">
               <div className="text-sm font-medium">沉淀</div>
               <form action={completeTodayAction} className="mt-3 grid gap-3">
                 <input type="hidden" name="date" value={plan.date.toISOString()} />
@@ -425,10 +537,10 @@ export default async function TodayPage() {
                 ) : null}
               </form>
             </div>
-          </div>
         </div>
+
         <div className="grid gap-4">
-          <Card className="rounded-lg">
+          <Card className="rounded-lg shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">今日复习入口</CardTitle>
             </CardHeader>
@@ -473,7 +585,7 @@ export default async function TodayPage() {
               )}
             </CardContent>
           </Card>
-          <Card className="rounded-lg">
+          <Card className="rounded-lg shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">今日概览</CardTitle>
             </CardHeader>
@@ -502,7 +614,7 @@ export default async function TodayPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="rounded-lg">
+          <Card className="rounded-lg shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">为什么今天学这个</CardTitle>
             </CardHeader>
