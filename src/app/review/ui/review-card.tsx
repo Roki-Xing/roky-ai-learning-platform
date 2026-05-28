@@ -52,6 +52,16 @@ export function ReviewCard(props: { card: Flashcard; queueSize: number }) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [revealed]);
 
+  function submitRating(rating: "forgot" | "hard" | "good" | "easy") {
+    const form = document.getElementById("review-rate-form") as HTMLFormElement | null;
+    if (!form) return;
+    const ratingInput = form.querySelector("input[name='rating']") as HTMLInputElement | null;
+    if (!ratingInput) return;
+    ratingInput.value = rating;
+    setLastRating(rating);
+    form.requestSubmit();
+  }
+
   return (
     <div className="mt-3 grid gap-3">
       <div className="grid gap-2">
@@ -98,38 +108,34 @@ export function ReviewCard(props: { card: Flashcard; queueSize: number }) {
           <input type="hidden" name="flashcardId" value={card.id} />
           <input type="hidden" name="rating" value="" />
           <Button
-            type="submit"
-            name="rating"
-            value="forgot"
+            type="button"
             variant="secondary"
             className="border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+            onClick={() => submitRating("forgot")}
           >
             1 忘了（+1d）
           </Button>
           <Button
-            type="submit"
-            name="rating"
-            value="hard"
+            type="button"
             variant="secondary"
             className="border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+            onClick={() => submitRating("hard")}
           >
             2 模糊（+3d）
           </Button>
           <Button
-            type="submit"
-            name="rating"
-            value="good"
+            type="button"
             variant="secondary"
             className="border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+            onClick={() => submitRating("good")}
           >
             3 记得（+7d）
           </Button>
           <Button
-            type="submit"
-            name="rating"
-            value="easy"
+            type="button"
             variant="secondary"
             className="border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+            onClick={() => submitRating("easy")}
           >
             4 很熟（+14d）
           </Button>
