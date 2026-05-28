@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { requireUserId } from "@/server/auth/user";
@@ -29,10 +27,24 @@ import {
   saveMilestoneDraftAction,
   startProjectAction,
 } from "@/app/projects/actions";
-import { LearningProgressBar } from "@/components/learning/learning-progress-bar";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningCTAGroup } from "@/components/learning/learning-cta-group";
+import {
+  MissionCompletionCriteria,
+  ProjectListPanel,
+  ProjectMilestonePath,
+  ProjectMissionBrief,
+  ProjectMissionHero,
+  ProjectReviewQueuePanel,
+  ProjectTemplateList,
+  ProjectTypeFilter,
+  type ProjectListView,
+  type ProjectMilestonePathItem,
+  type ProjectMissionView,
+  type ProjectTemplateView,
+  type ProjectTypeFilterItem,
+} from "@/app/projects/ui/project-mission-workspace";
 
 function strings(value: unknown) {
   return Array.isArray(value) ? value.filter((x): x is string => typeof x === "string") : [];
@@ -103,6 +115,73 @@ export default async function ProjectsPage({
     : null;
 
   const typeEntries = Object.entries(PROJECT_TYPE_LABELS) as Array<[ProjectType, string]>;
+  const typeFilterItems: ProjectTypeFilterItem[] = [
+    { href: "/projects", label: "全部", active: selectedType === null },
+    ...typeEntries.map(([type, label]) => ({
+      href: projectTypeHref(type),
+      label,
+      active: selectedType === type,
+    })),
+  ];
+  const templateViews: ProjectTemplateView[] = templates.map((template) => {
+    const existing = projects.find((project) => project.templateSlug === template.slug);
+    return {
+      slug: template.slug,
+      title: template.title,
+      description: template.description,
+      difficulty: template.difficulty,
+      typeLabel: PROJECT_TYPE_LABELS[template.type],
+      estimatedHours: template.estimatedHours,
+      milestoneCount: template.milestones.length,
+      existingProjectId: existing?.id ?? null,
+    };
+  });
+  const projectViews: ProjectListView[] = projects.map((project) => {
+    const progress = calculateProjectProgress(project.milestones);
+    return {
+      id: project.id,
+      title: project.title,
+      typeLabel: PROJECT_TYPE_LABELS[normalizeProjectType(project.type)],
+      status: project.status,
+      percent: progress.percent,
+    };
+  });
+  const selectedMission: ProjectMissionView | null =
+    selectedProject && selectedProgress
+      ? {
+          id: selectedProject.id,
+          title: selectedProject.title,
+          description: selectedProject.description,
+          typeLabel: PROJECT_TYPE_LABELS[normalizeProjectType(selectedProject.type)],
+          status: selectedProject.status,
+          percent: selectedProgress.percent,
+          totalMilestones: selectedProgress.total,
+          completedMilestones: selectedProgress.completed,
+          remainingMilestones: selectedProgress.remaining,
+          topicCount: strings(selectedProject.relatedTopics).length,
+          activeMilestoneTitle: activeMilestone?.title ?? null,
+          activeMilestoneTask: activeMilestone?.task ?? null,
+          reviewDue: selectedReviewCards?.due ?? 0,
+          reviewTotal: selectedReviewCards?.total ?? 0,
+          codeDue: selectedCodeFeedbackCards?.due ?? 0,
+          codeTotal: selectedCodeFeedbackCards?.total ?? 0,
+        }
+      : null;
+  const milestonePathItems: ProjectMilestonePathItem[] =
+    selectedProject?.milestones.map((milestone) => {
+      const milestoneFeedback = feedbackByMilestoneId.get(milestone.id);
+      return {
+        id: milestone.id,
+        position: milestone.position,
+        title: milestone.title,
+        task: milestone.task,
+        status: milestone.status,
+        hasCode: Boolean(milestone.code),
+        hasReflection: Boolean(milestone.reflection),
+        hasFeedback: Boolean(milestone.codeSubmissionId || milestoneFeedback),
+        feedbackSummary: milestoneFeedback?.feedback.summary ?? null,
+      };
+    }) ?? [];
 
   return (
     <AppShell
@@ -120,223 +199,189 @@ export default async function ProjectsPage({
         badge="Mission"
       />
 
-      <div className="grid gap-4 lg:grid-cols-[360px_minmax(0,1fr)]">
-        <div className="grid gap-4">
-          <Card className="rounded-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">项目类型</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              <Badge asChild variant={selectedType ? "outline" : "secondary"}>
-                <Link href="/projects">全部</Link>
-              </Badge>
-              {typeEntries.map(([type, label]) => (
-                <Badge
-                  key={type}
-                  asChild
-                  variant={selectedType === type ? "secondary" : "outline"}
-                >
-                  <Link href={projectTypeHref(type)}>{label}</Link>
-                </Badge>
-              ))}
-            </CardContent>
-          </Card>
+      <div className="mt-4">
+        <ProjectMissionHero mission={selectedMission} />
+      </div>
 
-          <Card className="rounded-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">项目模板</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-2">
-              {templates.map((template) => {
-                const existing = projects.find((project) => project.templateSlug === template.slug);
-                return (
-                  <div key={template.slug} className="rounded-md border px-3 py-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="font-medium">{template.title}</div>
-                        <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                          {template.description}
-                        </div>
-                      </div>
-                      <Badge variant="outline">{template.difficulty}</Badge>
-                    </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                      <span>{PROJECT_TYPE_LABELS[template.type]}</span>
-                      <span>{template.estimatedHours}h</span>
-                      <span>{template.milestones.length} milestones</span>
-                    </div>
-                    <div className="mt-3">
-                      {existing ? (
-                        <Button asChild size="sm" variant="secondary">
-                          <Link href={`/projects?projectId=${encodeURIComponent(existing.id)}`}>
-                            打开项目
-                          </Link>
-                        </Button>
-                      ) : (
-                        <form action={startProjectAction}>
-                          <input type="hidden" name="templateSlug" value={template.slug} />
-                          <Button type="submit" size="sm">开始项目</Button>
-                        </form>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
+      <div className="mt-4 grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
+        <aside className="grid content-start gap-4">
+          <LearningSectionCard title="项目类型" description="先缩小任务范围，再开始实践。">
+            <ProjectTypeFilter items={typeFilterItems} />
+          </LearningSectionCard>
 
-          <Card className="rounded-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">我的项目</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-2">
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="rounded-md border px-3 py-2">
-                  <div className="text-xl font-semibold tabular-nums">{activeProjectCount}</div>
-                  <div className="text-xs text-muted-foreground">进行中</div>
-                </div>
-                <div className="rounded-md border px-3 py-2">
-                  <div className="text-xl font-semibold tabular-nums">{completedProjectCount}</div>
-                  <div className="text-xs text-muted-foreground">已完成</div>
-                </div>
-              </div>
+          <LearningSectionCard title="项目模板" description="选择一个能在几小时内收尾的小项目。">
+            <ProjectTemplateList templates={templateViews} startAction={startProjectAction} />
+          </LearningSectionCard>
 
-              {projects.length ? (
-                projects.map((project) => {
-                  const progress = calculateProjectProgress(project.milestones);
-                  const active = selectedProject?.id === project.id;
-                  return (
-                    <Link
-                      key={project.id}
-                      href={`/projects?projectId=${encodeURIComponent(project.id)}`}
-                      className={[
-                        "rounded-md border px-3 py-2 text-sm transition-colors",
-                        active ? "bg-muted" : "hover:bg-muted/50",
-                      ].join(" ")}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0 truncate font-medium">{project.title}</div>
-                        <Badge variant={project.status === "completed" ? "secondary" : "outline"}>
-                          {progress.percent}%
-                        </Badge>
-                      </div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        {PROJECT_TYPE_LABELS[normalizeProjectType(project.type)]} / {project.status}
-                      </div>
-                    </Link>
-                  );
-                })
-              ) : (
-                <div className="text-sm text-muted-foreground">还没有项目。先从模板开始一个。</div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+          <LearningSectionCard title="我的项目" description="继续未完成任务，避免重复开坑。">
+            <ProjectListPanel
+              activeCount={activeProjectCount}
+              completedCount={completedProjectCount}
+              projects={projectViews}
+              selectedProjectId={selectedProject?.id ?? null}
+            />
+          </LearningSectionCard>
+        </aside>
 
-        <div className="grid gap-4">
-          {selectedProject && selectedProgress ? (
-            <>
+        {selectedProject && selectedProgress ? (
+          <main className="grid gap-4">
+            <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_340px]">
               <LearningSectionCard
-                title="项目概览"
-                description="你在做什么，以及离完成还有多远。"
+                title="今日项目任务"
+                description="保存草稿、请求代码评审、完成里程碑都在这里完成。"
                 action={
-                  <Button asChild size="sm" variant="secondary">
-                    <Link href="/review">去复习</Link>
-                  </Button>
+                  activeMilestone ? (
+                    <LearningStatusBadge
+                      tone={activeMilestone.status === "completed" ? "success" : "warning"}
+                    >
+                      {activeMilestone.status}
+                    </LearningStatusBadge>
+                  ) : (
+                    <LearningStatusBadge tone="success">all done</LearningStatusBadge>
+                  )
                 }
               >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-lg font-semibold">{selectedProject.title}</div>
-                      <div className="mt-1 text-sm text-muted-foreground">
-                        {selectedProject.description}
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <LearningStatusBadge tone="neutral">
-                        {PROJECT_TYPE_LABELS[normalizeProjectType(selectedProject.type)]}
-                      </LearningStatusBadge>
-                      <LearningStatusBadge
-                        tone={selectedProject.status === "completed" ? "success" : "info"}
-                      >
-                        {selectedProject.status}
-                      </LearningStatusBadge>
-                      <LearningStatusBadge tone="neutral">{selectedProgress.percent}%</LearningStatusBadge>
-                    </div>
-                  </div>
+                {activeMilestone ? (
+                  <form action={completeMilestoneAction} className="grid gap-3">
+                    <input type="hidden" name="projectId" value={selectedProject.id} />
+                    <input type="hidden" name="milestoneId" value={activeMilestone.id} />
+                    <input type="hidden" name="localDate" value={currentLocalDate} />
 
-                  <LearningProgressBar value={selectedProgress.percent / 100} />
+                    <ProjectMissionBrief
+                      position={activeMilestone.position}
+                      title={activeMilestone.title}
+                      task={activeMilestone.task}
+                      codePrompt={activeMilestone.codePrompt}
+                      status={activeMilestone.status}
+                    />
+                    <MissionCompletionCriteria />
 
-                  <div className="grid gap-3 sm:grid-cols-4">
-                    <div className="rounded-md border px-3 py-2 text-sm">
-                      <div className="text-xl font-semibold tabular-nums">{selectedProgress.total}</div>
-                      <div className="text-xs text-muted-foreground">里程碑</div>
+                    <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px]">
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium">关联 lessonId（可选）</span>
+                        <Input name="lessonId" defaultValue={activeMilestone.lessonId ?? ""} />
+                      </label>
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium">关联 noteId（可选）</span>
+                        <Input name="noteId" defaultValue={activeMilestone.noteId ?? ""} />
+                      </label>
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium">代码语言</span>
+                        <Input name="language" defaultValue="python" />
+                      </label>
                     </div>
-                    <div className="rounded-md border px-3 py-2 text-sm">
-                      <div className="text-xl font-semibold tabular-nums">{selectedProgress.completed}</div>
-                      <div className="text-xs text-muted-foreground">已完成</div>
-                    </div>
-                    <div className="rounded-md border px-3 py-2 text-sm">
-                      <div className="text-xl font-semibold tabular-nums">{selectedProgress.remaining}</div>
-                      <div className="text-xs text-muted-foreground">剩余</div>
-                    </div>
-                    <div className="rounded-md border px-3 py-2 text-sm">
-                      <div className="text-xl font-semibold tabular-nums">{strings(selectedProject.relatedTopics).length}</div>
-                      <div className="text-xs text-muted-foreground">主题</div>
-                    </div>
-                  </div>
 
-                  <div className="rounded-md border p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <div className="text-sm font-medium">代码反馈卡片</div>
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          当前项目里程碑代码评审生成的复习卡片
+                    <label className="grid gap-2">
+                      <span className="text-sm font-medium">代码产物</span>
+                      <Textarea
+                        name="code"
+                        className="min-h-48 font-mono text-xs"
+                        defaultValue={activeMilestone.code ?? ""}
+                        placeholder="# 这里保存代码，不在服务端执行"
+                      />
+                    </label>
+                    <div className="grid gap-3 lg:grid-cols-2">
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium">笔记</span>
+                        <Textarea
+                          name="note"
+                          className="min-h-28"
+                          defaultValue={activeMilestone.note ?? ""}
+                          placeholder="实现思路、测试用例、边界条件..."
+                        />
+                      </label>
+                      <label className="grid gap-2">
+                        <span className="text-sm font-medium">反思</span>
+                        <Textarea
+                          name="reflection"
+                          className="min-h-28"
+                          defaultValue={activeMilestone.reflection ?? ""}
+                          placeholder={activeMilestone.reflectionPrompt}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <LearningCTAGroup>
+                        <Button type="submit">完成里程碑</Button>
+                        <Button formAction={saveMilestoneDraftAction} type="submit" variant="secondary">
+                          保存草稿
+                        </Button>
+                        <Button formAction={reviewMilestoneCodeAction} type="submit" variant="outline">
+                          保存并评审代码
+                        </Button>
+                      </LearningCTAGroup>
+                      {activeMilestone.codeSubmissionId ? (
+                        <LearningStatusBadge tone="info">
+                          feedback {activeMilestone.codeSubmissionId.slice(0, 8)}
+                        </LearningStatusBadge>
+                      ) : null}
+                    </div>
+
+                    {activeMilestoneFeedback ? (
+                      <div className="rounded-lg border bg-card px-3 py-3 text-sm">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="font-medium">代码反馈</div>
+                          <LearningStatusBadge tone="info">
+                            {activeMilestoneFeedback.feedback.overall ?? "reviewed"}
+                          </LearningStatusBadge>
                         </div>
-                      </div>
-                      <Badge variant={selectedCodeFeedbackCards?.due ? "secondary" : "outline"}>
-                        到期 {selectedCodeFeedbackCards?.due ?? 0} / 总计 {selectedCodeFeedbackCards?.total ?? 0}
-                      </Badge>
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <Button asChild size="sm" variant="secondary">
-                        <Link href={selectedCodeFeedbackCards?.reviewHref ?? "/review"}>
-                          去复习代码反馈卡片
-                        </Link>
-                      </Button>
-                      <span className="text-xs text-muted-foreground">
-                        只会进入当前项目 linked submission 的代码反馈卡片队列
-                      </span>
-                    </div>
-                  </div>
-
-                  {selectedProject.summary ? (
-                    <div className="rounded-md border p-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="text-sm font-medium">项目总结</div>
-                        {selectedReviewCards?.total ? (
-                          <Badge variant="secondary">
-                            {selectedReviewCards.total} 张项目卡片
-                          </Badge>
+                        <div className="mt-2 text-muted-foreground">
+                          {activeMilestoneFeedback.feedback.summary}
+                        </div>
+                        {activeMilestoneFeedback.feedback.issues.length ? (
+                          <ul className="mt-2 grid gap-1 text-xs text-muted-foreground">
+                            {activeMilestoneFeedback.feedback.issues.slice(0, 3).map((issue) => (
+                              <li key={`${issue.type}-${issue.message}`}>
+                                {issue.severity} / {issue.type}: {issue.message}
+                              </li>
+                            ))}
+                          </ul>
                         ) : null}
                       </div>
-                      <div className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
+                    ) : null}
+                  </form>
+                ) : (
+                  <div className="rounded-lg border bg-emerald-50/50 p-4 text-sm text-emerald-800">
+                    所有里程碑已完成。可以生成项目总结并进入项目卡片复习。
+                  </div>
+                )}
+              </LearningSectionCard>
+
+              <div className="grid content-start gap-4">
+                <LearningSectionCard title="复习队列" description="项目实践产出的卡片会进入主动回忆。">
+                  <ProjectReviewQueuePanel
+                    codeDue={selectedCodeFeedbackCards?.due ?? 0}
+                    codeTotal={selectedCodeFeedbackCards?.total ?? 0}
+                    codeHref={selectedCodeFeedbackCards?.reviewHref}
+                    projectDue={selectedReviewCards?.due ?? 0}
+                    projectTotal={selectedReviewCards?.total ?? 0}
+                    projectHref={selectedReviewCards?.reviewHref}
+                  />
+                </LearningSectionCard>
+
+                <LearningSectionCard title="项目复盘" description="完成所有里程碑后生成总结和项目卡。">
+                  {selectedProject.summary ? (
+                    <div className="grid gap-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <LearningStatusBadge tone="success">已总结</LearningStatusBadge>
+                        <LearningStatusBadge tone="neutral">
+                          {selectedReviewCards?.total ?? 0} 张项目卡片
+                        </LearningStatusBadge>
+                      </div>
+                      <div className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
                         {selectedProject.summary}
                       </div>
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <Button asChild size="sm">
-                          <Link href={selectedReviewCards?.reviewHref ?? "/review"}>
-                            去复习项目卡片
-                          </Link>
-                        </Button>
-                        <span className="text-xs text-muted-foreground">
-                          当前到期 {selectedReviewCards?.due ?? 0} 张
-                        </span>
-                      </div>
+                      <Button asChild size="sm">
+                        <Link href={selectedReviewCards?.reviewHref ?? "/review"}>复习项目卡片</Link>
+                      </Button>
                     </div>
                   ) : (
-                    <form action={completeProjectAction}>
+                    <form action={completeProjectAction} className="grid gap-3">
                       <input type="hidden" name="projectId" value={selectedProject.id} />
+                      <div className="text-sm text-muted-foreground">
+                        已完成 {selectedProgress.completed} / {selectedProgress.total} 个里程碑。
+                      </div>
                       <Button
                         type="submit"
                         size="sm"
@@ -347,197 +392,21 @@ export default async function ProjectsPage({
                       </Button>
                     </form>
                   )}
-              </LearningSectionCard>
+                </LearningSectionCard>
+              </div>
+            </div>
 
-              <LearningSectionCard
-                title="今日项目任务"
-                description="今天只做这一小步。保存草稿 -> 评审 -> 完成。"
-                action={
-                  activeMilestone ? (
-                    <LearningStatusBadge tone={activeMilestone.status === "completed" ? "success" : "warning"}>
-                      {activeMilestone.status}
-                    </LearningStatusBadge>
-                  ) : (
-                    <LearningStatusBadge tone="success">all done</LearningStatusBadge>
-                  )
-                }
-              >
-                  {activeMilestone ? (
-                    <form action={completeMilestoneAction} className="grid gap-3">
-                      <input type="hidden" name="projectId" value={selectedProject.id} />
-                      <input type="hidden" name="milestoneId" value={activeMilestone.id} />
-                      <input
-                        type="hidden"
-                        name="localDate"
-                        value={currentLocalDate}
-                      />
-                      <div className="rounded-md border p-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="font-medium">
-                            {activeMilestone.position}. {activeMilestone.title}
-                          </div>
-                          <Badge variant="outline">{activeMilestone.status}</Badge>
-                        </div>
-                        <div className="mt-2 text-sm text-muted-foreground">{activeMilestone.task}</div>
-                        <div className="mt-2 rounded-md bg-muted px-3 py-2 font-mono text-xs">
-                          {activeMilestone.codePrompt}
-                        </div>
-                      </div>
-
-                      <div className="rounded-md border bg-muted/20 p-3 text-sm">
-                        <div className="text-sm font-medium">完成条件</div>
-                        <ul className="mt-2 grid list-disc gap-1 pl-5 text-sm text-muted-foreground">
-                          <li>代码与思路已保存（允许未完全正确）</li>
-                          <li>至少写出 1 个边界/测试用例</li>
-                          <li>有需要时先点“保存并评审代码”，再修正一次</li>
-                        </ul>
-                      </div>
-
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                          <div className="text-sm font-medium">关联 lessonId（可选）</div>
-                          <Input name="lessonId" defaultValue={activeMilestone.lessonId ?? ""} />
-                        </div>
-                        <div className="grid gap-2">
-                          <div className="text-sm font-medium">关联 noteId（可选）</div>
-                          <Input name="noteId" defaultValue={activeMilestone.noteId ?? ""} />
-                        </div>
-                      </div>
-
-                      <div className="grid gap-2 sm:max-w-xs">
-                        <div className="text-sm font-medium">代码语言</div>
-                        <Input name="language" defaultValue="python" />
-                      </div>
-
-                      <div className="grid gap-2">
-                        <div className="text-sm font-medium">代码产物</div>
-                        <Textarea
-                          name="code"
-                          className="min-h-44 font-mono text-xs"
-                          defaultValue={activeMilestone.code ?? ""}
-                          placeholder="# 这里保存代码，不在服务端执行"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <div className="text-sm font-medium">笔记</div>
-                        <Textarea
-                          name="note"
-                          className="min-h-24"
-                          defaultValue={activeMilestone.note ?? ""}
-                          placeholder="实现思路、测试用例、边界条件..."
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <div className="text-sm font-medium">反思</div>
-                        <Textarea
-                          name="reflection"
-                          className="min-h-24"
-                          defaultValue={activeMilestone.reflection ?? ""}
-                          placeholder={activeMilestone.reflectionPrompt}
-                        />
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2">
-                        <LearningCTAGroup>
-                          <Button type="submit">完成里程碑</Button>
-                          <Button formAction={saveMilestoneDraftAction} type="submit" variant="secondary">
-                            保存草稿
-                          </Button>
-                          <Button formAction={reviewMilestoneCodeAction} type="submit" variant="outline">
-                            保存并评审代码
-                          </Button>
-                        </LearningCTAGroup>
-                        {activeMilestone.codeSubmissionId ? (
-                          <LearningStatusBadge tone="info">
-                            feedback {activeMilestone.codeSubmissionId.slice(0, 8)}
-                          </LearningStatusBadge>
-                        ) : null}
-                      </div>
-                      {activeMilestoneFeedback ? (
-                        <div className="rounded-md border px-3 py-2 text-sm">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="font-medium">代码反馈</div>
-                            <Badge variant="outline">
-                              {activeMilestoneFeedback.feedback.overall ?? "reviewed"}
-                            </Badge>
-                          </div>
-                          <div className="mt-2 text-muted-foreground">
-                            {activeMilestoneFeedback.feedback.summary}
-                          </div>
-                          {activeMilestoneFeedback.feedback.issues.length ? (
-                            <ul className="mt-2 grid gap-1 text-xs text-muted-foreground">
-                              {activeMilestoneFeedback.feedback.issues.slice(0, 2).map((issue) => (
-                                <li key={`${issue.type}-${issue.message}`}>
-                                  {issue.severity} / {issue.type}: {issue.message}
-                                </li>
-                              ))}
-                            </ul>
-                          ) : null}
-                        </div>
-                      ) : null}
-                    </form>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">所有里程碑已完成。</div>
-                  )}
-              </LearningSectionCard>
-
-              <Card className="rounded-lg">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">里程碑</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-2">
-                  {selectedProject.milestones.map((milestone) => {
-                    const milestoneFeedback = feedbackByMilestoneId.get(milestone.id);
-                    return (
-                      <div key={milestone.id} className="rounded-md border px-3 py-2 text-sm">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="font-medium">
-                            {milestone.position}. {milestone.title}
-                          </div>
-                          <Badge variant={milestone.status === "completed" ? "secondary" : "outline"}>
-                            {milestone.status}
-                          </Badge>
-                        </div>
-                        <div className="mt-1 text-xs text-muted-foreground">{milestone.task}</div>
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                          {milestone.lessonId ? <span>lesson {milestone.lessonId.slice(0, 8)}</span> : null}
-                          {milestone.noteId ? <span>note {milestone.noteId.slice(0, 8)}</span> : null}
-                          {milestone.codeSubmissionId ? (
-                            <span>code feedback {milestone.codeSubmissionId.slice(0, 8)}</span>
-                          ) : null}
-                          {milestone.code ? <span>code saved</span> : null}
-                          {milestone.reflection ? <span>reflection saved</span> : null}
-                        </div>
-                        {milestoneFeedback ? (
-                          <div className="mt-2 rounded-md bg-muted px-3 py-2">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="font-medium">AI code review</span>
-                              <Badge variant="outline">
-                                {milestoneFeedback.feedback.overall ?? "reviewed"}
-                              </Badge>
-                            </div>
-                            <div className="mt-1 text-xs text-muted-foreground">
-                              {milestoneFeedback.feedback.summary}
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <Card className="rounded-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">选择一个项目</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                从左侧模板开始一个项目后，这里会显示里程碑、代码提交区和项目总结。
-              </CardContent>
-            </Card>
-          )}
-        </div>
+            <LearningSectionCard title="里程碑路线" description="按顺序推进，每一步都沉淀代码、反思和反馈。">
+              <ProjectMilestonePath items={milestonePathItems} />
+            </LearningSectionCard>
+          </main>
+        ) : (
+          <LearningSectionCard title="选择一个项目" description="从模板开始后，这里会显示任务工作台。">
+            <div className="text-sm text-muted-foreground">
+              从左侧模板开始一个项目后，这里会显示里程碑、代码提交区和项目总结。
+            </div>
+          </LearningSectionCard>
+        )}
       </div>
     </AppShell>
   );

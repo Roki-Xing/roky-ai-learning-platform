@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.59.0] - 2026-05-28
+
+### Added
+
+- **[Project Mission Workspace]** 完成 `/projects` Mission Mode 学习工作台改造。
+  - `/projects` 顶部新增 Mission Hero，集中展示当前项目、进度、剩余里程碑、项目卡片到期数和代码反馈到期数。
+  - 左侧改为项目类型筛选、项目模板和当前项目列表，保留 `startProjectAction` 与现有项目打开流程。
+  - 主工作区聚焦“今日项目任务”，保留保存草稿、保存并评审代码、完成里程碑和生成项目总结的 server action 流程。
+  - 复习队列和项目复盘从散落区域收敛到右侧上下文面板，项目完成卡片与代码反馈卡片入口继续进入 `/review` focused queue。
+  - 里程碑列表改为路线式展示，突出 code saved、reflection saved、AI reviewed 与 feedback summary。
+  - 新增 `src/app/projects/ui/project-mission-workspace.tsx` 作为 `/projects` 专用 UI 组件层。
+  - 新增 `tests/unit/project-mission-workspace.test.ts`，覆盖 Mission Hero、完成条件、项目列表/复习队列和里程碑路线静态渲染。
+
+### Verified
+
+- 本地：`npm run lint` 通过。
+- 本地：`npm test` 160 项通过。
+- 本地：`npm run build` 通过。
+- 生产：待部署后补充线上验收。
+
 ## [0.58.0] - 2026-05-25
 
 ### Added

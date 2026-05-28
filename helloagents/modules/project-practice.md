@@ -7,13 +7,15 @@
 ## 用户流程
 
 1. 打开 `/projects`。
-2. 按类型筛选项目模板：Python 基础、数据结构、算法、AI 工程、RAG、Agent、数据分析、论文复现。
-3. 点击“开始项目”，模板会复制成当前用户自己的 `LearningProject`。
-4. 在项目详情里查看 milestones、当前任务、代码提示和反思提示。
-5. 保存 milestone 草稿，或填写代码产物、笔记、反思后完成 milestone。
-6. 所有 milestones 完成后生成项目总结和项目复习卡片。
-7. 在 `/review` 复习项目总结卡和里程碑卡。
-8. 在 `/progress` 查看项目数量、完成项目数、里程碑进度和最近项目。
+2. 在 Mission Hero 查看当前项目、进度、剩余里程碑、项目卡片到期数和代码反馈到期数。
+3. 按类型筛选项目模板：Python 基础、数据结构、算法、AI 工程、RAG、Agent、数据分析、论文复现。
+4. 点击“开始项目”，模板会复制成当前用户自己的 `LearningProject`。
+5. 在“今日项目任务”里查看当前 milestone、完成条件、代码提示和反思提示。
+6. 保存 milestone 草稿，或填写代码产物、笔记、反思后完成 milestone。
+7. 需要代码反馈时点击“保存并评审代码”，结果会回写到当前 milestone 并生成代码反馈卡片。
+8. 所有 milestones 完成后生成项目总结和项目复习卡片。
+9. 在 `/review` 复习项目总结卡、里程碑卡和项目代码反馈卡。
+10. 在 `/progress` 查看项目数量、完成项目数、里程碑进度和最近项目。
 
 ## 数据模型
 
@@ -66,9 +68,25 @@
 - 完成项目必须幂等：重复完成不重复创建 Flashcards，也不能重置已有卡片的 `dueAt`、`reviewCount` 等复习进度。
 - Project 卡片必须带 `project` 标签，使 `/review` 和进度统计能识别 standalone 项目复习来源。
 
+## Mission Workspace UI
+
+- `src/app/projects/page.tsx` 负责服务端取数和 server action 表单编排。
+- `src/app/projects/ui/project-mission-workspace.tsx` 只负责 `/projects` 展示组件：
+  - `ProjectMissionHero`
+  - `ProjectTypeFilter`
+  - `ProjectTemplateList`
+  - `ProjectListPanel`
+  - `ProjectMissionBrief`
+  - `MissionCompletionCriteria`
+  - `ProjectReviewQueuePanel`
+  - `ProjectMilestonePath`
+- 页面结构为顶部 Mission Hero、左侧任务导航、主任务区、右侧复习/复盘上下文和底部里程碑路线。
+- 工作台不执行用户代码，只保存代码文本并可调用现有代码评审链路。
+- UI 测试位于 `tests/unit/project-mission-workspace.test.ts`，用静态渲染覆盖核心文案与面板层级。
+
 ## 本地验收
 
-- `npm test`：28 项通过。
+- `npm test`：160 项通过。
 - `npm run lint`：通过。
 - `npm run build`：通过，路由表包含 `/projects`。
 
