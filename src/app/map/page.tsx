@@ -293,7 +293,7 @@ export default async function MapPage({
       <PageHeader
         title="知识地图"
         subtitle="按真实学习记录、术语库和 AI Radar 计算覆盖状态"
-        badge="Sprint 11"
+        badge="地图"
       />
 
       <div className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

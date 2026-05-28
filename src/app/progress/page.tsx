@@ -550,7 +550,7 @@ export default async function ProgressPage() {
       <PageHeader
         title="学习进度"
         subtitle="学习日历、内容质量、学习效果、代码趋势与知识覆盖"
-        badge="Sprint 9"
+        badge="进度"
       />
 
       <Sprint9AnalyticsPanels

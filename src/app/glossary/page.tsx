@@ -114,7 +114,7 @@ export default async function GlossaryPage({
       <PageHeader
         title="术语库"
         subtitle="沉淀每日术语、Agent/RAG/Benchmark 概念和可复习卡片"
-        badge="Sprint 5"
+        badge="术语"
       />
 
       <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">

@@ -326,7 +326,7 @@ export default async function TodayPage() {
       <PageHeader
         title="今日学习"
         subtitle={`今日主题：${plan.lesson.title}`}
-        badge="Sprint 10"
+        badge="今日"
       />
 
       <div className="grid gap-4 lg:grid-cols-[260px_1fr_340px]">

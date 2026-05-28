@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireUserId } from "@/server/auth/user";
 import { prisma } from "@/server/db";
 import {
@@ -12,6 +10,12 @@ import {
   sendVoiceNoteToCoachAction,
 } from "@/app/voice/actions";
 import { VoiceWorkspaceForm } from "@/app/voice/ui/voice-workspace-form";
+import { LearningCTAGroup } from "@/components/learning/learning-cta-group";
+import { LearningCompassCard } from "@/components/learning/learning-compass-card";
+import { LearningEmptyState } from "@/components/learning/learning-empty-state";
+import { LearningSectionCard } from "@/components/learning/learning-section-card";
+import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
+import { LearningStepCard } from "@/components/learning/learning-step-card";
 
 const MODES = [
   ["free_thought", "自由想法"],
@@ -21,6 +25,14 @@ const MODES = [
   ["industry_radar", "行业广度"],
   ["glossary_question", "术语问题"],
 ] as const;
+
+const MODE_LABELS = new Map<string, string>(MODES);
+
+function compactText(value: string, max = 120) {
+  const text = value.replace(/\s+/g, " ").trim();
+  if (text.length <= max) return text;
+  return `${text.slice(0, max - 1)}...`;
+}
 
 export default async function VoicePage({
   searchParams,
@@ -60,107 +72,198 @@ export default async function VoicePage({
           where: { id: { startsWith: `thought:${selected.thoughtReviewId}:` }, userId },
         })
       : 0;
+  const selectedText = selected ? selected.editedTranscript || selected.transcript : "";
+  const hasSelected = Boolean(selected);
+  const hasCoach = Boolean(selected?.thoughtReviewId);
+  const hasNote = Boolean(selected?.noteId);
+  const hasCards = linkedCards > 0;
 
   return (
-    <AppShell activePath="/voice" title="语音笔记">
+    <AppShell
+      activePath="/voice"
+      title="语音笔记"
+      actions={
+        <Button asChild size="sm" variant="secondary">
+          <Link href="/coach">打开 Coach</Link>
+        </Button>
+      }
+    >
       <PageHeader
-        title="语音笔记"
-        subtitle="录音或上传音频后编辑 transcript，再送入 Coach、保存笔记和生成卡片。"
-        badge="Sprint 4"
+        title="语音学习捕获"
+        subtitle="说出你的理解，Roky 帮你整理、检查并沉淀成笔记和卡片。"
+        badge="Voice"
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 xl:grid-cols-[380px_minmax(0,1fr)_320px]">
         <VoiceWorkspaceForm
           modes={MODES as unknown as Array<readonly [string, string]>}
-          recentPlan={recentPlan ? { lessonId: recentPlan.lessonId, localDate: recentPlan.localDate, title: recentPlan.lesson.title } : null}
+          recentPlan={
+            recentPlan
+              ? {
+                  lessonId: recentPlan.lessonId,
+                  localDate: recentPlan.localDate,
+                  title: recentPlan.lesson.title,
+                }
+              : null
+          }
         />
 
-        <div className="lg:col-span-2 grid gap-4">
-          <Card className="rounded-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">分析区</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              {selected ? (
-                <>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="secondary">{selected.mode}</Badge>
-                    {selected.thoughtReviewId ? <Badge variant="outline">Coach linked</Badge> : null}
-                    {selected.noteId ? <Badge variant="outline">Note saved</Badge> : null}
-                    {selected.audioUrl ? <Badge variant="outline">{selected.audioUrl}</Badge> : null}
-                  </div>
-                  <div className="rounded-md border p-3">
-                    <div className="text-sm font-medium">Transcript</div>
-                    <div className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
-                      {selected.editedTranscript || selected.transcript}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <form action={sendVoiceNoteToCoachAction}>
-                      <input type="hidden" name="voiceNoteId" value={selected.id} />
-                      <Button type="submit" size="sm">
-                        发送到 Coach
-                      </Button>
-                    </form>
-                    <form action={saveVoiceNoteAsNoteAction}>
-                      <input type="hidden" name="voiceNoteId" value={selected.id} />
-                      <Button type="submit" size="sm" variant="secondary">
-                        保存为 Note
-                      </Button>
-                    </form>
-                    <form action={generateVoiceNoteFlashcardsAction}>
-                      <input type="hidden" name="voiceNoteId" value={selected.id} />
-                      <Button
-                        type="submit"
-                        size="sm"
-                        variant="outline"
-                        disabled={!selected.thoughtReviewId}
-                      >
-                        生成 Flashcards
-                      </Button>
-                    </form>
-                    {selected.thoughtReviewId ? (
-                      <Button asChild size="sm" variant="outline">
-                        <Link href={`/coach?reviewId=${encodeURIComponent(selected.thoughtReviewId)}`}>
-                          查看 Coach
-                        </Link>
-                      </Button>
-                    ) : null}
-                    {selected.noteId ? (
-                      <Button asChild size="sm" variant="outline">
-                        <Link href="/notes">查看 Note</Link>
-                      </Button>
-                    ) : null}
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      已生成卡片：{linkedCards}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="text-sm text-muted-foreground">
-                  暂无 Voice Note。保存 transcript 后，这里会出现分析入口。
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        <div className="grid gap-4">
+          <LearningCompassCard
+            title={selected ? "当前 Voice Note" : "等待捕获"}
+            subtitle={
+              selected
+                ? `${selected.createdAt.toISOString().slice(0, 16).replace("T", " ")} / ${
+                    MODE_LABELS.get(selected.mode) ?? selected.mode
+                  }`
+                : "先录音或粘贴 transcript"
+            }
+            signal={selected ? "已捕获" : "待输入"}
+            tone={selected ? "info" : "warning"}
+          >
+            {selected
+              ? "下一步：把这段理解送到 Coach，或者先保存成笔记。"
+              : "Voice Note 的价值不是保存音频，而是把口语思路变成可复习、可追问的学习材料。"}
+          </LearningCompassCard>
 
-          <Card className="rounded-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">最近 Voice Notes</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-2">
+          <div className="rounded-lg border bg-card p-4 shadow-sm">
+            {selected ? (
+              <div className="grid gap-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <LearningStatusBadge tone="info">
+                    {MODE_LABELS.get(selected.mode) ?? selected.mode}
+                  </LearningStatusBadge>
+                  {hasCoach ? <LearningStatusBadge tone="success">Coach linked</LearningStatusBadge> : null}
+                  {hasNote ? <LearningStatusBadge tone="success">Note saved</LearningStatusBadge> : null}
+                  {hasCards ? <LearningStatusBadge tone="success">{linkedCards} cards</LearningStatusBadge> : null}
+                  {selected.audioUrl ? <LearningStatusBadge tone="neutral">{selected.audioUrl}</LearningStatusBadge> : null}
+                </div>
+
+                <div>
+                  <div className="text-sm font-medium">Transcript</div>
+                  <div className="mt-2 max-h-[360px] overflow-auto whitespace-pre-wrap rounded-md border bg-muted/20 p-3 text-sm text-muted-foreground">
+                    {selectedText}
+                  </div>
+                </div>
+
+                <LearningCTAGroup>
+                  <form action={sendVoiceNoteToCoachAction}>
+                    <input type="hidden" name="voiceNoteId" value={selected.id} />
+                    <Button type="submit" size="sm">
+                      送 Coach 检查
+                    </Button>
+                  </form>
+                  <form action={saveVoiceNoteAsNoteAction}>
+                    <input type="hidden" name="voiceNoteId" value={selected.id} />
+                    <Button type="submit" size="sm" variant="secondary">
+                      保存为 Note
+                    </Button>
+                  </form>
+                  <form action={generateVoiceNoteFlashcardsAction}>
+                    <input type="hidden" name="voiceNoteId" value={selected.id} />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      variant="outline"
+                      disabled={!selected.thoughtReviewId}
+                    >
+                      生成 Flashcards
+                    </Button>
+                  </form>
+                  {selected.thoughtReviewId ? (
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={`/coach?reviewId=${encodeURIComponent(selected.thoughtReviewId)}`}>
+                        查看 Coach
+                      </Link>
+                    </Button>
+                  ) : null}
+                  {selected.noteId ? (
+                    <Button asChild size="sm" variant="outline">
+                      <Link href="/notes">查看 Note</Link>
+                    </Button>
+                  ) : null}
+                </LearningCTAGroup>
+              </div>
+            ) : (
+              <LearningEmptyState
+                title="还没有 Voice Note"
+                description="在左侧录音、上传音频或直接输入 transcript，保存后这里会出现分析入口。"
+                actions={[
+                  { href: "/today", label: "回到今日学习", variant: "secondary" },
+                  { href: "/coach", label: "打开 Coach", variant: "outline" },
+                ]}
+              />
+            )}
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-4">
+            <LearningStepCard
+              index={1}
+              title="已保存"
+              description="有 transcript 才能沉淀"
+              status={hasSelected ? "done" : "active"}
+            />
+            <LearningStepCard
+              index={2}
+              title="Coach"
+              description="检查概念混淆"
+              status={hasCoach ? "done" : hasSelected ? "active" : "todo"}
+            />
+            <LearningStepCard
+              index={3}
+              title="Note"
+              description="写进笔记库"
+              status={hasNote ? "done" : hasSelected ? "active" : "todo"}
+            />
+            <LearningStepCard
+              index={4}
+              title="Cards"
+              description="进入复习队列"
+              status={hasCards ? "done" : hasCoach ? "active" : "todo"}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 content-start">
+          <LearningCompassCard
+            title="学习链路"
+            subtitle="把声音变成长期记忆"
+            signal={recentPlan ? "关联课程" : "独立记录"}
+            tone={recentPlan ? "success" : "neutral"}
+            action={
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/review">去复习</Link>
+              </Button>
+            }
+          >
+            {recentPlan ? (
+              <>
+                最近课程：{recentPlan.localDate} / {recentPlan.lesson.title}
+              </>
+            ) : (
+              "没有关联课程时，Voice Note 也可以作为独立想法进入 Coach。"
+            )}
+          </LearningCompassCard>
+
+          <LearningSectionCard title="最近 Voice Notes" description="点击回到任意一次语音学习记录。">
+            <div className="grid gap-2">
               {notes.length ? (
                 notes.map((n) => (
                   <Link
                     key={n.id}
                     href={`/voice?voiceNoteId=${encodeURIComponent(n.id)}`}
-                    className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50"
+                    className={[
+                      "rounded-md border px-3 py-2 text-sm transition-colors",
+                      selected?.id === n.id ? "bg-muted" : "hover:bg-muted/50",
+                    ].join(" ")}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0 font-medium">
-                        {(n.editedTranscript || n.transcript).slice(0, 80)}
+                        {compactText(n.editedTranscript || n.transcript, 72)}
                       </div>
-                      <Badge variant="outline">{n.mode}</Badge>
+                      <LearningStatusBadge tone="neutral">
+                        {MODE_LABELS.get(n.mode) ?? n.mode}
+                      </LearningStatusBadge>
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       {n.createdAt.toISOString().slice(0, 16).replace("T", " ")}
@@ -172,8 +275,8 @@ export default async function VoicePage({
               ) : (
                 <div className="text-sm text-muted-foreground">暂无历史 Voice Note。</div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </LearningSectionCard>
         </div>
       </div>
     </AppShell>

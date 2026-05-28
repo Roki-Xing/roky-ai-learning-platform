@@ -140,7 +140,7 @@ export default async function CoachPage({
       <PageHeader
         title="思路评审"
         subtitle="输入自己的理解、代码思路或疑问，让 Coach 帮你找出正确点、误区和下一步。"
-        badge="Sprint 3"
+        badge="Coach"
       />
 
       <div className="grid gap-4 lg:grid-cols-[360px_1fr_320px]">

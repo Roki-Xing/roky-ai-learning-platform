@@ -124,7 +124,7 @@ export default async function RadarPage({
       <PageHeader
         title="AI Radar"
         subtitle="人物、公司、论文、Benchmark、工具与开源项目的广度学习库"
-        badge="Sprint 5"
+        badge="探索"
       />
 
       <div className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">

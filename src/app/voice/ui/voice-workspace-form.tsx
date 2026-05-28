@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
+import { LearningStepCard } from "@/components/learning/learning-step-card";
 import { VoiceCapture } from "@/app/voice/ui/voice-capture";
 import { saveVoiceNoteAction } from "@/app/voice/actions";
 
@@ -23,11 +23,34 @@ export function VoiceWorkspaceForm(props: {
   }, [editedTranscript, transcript]);
 
   return (
-    <Card className="rounded-lg">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">说出你的理解</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-3">
+    <LearningSectionCard
+      title="说出你的理解"
+      description="先说出来，再整理成 Coach 能检查的内容。"
+      action={<LearningStatusBadge tone={canSave ? "success" : "warning"}>{canSave ? "已就绪" : "草稿"}</LearningStatusBadge>}
+      className="rounded-lg"
+    >
+      <div className="grid gap-3">
+        <div className="grid gap-2">
+          <LearningStepCard
+            index={1}
+            title="录音或上传"
+            description="把当前理解、卡住的问题、代码思路说出来。"
+            status="active"
+          />
+          <LearningStepCard
+            index={2}
+            title="转写并整理"
+            description="自动转写可用时直接填入 transcript；否则手动粘贴。"
+            status={transcript.trim() ? "done" : "todo"}
+          />
+          <LearningStepCard
+            index={3}
+            title="保存后进入分析"
+            description="保存 Voice Note 后可以送 Coach、存 Note、生成卡片。"
+            status={canSave ? "active" : "todo"}
+          />
+        </div>
+
         <form action={saveVoiceNoteAction} className="grid gap-3">
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <LearningStatusBadge tone="info">Voice Note</LearningStatusBadge>
@@ -81,7 +104,7 @@ export function VoiceWorkspaceForm(props: {
             <Textarea
               name="transcript"
               className="min-h-44"
-              placeholder="录音后点“自动转写”，或者直接写下你刚才说的内容..."
+              placeholder="录音后点“自动转写”，或者直接写下你刚才说的理解、疑问、代码思路..."
               value={transcript}
               onChange={(e) => setTranscript(e.target.value)}
             />
@@ -102,11 +125,10 @@ export function VoiceWorkspaceForm(props: {
           </LearningSectionCard>
 
           <Button type="submit" disabled={!canSave}>
-            保存 Voice Note
+            保存并进入分析
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </LearningSectionCard>
   );
 }
-

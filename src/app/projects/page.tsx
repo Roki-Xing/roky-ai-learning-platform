@@ -117,7 +117,7 @@ export default async function ProjectsPage({
       <PageHeader
         title="项目实践"
         subtitle="把每日学习推进到可保存的 Python、算法、RAG、Agent 与复现小项目"
-        badge="Sprint 6"
+        badge="Mission"
       />
 
       <div className="grid gap-4 lg:grid-cols-[360px_minmax(0,1fr)]">
