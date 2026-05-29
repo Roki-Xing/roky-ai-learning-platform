@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.82.0] - 2026-05-30
+
+### Added
+
+- **[Coach Review Handoff]** 强化 `/coach` 生成卡片后的复习接续。
+  - `CoachFlashcardPanel` 在已生成 Coach 卡片后显示“Coach 卡片已进入复习队列”完成态提示。
+  - 新增“复习这 N 张 Coach 卡片”入口，直接进入 `/review?source=thought-review` 聚焦队列。
+  - `buildReviewableFlashcardWhere()` 对 `thought-review` 队列不再强制 `lessonId = null`，确保绑定课程的 Coach 卡片也能被聚焦复习。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/coach-workspace.test.ts` 失败于缺少 Coach 卡片复习队列入口。
+- 本地 RED：`npm test -- tests/unit/review-filter.test.ts` 失败于 `thought-review` 队列仍强制 `lessonId = null`。
+- 本地 GREEN：`npm test -- tests/unit/coach-workspace.test.ts` 6 项通过。
+- 本地 GREEN：`npm test -- tests/unit/review-filter.test.ts` 6 项通过。
+
 ## [0.81.0] - 2026-05-30
 
 ### Added

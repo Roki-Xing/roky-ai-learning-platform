@@ -43,7 +43,9 @@ export function buildReviewableFlashcardWhere(
       tags: { array_contains: [options.source] },
     };
 
-    if (options.source !== "code-feedback") where.lessonId = null;
+    if (options.source !== "code-feedback" && options.source !== "thought-review") {
+      where.lessonId = null;
+    }
 
     if (options.source === "project" && options.projectId) {
       where.id = { startsWith: `project:${options.projectId}:` };

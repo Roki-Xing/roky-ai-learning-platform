@@ -58,3 +58,14 @@ test("buildReviewableFlashcardWhere can target one project queue", () => {
     id: { startsWith: "project:project-123:" },
   });
 });
+
+test("buildReviewableFlashcardWhere keeps thought review queue independent of lesson binding", () => {
+  const where = buildReviewableFlashcardWhere("demo-user", {
+    source: "thought-review",
+  });
+
+  assert.deepEqual(where, {
+    userId: "demo-user",
+    tags: { array_contains: ["thought-review"] },
+  });
+});

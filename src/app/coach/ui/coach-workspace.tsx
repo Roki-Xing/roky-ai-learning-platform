@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { AlertTriangle, BookOpen, Brain, CheckCircle2, HelpCircle, Layers3, Sparkles } from "lucide-react";
+import { AlertTriangle, BookOpen, Brain, CheckCircle2, HelpCircle, Layers3, RotateCcw, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LearningStatusBadge, type LearningStatusTone } from "@/components/learning/learning-status-badge";
@@ -344,6 +344,8 @@ export function CoachFlashcardPanel(props: {
   action: (formData: FormData) => Promise<void>;
   relatedTerms: string[];
 }) {
+  const hasGeneratedCards = props.generatedCardCount > 0;
+
   return (
     <CoachResultBlock
       title="卡片沉淀"
@@ -362,6 +364,26 @@ export function CoachFlashcardPanel(props: {
         <LearningStatusBadge tone="neutral">已生成 {props.generatedCardCount}</LearningStatusBadge>
         <LearningStatusBadge tone="info">建议 {props.flashcards.length}</LearningStatusBadge>
       </div>
+      {hasGeneratedCards ? (
+        <div className="mt-3 rounded-md border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-emerald-900">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <RotateCcw className="size-4" aria-hidden="true" />
+                Coach 卡片已进入复习队列
+              </div>
+              <div className="mt-1 text-xs leading-5 text-emerald-800">
+                先用主动回忆检查这次评审沉淀的概念，再回来补一版更清晰的理解。
+              </div>
+            </div>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/review?source=thought-review">
+                复习这 {props.generatedCardCount} 张 Coach 卡片
+              </Link>
+            </Button>
+          </div>
+        </div>
+      ) : null}
       {props.flashcards.length ? (
         <div className="mt-3 grid gap-2">
           {props.flashcards.map((card, idx) => (

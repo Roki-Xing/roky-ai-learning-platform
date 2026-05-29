@@ -4,6 +4,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   CoachContextCompass,
+  CoachFlashcardPanel,
   CoachHero,
   CoachIssueList,
   CoachModeRail,
@@ -125,4 +126,26 @@ test("coach remediation queue turns misconceptions and code feedback into next t
   assert.match(markup, /缺少 softmax 归一化/);
   assert.match(markup, /href="\/coach"/);
   assert.match(markup, /href="\/review\?source=code-feedback"/);
+});
+
+test("coach flashcard panel hands generated cards to the focused review queue", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(CoachFlashcardPanel, {
+      reviewId: "review-1",
+      generatedCardCount: 2,
+      flashcards: [
+        {
+          front: "Self-Attention 不是简单平均的原因？",
+          back: "权重由 Q/K 相似度和 softmax 决定。",
+          type: "concept",
+        },
+      ],
+      action: async () => {},
+      relatedTerms: ["attention"],
+    }),
+  );
+
+  assert.match(markup, /Coach 卡片已进入复习队列/);
+  assert.match(markup, /复习这 2 张 Coach 卡片/);
+  assert.match(markup, /href="\/review\?source=thought-review"/);
 });
