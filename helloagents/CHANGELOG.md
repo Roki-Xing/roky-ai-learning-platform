@@ -8,11 +8,14 @@
   - 新增 `LearningMissionCard`，统一展示任务标题、说明、状态徽标和下一步 CTA。
   - 首页“完成今日学习 / 清空到期复习 / 写下自己的理解”改用任务卡，状态分别绑定今日完成、到期卡片和今日笔记数量。
   - 任务卡沿用学习语义色：完成为 emerald，待办/到期为 amber，笔记沉淀为 indigo。
+  - 首页补齐 Preview Mode 只读提示，避免从首页进入生产 Preview 时看不到保存/提交被拒绝的边界。
 
 ### Verified
 
 - 本地 GREEN：`npm test -- tests/unit/learning-ui-components.test.ts` 8 项通过。
+- 本地 GREEN：`npm test -- tests/unit/auth-policy.test.ts tests/unit/learning-ui-components.test.ts` 14 项通过。
 - 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
 
 ## [0.74.0] - 2026-05-29
 

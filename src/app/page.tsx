@@ -18,6 +18,7 @@ import {
 } from "@/server/projects/base";
 import { getProjectCodeFeedbackCardSummary } from "@/server/projects/code-feedback-summary";
 import { getProjectReviewCardSummary } from "@/server/projects/review-cards";
+import { isPreviewMode } from "@/server/auth/preview";
 
 const QUICK_ACTIONS = [
   {
@@ -55,6 +56,7 @@ const QUICK_ACTIONS = [
 export default async function HomePage() {
   const userId = await requireUserId();
   const profile = await getOrCreateUserProfile({ userId });
+  const previewMode = await isPreviewMode();
 
   const now = new Date();
   const timeZone = profile.timeZone ?? "Asia/Shanghai";
@@ -201,6 +203,12 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-10">
+      {previewMode ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-900">
+          Preview Mode：当前使用 demo-user 只读数据，所有保存、生成、提交和管理操作都会被拒绝。
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Roky Learn</h1>
         <p className="text-sm text-muted-foreground">

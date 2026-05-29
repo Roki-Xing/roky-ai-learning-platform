@@ -12,6 +12,9 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
   await expect(page.getByRole("heading", { name: "Roky Learn" })).toBeVisible();
   await expect(page.getByText("现在最值得做")).toBeVisible();
   await expect(page.getByText("当前项目进度")).toBeVisible();
+  if (previewToken) {
+    await expect(page.getByText("Preview Mode")).toBeVisible();
+  }
 
   await page.goto("/today");
   await expect(page.getByText("专注学习模式").first()).toBeVisible();
