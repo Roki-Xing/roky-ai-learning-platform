@@ -44,6 +44,39 @@ test("next best action routes open misconceptions to coach", () => {
   assert.equal(action.tone, "danger");
 });
 
+test("next best action names the active misconception focus", () => {
+  const action = buildNextBestAction({
+    ...baseInput,
+    openMisconceptionCount: 2,
+    openMisconceptionFocus: {
+      summary: "把 attention 当成简单平均",
+      source: "quiz",
+      occurrenceCount: 3,
+    },
+  });
+
+  assert.equal(action.href, "/coach");
+  assert.match(action.title, /attention/);
+  assert.match(action.reason, /把 attention 当成简单平均/);
+  assert.match(action.reason, /2 个/);
+});
+
+test("next best action names the active code feedback focus", () => {
+  const action = buildNextBestAction({
+    ...baseInput,
+    codeFeedbackNeedsAttentionCount: 1,
+    codeFeedbackFocus: {
+      summary: "缺少 Q/K 相似度与 softmax 归一化",
+      overall: "partially_correct",
+      localDate: "2026-05-29",
+    },
+  });
+
+  assert.equal(action.href, "/review");
+  assert.match(action.title, /代码反馈/);
+  assert.match(action.reason, /缺少 Q\/K 相似度与 softmax 归一化/);
+});
+
 test("next best action links active project when learning chores are clear", () => {
   const action = buildNextBestAction({
     ...baseInput,

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.69.0] - 2026-05-29
+
+### Added
+
+- **[Home Remediation Focus]** 首页 `Next Best Action` 接入具体补弱焦点。
+  - `buildNextBestAction()` 增加 `openMisconceptionFocus` 与 `codeFeedbackFocus` 输入。
+  - 未解决误区优先推荐 Coach，并在标题和原因里点出当前最需要澄清的 summary。
+  - 没有误区但有代码反馈时，推荐回看最新需要关注的代码反馈 summary。
+  - 首页读取最近 open misconception 与最新需关注 code feedback，并在“现在最值得做”下方展示“补弱焦点”面板。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/next-best-action.test.ts` 失败于标题/原因未包含具体误区或代码反馈 summary。
+- 本地 GREEN：`npm test -- tests/unit/next-best-action.test.ts` 7 项通过。
+
 ## [0.68.0] - 2026-05-29
 
 ### Added

@@ -86,27 +86,45 @@ export default async function HomePage() {
     }),
   ]);
 
-  const [openMisconceptionCount, codeFeedbackNeedsAttentionCount, activeProject, todayNoteCount, todayVoiceNoteCount] =
-    await Promise.all([
-      prisma.misconception.count({ where: { userId, status: "open" } }),
-      prisma.codeFeedback.count({
-        where: {
-          userId,
-          overall: { in: ["partially_correct", "incorrect", "cannot_judge"] },
-        },
-      }).catch(() => 0),
-      prisma.learningProject.findFirst({
-        where: { userId, status: { not: "completed" } },
-        include: { milestones: { orderBy: [{ position: "asc" }] } },
-        orderBy: [{ updatedAt: "desc" }],
-      }),
-      todayPlan
-        ? prisma.note.count({ where: { userId, lessonId: todayPlan.lessonId } })
-        : Promise.resolve(0),
-      todayPlan
-        ? prisma.voiceNote.count({ where: { userId, lessonId: todayPlan.lessonId } })
-        : Promise.resolve(0),
-    ]);
+  const codeFeedbackNeedsAttentionWhere = {
+    userId,
+    overall: { in: ["partially_correct", "incorrect", "cannot_judge"] },
+  };
+  const [
+    openMisconceptionCount,
+    openMisconceptionFocus,
+    codeFeedbackNeedsAttentionCount,
+    codeFeedbackFocus,
+    activeProject,
+    todayNoteCount,
+    todayVoiceNoteCount,
+  ] = await Promise.all([
+    prisma.misconception.count({ where: { userId, status: "open" } }),
+    prisma.misconception.findFirst({
+      where: { userId, status: "open" },
+      select: { summary: true, source: true, occurrenceCount: true },
+      orderBy: [{ lastAttemptAt: "desc" }],
+    }),
+    prisma.codeFeedback.count({
+      where: codeFeedbackNeedsAttentionWhere,
+    }).catch(() => 0),
+    prisma.codeFeedback.findFirst({
+      where: codeFeedbackNeedsAttentionWhere,
+      select: { summary: true, overall: true, localDate: true },
+      orderBy: [{ updatedAt: "desc" }],
+    }).catch(() => null),
+    prisma.learningProject.findFirst({
+      where: { userId, status: { not: "completed" } },
+      include: { milestones: { orderBy: [{ position: "asc" }] } },
+      orderBy: [{ updatedAt: "desc" }],
+    }),
+    todayPlan
+      ? prisma.note.count({ where: { userId, lessonId: todayPlan.lessonId } })
+      : Promise.resolve(0),
+    todayPlan
+      ? prisma.voiceNote.count({ where: { userId, lessonId: todayPlan.lessonId } })
+      : Promise.resolve(0),
+  ]);
 
   const completedSet = new Set(completedDates.map((d) => d.localDate));
 
@@ -147,7 +165,9 @@ export default async function HomePage() {
     todayPlanStatus: todayPlan?.status ?? null,
     dueFlashcardsCount,
     openMisconceptionCount,
+    openMisconceptionFocus,
     codeFeedbackNeedsAttentionCount,
+    codeFeedbackFocus,
     activeProject: activeProject
       ? {
           id: activeProject.id,
@@ -159,6 +179,24 @@ export default async function HomePage() {
     todayNoteCount,
     todayVoiceNoteCount,
   });
+  const remediationFocus = openMisconceptionFocus
+    ? {
+        label: "误区补弱",
+        text: openMisconceptionFocus.summary,
+        meta: `来源：${openMisconceptionFocus.source} · 出现 ${openMisconceptionFocus.occurrenceCount} 次`,
+        tone: "danger" as const,
+      }
+    : codeFeedbackFocus
+      ? {
+          label: "代码补弱",
+          text: codeFeedbackFocus.summary,
+          meta: [
+            codeFeedbackFocus.overall ? `状态：${codeFeedbackFocus.overall}` : null,
+            codeFeedbackFocus.localDate ? `日期：${codeFeedbackFocus.localDate}` : null,
+          ].filter(Boolean).join(" · "),
+          tone: "info" as const,
+        }
+      : null;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-10">
@@ -272,6 +310,18 @@ export default async function HomePage() {
             <div className="rounded-md border bg-muted/20 px-3 py-2">代码反馈：{codeFeedbackNeedsAttentionCount}</div>
           </div>
         </div>
+        {remediationFocus ? (
+          <div className="rounded-lg border bg-muted/20 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <LearningStatusBadge tone={remediationFocus.tone}>补弱焦点</LearningStatusBadge>
+              <span className="text-xs font-medium text-muted-foreground">{remediationFocus.label}</span>
+            </div>
+            <div className="mt-2 text-sm font-medium leading-relaxed">{remediationFocus.text}</div>
+            {remediationFocus.meta ? (
+              <div className="mt-1 text-xs text-muted-foreground">{remediationFocus.meta}</div>
+            ) : null}
+          </div>
+        ) : null}
       </LearningSectionCard>
 
       <ProjectDailyRhythmCard

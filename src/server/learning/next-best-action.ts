@@ -4,7 +4,17 @@ export type NextBestActionInput = {
   todayPlanStatus: string | null;
   dueFlashcardsCount: number;
   openMisconceptionCount: number;
+  openMisconceptionFocus?: {
+    summary: string;
+    source?: string | null;
+    occurrenceCount?: number | null;
+  } | null;
   codeFeedbackNeedsAttentionCount: number;
+  codeFeedbackFocus?: {
+    summary: string;
+    overall?: string | null;
+    localDate?: string | null;
+  } | null;
   activeProject: null | {
     id: string;
     title: string;
@@ -47,9 +57,12 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
   }
 
   if (input.openMisconceptionCount > 0) {
+    const focus = input.openMisconceptionFocus?.summary?.trim();
     return {
-      title: "让 Coach 处理未解决误区",
-      reason: `你还有 ${input.openMisconceptionCount} 个 open misconception，先把模糊点说清楚。`,
+      title: focus ? `让 Coach 澄清：${focus}` : "让 Coach 处理未解决误区",
+      reason: focus
+        ? `当前最需要澄清的是：${focus}。你还有 ${input.openMisconceptionCount} 个未解决误区，先交给 Coach 复盘。`
+        : `你还有 ${input.openMisconceptionCount} 个 open misconception，先把模糊点说清楚。`,
       href: "/coach",
       ctaLabel: "打开 Coach",
       tone: "danger",
@@ -57,9 +70,12 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
   }
 
   if (input.codeFeedbackNeedsAttentionCount > 0) {
+    const focus = input.codeFeedbackFocus?.summary?.trim();
     return {
       title: "处理代码反馈",
-      reason: `有 ${input.codeFeedbackNeedsAttentionCount} 条代码反馈需要回看，适合先修正实现思路。`,
+      reason: focus
+        ? `当前最值得回看的代码反馈是：${focus}。先修正这个实现思路，再继续推进项目。`
+        : `有 ${input.codeFeedbackNeedsAttentionCount} 条代码反馈需要回看，适合先修正实现思路。`,
       href: input.activeProject ? `/projects?projectId=${encodeURIComponent(input.activeProject.id)}` : "/review",
       ctaLabel: input.activeProject ? "继续项目" : "复习反馈",
       tone: "info",
