@@ -43,6 +43,11 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
   await expect(page.getByText("语音学习流水线")).toBeVisible();
   await expect(page.getByRole("button", { name: "送 Coach 检查" })).toBeVisible();
   await expect(page.getByRole("button", { name: "整理成笔记" })).toBeVisible();
+
+  await page.goto("/notes");
+  await expect(page.getByRole("heading", { name: "我的笔记" })).toBeVisible();
+  await expect(page.getByText("今日笔记模板已预填")).toBeVisible();
+  await expect(page.getByText("今天我能用自己的话解释")).toBeVisible();
 });
 
 test("review trainer hides answers until reveal @smoke", async ({ page }) => {

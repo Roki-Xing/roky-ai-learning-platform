@@ -8,9 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { requireUserId } from "@/server/auth/user";
 import { prisma } from "@/server/db";
 import { resolveVisibleLibraryLessonId } from "@/server/library/lesson-detail";
+import { buildLessonNoteTemplate } from "@/server/notes/template";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import { localDateInTimeZone } from "@/server/time/day";
 import { createNoteAction } from "@/app/notes/actions";
+
+function strings(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+}
 
 export default async function NotesPage({
   searchParams,
@@ -59,12 +66,34 @@ export default async function NotesPage({
     : [];
   const lessonTitleById = new Map(lessons.map((l) => [l.id, l.title]));
 
-  const selectedLesson = selectedLessonId
-    ? await prisma.lesson.findUnique({
-        where: { id: selectedLessonId },
-        select: { id: true, title: true },
-      })
-    : null;
+  const [selectedLesson, selectedLessonQuizCount, selectedLessonCodeSubmissionCount] =
+    selectedLessonId
+      ? await Promise.all([
+          prisma.lesson.findUnique({
+            where: { id: selectedLessonId },
+            select: { id: true, title: true, objectives: true, keyTerms: true },
+          }),
+          prisma.quizQuestion.count({ where: { lessonId: selectedLessonId } }),
+          prisma.codeSubmission.count({ where: { userId, lessonId: selectedLessonId } }),
+        ])
+      : [null, 0, 0] as const;
+  const selectedPlan =
+    selectedLessonId
+      ? recentPlans.find((plan) => plan.lessonId === selectedLessonId) ?? null
+      : null;
+  const selectedHasExistingNote = selectedLessonId
+    ? notes.some((note) => note.lessonId === selectedLessonId)
+    : false;
+  const noteTemplate = buildLessonNoteTemplate({
+    lessonTitle: selectedLesson?.title ?? null,
+    localDate,
+    planStatus: selectedPlan?.status ?? null,
+    objectives: strings(selectedLesson?.objectives),
+    keyTerms: strings(selectedLesson?.keyTerms),
+    quizCount: selectedLessonQuizCount,
+    codeSubmissionCount: selectedLessonCodeSubmissionCount,
+    hasExistingNote: selectedHasExistingNote,
+  });
 
   return (
     <AppShell activePath="/notes" title="我的笔记">
@@ -125,10 +154,35 @@ export default async function NotesPage({
                 <div className="mt-1 truncate text-xs text-muted-foreground">
                   {selectedLesson ? selectedLesson.title : "（未选择）"}
                 </div>
+                <div className="mt-2 flex flex-wrap gap-1 text-xs text-muted-foreground">
+                  <span>计划：{selectedPlan?.status ?? "未关联"}</span>
+                  <span>/</span>
+                  <span>测验：{selectedLessonQuizCount}</span>
+                  <span>/</span>
+                  <span>代码：{selectedLessonCodeSubmissionCount}</span>
+                  <span>/</span>
+                  <span>已有笔记：{selectedHasExistingNote ? "是" : "否"}</span>
+                </div>
               </div>
-              <Button asChild size="sm" variant="secondary">
-                <Link href="/today">去今日学习</Link>
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/today">去今日学习</Link>
+                </Button>
+                {selectedLesson ? (
+                  <Button asChild size="sm" variant="secondary">
+                    <Link href={`/library?lessonId=${encodeURIComponent(selectedLesson.id)}`}>
+                      看课程档案
+                    </Link>
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="rounded-md border bg-muted/20 p-3 text-sm">
+              <div className="font-medium">今日笔记模板已预填</div>
+              <div className="mt-1 text-xs leading-5 text-muted-foreground">
+                先补“我能用自己的话解释”和“仍然模糊的地方”，保存后会回流到课程库与进度页。
+              </div>
             </div>
 
             <form action={createNoteAction} className="grid gap-3">
@@ -150,6 +204,7 @@ export default async function NotesPage({
                   name="content"
                   className="min-h-48"
                   placeholder="今天我学到了..."
+                  defaultValue={noteTemplate}
                   required
                 />
               </div>

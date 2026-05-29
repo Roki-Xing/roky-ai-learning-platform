@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.73.0] - 2026-05-29
+
+### Added
+
+- **[Notes Learning Reflection Template]** 将 `/notes` 从空白 Markdown 输入升级为课程沉淀模板。
+  - 新增 `buildLessonNoteTemplate()`，根据关联课程、本地日期、课程状态、目标、术语、测验数和代码提交数生成可编辑 Markdown。
+  - `/notes` 新建笔记默认预填“我能用自己的话解释 / 目标 / 核心术语 / 模糊点 / 代码与测验反馈 / 明日复习”结构。
+  - 关联课程区显示计划、测验、代码提交和已有笔记状态，并提供回到今日学习和课程档案的入口。
+  - Playwright smoke 增加 `/notes` 模板预填断言，避免学习沉淀入口退回空白输入框。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/notes-template.test.ts` 失败于缺少 `@/server/notes/template`。
+- 本地 GREEN：`npm test -- tests/unit/notes-template.test.ts` 2 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 本地 GREEN：`npm test` 187 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm run e2e` 16 项通过。
+
 ## [0.72.0] - 2026-05-29
 
 ### Added
