@@ -8,6 +8,7 @@ import { localDateInTimeZone } from "@/server/time/day";
 import { LearningMetricCard } from "@/components/learning/learning-metric-card";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
+import { buildNextBestAction } from "@/server/learning/next-best-action";
 
 const QUICK_ACTIONS = [
   {
@@ -77,6 +78,25 @@ export default async function HomePage() {
     }),
   ]);
 
+  const [openMisconceptionCount, codeFeedbackNeedsAttentionCount, activeProject, todayNoteCount] =
+    await Promise.all([
+      prisma.misconception.count({ where: { userId, status: "open" } }),
+      prisma.codeFeedback.count({
+        where: {
+          userId,
+          overall: { in: ["partially_correct", "incorrect", "cannot_judge"] },
+        },
+      }).catch(() => 0),
+      prisma.learningProject.findFirst({
+        where: { userId, status: { not: "completed" } },
+        include: { milestones: { orderBy: [{ position: "asc" }] } },
+        orderBy: [{ updatedAt: "desc" }],
+      }),
+      todayPlan
+        ? prisma.note.count({ where: { userId, lessonId: todayPlan.lessonId } })
+        : Promise.resolve(0),
+    ]);
+
   const completedSet = new Set(completedDates.map((d) => d.localDate));
 
   function prevLocalDate(d: string) {
@@ -101,6 +121,23 @@ export default async function HomePage() {
   const todayTitle = todayPlan?.lesson?.title ?? null;
   const todaySource = todayPlan?.source ?? todayPlan?.lesson?.createdBy ?? null;
   const isTodayCompleted = todayPlan?.status === "completed";
+  const activeMilestone =
+    activeProject?.milestones.find((milestone) => milestone.status !== "completed") ?? null;
+  const nextBestAction = buildNextBestAction({
+    todayPlanStatus: todayPlan?.status ?? null,
+    dueFlashcardsCount,
+    openMisconceptionCount,
+    codeFeedbackNeedsAttentionCount,
+    activeProject: activeProject
+      ? {
+          id: activeProject.id,
+          title: activeProject.title,
+          activeMilestoneTitle: activeMilestone?.title ?? null,
+        }
+      : null,
+    todayLessonId: todayPlan?.lessonId ?? null,
+    todayNoteCount,
+  });
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-10">
@@ -184,6 +221,36 @@ export default async function HomePage() {
           />
         </div>
       </div>
+
+      <LearningSectionCard
+        title="现在最值得做"
+        description={nextBestAction.reason}
+        action={
+          <Button asChild size="sm">
+            <Link href={nextBestAction.href}>{nextBestAction.ctaLabel}</Link>
+          </Button>
+        }
+      >
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <LearningStatusBadge tone={nextBestAction.tone}>Next Best Action</LearningStatusBadge>
+              {openMisconceptionCount > 0 ? (
+                <LearningStatusBadge tone="danger">误区 {openMisconceptionCount}</LearningStatusBadge>
+              ) : null}
+              {activeProject ? (
+                <LearningStatusBadge tone="info">项目 {activeProject.title}</LearningStatusBadge>
+              ) : null}
+            </div>
+            <div className="mt-2 text-lg font-semibold leading-snug">{nextBestAction.title}</div>
+          </div>
+          <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3 md:min-w-[360px]">
+            <div className="rounded-md border bg-muted/20 px-3 py-2">今日笔记：{todayNoteCount}</div>
+            <div className="rounded-md border bg-muted/20 px-3 py-2">误区：{openMisconceptionCount}</div>
+            <div className="rounded-md border bg-muted/20 px-3 py-2">代码反馈：{codeFeedbackNeedsAttentionCount}</div>
+          </div>
+        </div>
+      </LearningSectionCard>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <LearningSectionCard

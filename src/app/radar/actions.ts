@@ -9,6 +9,7 @@ import {
   buildEntityFlashcard,
   knowledgeEntityVerificationTags,
 } from "@/server/knowledge/base";
+import { assertWritableRequest } from "@/server/auth/preview";
 
 function toStrings(value: unknown) {
   return Array.isArray(value) ? value.filter((x): x is string => typeof x === "string") : [];
@@ -21,6 +22,7 @@ function cardTypeForEntity(type: string) {
 }
 
 export async function generateRadarFlashcardAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const slug = String(formData.get("slug") ?? "").trim();
   if (!slug) throw new Error("Missing radar slug");

@@ -2,6 +2,10 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabasePublicKey, getSupabaseUrl } from "@/lib/supabase/config";
 import { DEMO_SESSION_COOKIE, isDemoSessionTokenValid } from "@/server/auth/demo";
+import {
+  PREVIEW_SESSION_COOKIE,
+  isPreviewSessionTokenValid,
+} from "@/server/auth/preview";
 import { shouldRedirectToLogin } from "@/server/auth/policy";
 
 export async function updateSession(request: NextRequest) {
@@ -10,11 +14,15 @@ export async function updateSession(request: NextRequest) {
   const demoSessionActive = isDemoSessionTokenValid(
     request.cookies.get(DEMO_SESSION_COOKIE)?.value ?? null,
   );
+  const previewSessionActive = isPreviewSessionTokenValid(
+    request.cookies.get(PREVIEW_SESSION_COOKIE)?.value ?? null,
+  );
+  const readOnlySessionActive = demoSessionActive || previewSessionActive;
 
   const url = getSupabaseUrl();
   const key = getSupabasePublicKey();
   if (!url || !key) {
-    if (shouldRedirectToLogin({ pathname, userId: null, demoSessionActive })) {
+    if (shouldRedirectToLogin({ pathname, userId: null, demoSessionActive: readOnlySessionActive })) {
       const redirectTo = request.nextUrl.clone();
       redirectTo.pathname = "/login";
       redirectTo.searchParams.set("next", pathname);
@@ -54,7 +62,7 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub ?? null;
 
-  if (shouldRedirectToLogin({ pathname, userId, demoSessionActive })) {
+  if (shouldRedirectToLogin({ pathname, userId, demoSessionActive: readOnlySessionActive })) {
     const redirectTo = request.nextUrl.clone();
     redirectTo.pathname = "/login";
     redirectTo.searchParams.set("next", pathname);

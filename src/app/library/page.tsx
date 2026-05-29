@@ -17,6 +17,7 @@ import {
   resolveVisibleLibraryLessonId,
 } from "@/server/library/lesson-detail";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
+import { LearningMarkdown } from "@/components/learning/learning-markdown";
 
 type LessonExamples = {
   guidedSteps?: string[] | Array<{ title?: string; content?: string }>;
@@ -376,9 +377,7 @@ export default async function LibraryPage({
 
                   <div className="rounded-md border p-3">
                     <div className="text-sm font-medium">正文</div>
-                    <div className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
-                      {lesson.contentMarkdown}
-                    </div>
+                    <LearningMarkdown content={lesson.contentMarkdown} className="mt-3" />
                   </div>
 
                   {(() => {

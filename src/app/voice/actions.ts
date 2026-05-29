@@ -10,6 +10,7 @@ import {
   sendVoiceNoteToCoach,
 } from "@/server/voice/submit";
 import { transcribeVoiceAudio } from "@/server/voice/transcription";
+import { assertWritableRequest } from "@/server/auth/preview";
 
 function audioFileFromForm(formData: FormData) {
   const value = formData.get("audioFile");
@@ -17,6 +18,7 @@ function audioFileFromForm(formData: FormData) {
 }
 
 export async function saveVoiceNoteAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const result = await saveVoiceNote({
     userId,
@@ -34,6 +36,7 @@ export async function saveVoiceNoteAction(formData: FormData) {
 }
 
 export async function transcribeAudioAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   void userId;
 
@@ -53,6 +56,7 @@ export async function transcribeAudioAction(formData: FormData) {
 }
 
 export async function sendVoiceNoteToCoachAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const voiceNoteId = String(formData.get("voiceNoteId") ?? "").trim();
   if (!voiceNoteId) throw new Error("Missing voiceNoteId");
@@ -67,6 +71,7 @@ export async function sendVoiceNoteToCoachAction(formData: FormData) {
 }
 
 export async function saveVoiceNoteAsNoteAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const voiceNoteId = String(formData.get("voiceNoteId") ?? "").trim();
   if (!voiceNoteId) throw new Error("Missing voiceNoteId");
@@ -81,6 +86,7 @@ export async function saveVoiceNoteAsNoteAction(formData: FormData) {
 }
 
 export async function generateVoiceNoteFlashcardsAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const voiceNoteId = String(formData.get("voiceNoteId") ?? "").trim();
   if (!voiceNoteId) throw new Error("Missing voiceNoteId");

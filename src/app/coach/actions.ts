@@ -7,8 +7,10 @@ import {
   createThoughtReview,
   generateFlashcardsForThoughtReview,
 } from "@/server/coach/submit";
+import { assertWritableRequest } from "@/server/auth/preview";
 
 export async function submitThoughtReviewAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const rawText = String(formData.get("rawText") ?? "").trim();
   const mode = String(formData.get("mode") ?? "free_thought").trim();
@@ -31,6 +33,7 @@ export async function submitThoughtReviewAction(formData: FormData) {
 }
 
 export async function generateCardsFromThoughtReviewAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const reviewId = String(formData.get("reviewId") ?? "").trim();
   if (!reviewId) throw new Error("Missing reviewId");

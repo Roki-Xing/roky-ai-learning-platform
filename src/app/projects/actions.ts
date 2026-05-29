@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUserId } from "@/server/auth/user";
+import { assertWritableRequest } from "@/server/auth/preview";
 import { prisma } from "@/server/db";
 import {
   getProjectTemplate,
@@ -42,6 +43,7 @@ async function activateOrCompleteProject(projectId: string, userId: string) {
 }
 
 export async function startProjectAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const templateSlug = text(formData, "templateSlug");
   const template = getProjectTemplate(templateSlug);
@@ -100,6 +102,7 @@ export async function startProjectAction(formData: FormData) {
 }
 
 export async function completeMilestoneAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const projectId = text(formData, "projectId");
   const milestoneId = text(formData, "milestoneId");
@@ -163,6 +166,7 @@ export async function completeMilestoneAction(formData: FormData) {
 }
 
 export async function saveMilestoneDraftAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const projectId = text(formData, "projectId");
   const milestoneId = text(formData, "milestoneId");
@@ -201,6 +205,7 @@ export async function saveMilestoneDraftAction(formData: FormData) {
 }
 
 export async function reviewMilestoneCodeAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const projectId = text(formData, "projectId");
   const milestoneId = text(formData, "milestoneId");
@@ -253,6 +258,7 @@ export async function reviewMilestoneCodeAction(formData: FormData) {
 }
 
 export async function completeProjectAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const projectId = text(formData, "projectId");
   if (!projectId) throw new Error("Missing projectId");

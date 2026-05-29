@@ -12,7 +12,7 @@ import {
   buildKnowledgeLink,
   knowledgeEntityVerificationBadge,
 } from "@/server/knowledge/base";
-import { DEFAULT_KNOWLEDGE_PATHS } from "@/server/knowledge/paths";
+import { DEFAULT_KNOWLEDGE_PATHS, buildKnowledgePathProgress } from "@/server/knowledge/paths";
 import { generateRadarFlashcardAction } from "@/app/radar/actions";
 
 type SourceRef = { title?: string; url?: string };
@@ -90,6 +90,9 @@ export default async function RadarPage({
     entities[0] ??
     null;
   const generatedCardIds = new Set(generatedCards.map((card) => card.id));
+  const reviewedCardIds = new Set(
+    generatedCards.filter((card) => card.reviewCount > 0).map((card) => card.id),
+  );
   const selectedCardId = selectedEntity ? `radar:${userId}:${selectedEntity.slug}` : null;
   const selectedHasCard = selectedCardId ? generatedCardIds.has(selectedCardId) : false;
   const verificationBadge = selectedEntity
@@ -109,7 +112,17 @@ export default async function RadarPage({
       })
     : [];
 
-  const recommendedPaths = DEFAULT_KNOWLEDGE_PATHS.slice(0, 2);
+  const recommendedPaths = DEFAULT_KNOWLEDGE_PATHS
+    .filter((p) => p.kind === "radar")
+    .slice(0, 2)
+    .map((path) =>
+      buildKnowledgePathProgress({
+        path,
+        generatedCardIds,
+        reviewedCardIds,
+        cardIdForSlug: (slug) => `radar:${userId}:${slug}`,
+      }),
+    );
 
   return (
     <AppShell
@@ -142,13 +155,28 @@ export default async function RadarPage({
                 {recommendedPaths.map((p) => (
                   <div key={p.id} className="rounded-md border bg-background p-2">
                     <div className="text-sm font-medium">{p.label}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      已制卡 {p.cardCount}/{p.items.length}，已复习 {p.reviewedCount}/{p.items.length}
+                    </div>
                     <div className="mt-1 flex flex-wrap gap-1">
-                      {p.slugs.slice(0, 5).map((slug) => (
-                        <Badge key={slug} asChild variant="outline">
-                          <Link href={`/glossary?term=${encodeURIComponent(slug)}`}>{slug}</Link>
+                      {p.items.slice(0, 5).map((item) => (
+                        <Badge key={item.slug} asChild variant={item.reviewed ? "secondary" : "outline"}>
+                          <Link href={`/radar?entity=${encodeURIComponent(item.slug)}`}>
+                            {item.slug}
+                            {item.hasCard ? " · card" : ""}
+                          </Link>
                         </Badge>
                       ))}
                     </div>
+                    {p.nextSlug ? (
+                      <div className="mt-2">
+                        <Button asChild size="sm" variant="ghost">
+                          <Link href={`/radar?entity=${encodeURIComponent(p.nextSlug)}`}>
+                            learn next: {p.nextSlug}
+                          </Link>
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
                 ))}
               </div>

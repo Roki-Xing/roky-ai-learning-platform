@@ -5,12 +5,14 @@ import { redirect } from "next/navigation";
 import { requireUserId } from "@/server/auth/user";
 import { prisma } from "@/server/db";
 import { asJson, buildGlossaryFlashcard } from "@/server/knowledge/base";
+import { assertWritableRequest } from "@/server/auth/preview";
 
 function toStrings(value: unknown) {
   return Array.isArray(value) ? value.filter((x): x is string => typeof x === "string") : [];
 }
 
 export async function generateGlossaryFlashcardAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const slug = String(formData.get("slug") ?? "").trim();
   if (!slug) throw new Error("Missing glossary slug");

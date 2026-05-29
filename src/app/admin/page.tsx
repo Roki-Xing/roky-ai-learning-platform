@@ -39,6 +39,7 @@ import {
   runDailyCronAction,
 } from "@/app/admin/actions";
 import { verifyAdminToken, getAdminCookieName, isAdminProtectionEnabled } from "@/server/admin/auth";
+import { isPreviewMode } from "@/server/auth/preview";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -67,6 +68,10 @@ export default async function AdminPage({
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const userId = await requireUserId();
+  if (await isPreviewMode()) {
+    notFound();
+  }
+
   const query = searchParams ? await searchParams : {};
   const planFilter = normalizeAdminPlanFilter(query.planFilter);
   const auditPlanId = firstQueryString(query.auditPlanId);

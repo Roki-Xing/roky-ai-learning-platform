@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.60.0] - 2026-05-29
+
+### Added
+
+- **[Learning Experience Polish]** 完成登录、首页、今日学习、课程正文、Voice 和知识路径体验打磨。
+  - 新增 read-only Preview Mode：`/preview?token=...` 设置 `ral_preview` cookie，并用 `demo-user` 展示真实数据。
+  - Preview 下所有生成、保存、提交、复习评分、Coach、Voice、Settings、知识卡片和 Admin actions 均拒绝写入；`/admin` 在 Preview 下直接 404。
+  - 登录页从单卡片改为产品入口，展示每日学习闭环、Coach、Voice、项目实践和长期积累能力。
+  - 首页新增“现在最值得做” Next Best Action，基于今日状态、到期卡片、open misconception、代码反馈、项目里程碑和今日笔记给出 CTA。
+  - 新增 `LearningMarkdown`，用 `react-markdown + remark-gfm` 安全渲染主课 Markdown，不启用 raw HTML。
+  - `/today` 新增轻量 Focus Mode，并在完成后推荐当前 active project milestone。
+  - Voice 录音区新增计时器，继续保留手动 transcript fallback。
+  - Glossary/Radar 学习路径增加已制卡、已复习和 learn next 状态。
+
+### Verified
+
+- 本地：`npm run lint` 已通过。
+- 本地定向：`npm test -- tests/unit/auth-policy.test.ts tests/unit/next-best-action.test.ts tests/unit/learning-ui-components.test.ts tests/unit/project-mission-workspace.test.ts` 16 项通过。
+- 全量 `npm test`、`npm run build` 和生产验收见本次提交后的部署记录。
+
 ## [0.59.0] - 2026-05-28
 
 ### Added

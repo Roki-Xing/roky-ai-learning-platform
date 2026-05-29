@@ -30,6 +30,7 @@ export function VoiceCapture(props: {
   >("idle");
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioName, setAudioName] = useState("");
+  const [recordedSeconds, setRecordedSeconds] = useState(0);
   const [lastResult, setLastResult] = useState<TranscribeResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -42,10 +43,26 @@ export function VoiceCapture(props: {
     };
   }, []);
 
+  useEffect(() => {
+    if (status !== "recording") return;
+    const startedAt = Date.now();
+    const id = window.setInterval(() => {
+      setRecordedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 500);
+    return () => window.clearInterval(id);
+  }, [status]);
+
+  function formatSeconds(total: number) {
+    const mm = String(Math.floor(total / 60)).padStart(2, "0");
+    const ss = String(total % 60).padStart(2, "0");
+    return `${mm}:${ss}`;
+  }
+
   async function startRecording() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     streamRef.current = stream;
     chunksRef.current = [];
+    setRecordedSeconds(0);
     const recorder = new MediaRecorder(stream);
     recorderRef.current = recorder;
     recorder.ondataavailable = (event) => {
@@ -164,6 +181,11 @@ export function VoiceCapture(props: {
           </Button>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {status === "recording" ? (
+            <span className="font-mono tabular-nums text-amber-800">{formatSeconds(recordedSeconds)}</span>
+          ) : recordedSeconds > 0 ? (
+            <span className="font-mono tabular-nums">{formatSeconds(recordedSeconds)}</span>
+          ) : null}
           {statusBadge}
         </div>
       </div>
@@ -229,4 +251,3 @@ export function VoiceCapture(props: {
     </div>
   );
 }
-

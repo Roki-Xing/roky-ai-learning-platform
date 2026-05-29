@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import { isPreviewMode } from "@/server/auth/preview";
 
 function NavLinks(props: {
   activePath: string;
@@ -42,7 +43,7 @@ function NavLinks(props: {
   );
 }
 
-export function AppShell({
+export async function AppShell({
   activePath,
   title,
   actions,
@@ -53,6 +54,8 @@ export function AppShell({
   actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const previewMode = await isPreviewMode();
+
   return (
     <div className="flex min-h-[calc(100vh-0px)] w-full bg-background">
       <aside className="hidden w-64 shrink-0 border-r bg-background md:block">
@@ -87,6 +90,11 @@ export function AppShell({
           </div>
           <div className="flex shrink-0 items-center gap-2">{actions}</div>
         </header>
+        {previewMode ? (
+          <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-900">
+            Preview Mode：当前使用 demo-user 只读数据，所有保存、生成、提交和管理操作都会被拒绝。
+          </div>
+        ) : null}
 
         <main className="min-w-0 flex-1 p-4 md:p-6">{children}</main>
       </div>

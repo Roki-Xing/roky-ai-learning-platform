@@ -10,6 +10,10 @@ import {
   knowledgeEntityVerificationTags,
   normalizeSlug,
 } from "@/server/knowledge/base";
+import {
+  DEFAULT_KNOWLEDGE_PATHS,
+  buildKnowledgePathProgress,
+} from "@/server/knowledge/paths";
 
 test("default glossary terms cover Sprint 5 seed terms with unique slugs", () => {
   assert.ok(DEFAULT_GLOSSARY_TERMS.length >= 20);
@@ -111,4 +115,35 @@ test("knowledgeEntityVerificationTags adds needs_verification to radar card tags
     }),
     ["verified", "confidence:high"],
   );
+});
+
+test("default knowledge paths include glossary and radar learning routes", () => {
+  const agentPath = DEFAULT_KNOWLEDGE_PATHS.find((path) => path.id === "agent_basics");
+  const radarPath = DEFAULT_KNOWLEDGE_PATHS.find((path) => path.id === "ai_org_landscape");
+
+  assert.ok(agentPath);
+  assert.equal(agentPath.kind, "glossary");
+  assert.deepEqual(agentPath.slugs, ["cot", "react", "reflexion", "agent", "swe-bench"]);
+  assert.ok(radarPath);
+  assert.equal(radarPath.kind, "radar");
+  assert.ok(radarPath.slugs.includes("openai"));
+  assert.ok(radarPath.slugs.includes("anthropic"));
+});
+
+test("buildKnowledgePathProgress marks card and review progress", () => {
+  const path = DEFAULT_KNOWLEDGE_PATHS.find((item) => item.id === "agent_basics");
+  assert.ok(path);
+
+  const progress = buildKnowledgePathProgress({
+    path,
+    generatedCardIds: new Set(["glossary:demo-user:cot", "glossary:demo-user:react"]),
+    reviewedCardIds: new Set(["glossary:demo-user:cot"]),
+    cardIdForSlug: (slug) => `glossary:demo-user:${slug}`,
+  });
+
+  assert.equal(progress.cardCount, 2);
+  assert.equal(progress.reviewedCount, 1);
+  assert.equal(progress.items[0]?.hasCard, true);
+  assert.equal(progress.items[0]?.reviewed, true);
+  assert.equal(progress.nextSlug, "react");
 });

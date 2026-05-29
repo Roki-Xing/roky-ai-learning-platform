@@ -9,7 +9,7 @@ import { requireUserId } from "@/server/auth/user";
 import { prisma } from "@/server/db";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import { buildKnowledgeLink } from "@/server/knowledge/base";
-import { DEFAULT_KNOWLEDGE_PATHS } from "@/server/knowledge/paths";
+import { DEFAULT_KNOWLEDGE_PATHS, buildKnowledgePathProgress } from "@/server/knowledge/paths";
 import { generateGlossaryFlashcardAction } from "@/app/glossary/actions";
 
 type SourceRef = { title?: string; url?: string };
@@ -89,6 +89,9 @@ export default async function GlossaryPage({
   const generatedCardIds = new Set(generatedCards.map((card) => card.id));
   const selectedCardId = selectedTerm ? `glossary:${userId}:${selectedTerm.slug}` : null;
   const selectedHasCard = selectedCardId ? generatedCardIds.has(selectedCardId) : false;
+  const reviewedCardIds = new Set(
+    generatedCards.filter((card) => card.reviewCount > 0).map((card) => card.id),
+  );
 
   const selectedRelated = selectedTerm ? strings(selectedTerm.relatedTerms) : [];
   const relatedChain = selectedRelated
@@ -99,7 +102,17 @@ export default async function GlossaryPage({
     })
     .filter((x): x is NonNullable<typeof x> => Boolean(x))
     .slice(0, 5);
-  const recommendedPaths = DEFAULT_KNOWLEDGE_PATHS.filter((p) => p.kind === "glossary").slice(0, 2);
+  const recommendedPaths = DEFAULT_KNOWLEDGE_PATHS
+    .filter((p) => p.kind === "glossary")
+    .slice(0, 2)
+    .map((path) =>
+      buildKnowledgePathProgress({
+        path,
+        generatedCardIds,
+        reviewedCardIds,
+        cardIdForSlug: (slug) => `glossary:${userId}:${slug}`,
+      }),
+    );
 
   return (
     <AppShell
@@ -132,13 +145,28 @@ export default async function GlossaryPage({
                 {recommendedPaths.map((p) => (
                   <div key={p.id} className="rounded-md border bg-background p-2">
                     <div className="text-sm font-medium">{p.label}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      已制卡 {p.cardCount}/{p.items.length}，已复习 {p.reviewedCount}/{p.items.length}
+                    </div>
                     <div className="mt-1 flex flex-wrap gap-1">
-                      {p.slugs.slice(0, 5).map((slug) => (
-                        <Badge key={slug} asChild variant="outline">
-                          <Link href={`/glossary?term=${encodeURIComponent(slug)}`}>{slug}</Link>
+                      {p.items.slice(0, 5).map((item) => (
+                        <Badge key={item.slug} asChild variant={item.reviewed ? "secondary" : "outline"}>
+                          <Link href={`/glossary?term=${encodeURIComponent(item.slug)}`}>
+                            {item.slug}
+                            {item.hasCard ? " · card" : ""}
+                          </Link>
                         </Badge>
                       ))}
                     </div>
+                    {p.nextSlug ? (
+                      <div className="mt-2">
+                        <Button asChild size="sm" variant="ghost">
+                          <Link href={`/glossary?term=${encodeURIComponent(p.nextSlug)}`}>
+                            learn next: {p.nextSlug}
+                          </Link>
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
                 ))}
               </div>

@@ -17,8 +17,10 @@ import { seedDefaultDomainsAndTopics } from "@/server/seed/seed";
 import { requireUserId } from "@/server/auth/user";
 import { startOfDayUTC, localDateInTimeZone, utcStartOfLocalDay } from "@/server/time/day";
 import { Prisma } from "@prisma/client";
+import { assertWritableRequest } from "@/server/auth/preview";
 
 async function requireAdmin() {
+  await assertWritableRequest();
   if (!isAdminProtectionEnabled()) return;
   const cookieStore = await cookies();
   const token = cookieStore.get(getAdminCookieName())?.value ?? null;
@@ -28,6 +30,7 @@ async function requireAdmin() {
 }
 
 export async function adminLoginAction(formData: FormData) {
+  await assertWritableRequest();
   const secret = String(formData.get("secret") ?? "");
   const cookieName = getAdminCookieName();
 

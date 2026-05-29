@@ -26,6 +26,8 @@ import {
 import { LearningTimeline } from "@/components/learning/learning-timeline";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { LearningCTAGroup } from "@/components/learning/learning-cta-group";
+import { LearningFocusPanel, type LearningFocusStage } from "@/components/learning/learning-focus-panel";
+import { LearningMarkdown } from "@/components/learning/learning-markdown";
 import type {
   LearningTimelineItem,
   LearningTimelineItemStatus,
@@ -176,6 +178,13 @@ export default async function TodayPage() {
       },
     }),
   ]);
+  const activeProject = await prisma.learningProject.findFirst({
+    where: { userId, status: { not: "completed" } },
+    include: { milestones: { orderBy: [{ position: "asc" }] } },
+    orderBy: [{ updatedAt: "desc" }],
+  });
+  const activeProjectMilestone =
+    activeProject?.milestones.find((milestone) => milestone.status !== "completed") ?? null;
 
   const decisionExplanation = explainCurriculumDecision({
     domain: decisionLog?.domain ?? plan.selectedDomain,
@@ -310,6 +319,57 @@ export default async function TodayPage() {
       hint: plan.status === "completed" ? "已生成卡片" : "写一句话总结",
     },
   ];
+  const focusStages: LearningFocusStage[] = [
+    {
+      id: "goal",
+      title: "今日目标",
+      description: `先明确今天要掌握什么：${plan.lesson.title}`,
+      href: "#today-hero",
+      status: "done",
+    },
+    {
+      id: "lesson",
+      title: "主课通读",
+      description: "用 Markdown 结构读完正文，重点看标题、列表、代码块和例子。",
+      href: "#today-lesson",
+      status: "active",
+    },
+    {
+      id: "guided",
+      title: "引导步骤",
+      description: guidedSteps.length ? `逐步完成 ${guidedSteps.length} 个引导问题。` : "今天没有引导步骤。",
+      href: "#today-guided",
+      status: guidedStatus,
+    },
+    {
+      id: "code",
+      title: "代码练习",
+      description: codingExercise ? "先保存实现思路，必要时请求 AI 反馈；服务端不会执行你的代码。" : "今天没有代码练习。",
+      href: "#today-code",
+      status: codingExercise ? (codeSubmission ? "done" : "todo") : "todo",
+    },
+    {
+      id: "quiz",
+      title: "小测验",
+      description: quizQuestions.length ? "提交答案后看解析，把错误点交给复习系统。" : "今天没有测验题。",
+      href: "#today-quiz",
+      status: quizQuestions.some((q) => q.attempt) ? "done" : "todo",
+    },
+    {
+      id: "knowledge",
+      title: "术语与广度",
+      description: "把今日术语、人物、公司或 Benchmark 连接到长期知识库。",
+      href: "#today-knowledge",
+      status: glossary || breadth ? "todo" : "done",
+    },
+    {
+      id: "reflection",
+      title: "反思与完成",
+      description: plan.status === "completed" ? "今日学习已完成，下一步进入复习或笔记。" : "写一句自己的总结，然后生成复习卡片。",
+      href: "#today-reflection",
+      status: plan.status === "completed" ? "done" : "todo",
+    },
+  ];
 
   return (
     <AppShell
@@ -328,6 +388,8 @@ export default async function TodayPage() {
         subtitle={`今日主题：${plan.lesson.title}`}
         badge="今日"
       />
+
+      <LearningFocusPanel stages={focusStages} className="mb-4" />
 
       <div className="grid gap-4 lg:grid-cols-[260px_1fr_340px]">
         <div className="hidden lg:block">
@@ -371,9 +433,7 @@ export default async function TodayPage() {
               <div className="text-sm font-medium">今日主课</div>
               <div className="text-xs text-muted-foreground">建议：先通读，再做步骤</div>
             </div>
-            <div className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
-              {plan.lesson.contentMarkdown}
-            </div>
+            <LearningMarkdown content={plan.lesson.contentMarkdown} className="mt-3" />
           </div>
 
             {guidedSteps.length ? (
@@ -523,16 +583,43 @@ export default async function TodayPage() {
                 </div>
 
                 {plan.status === "completed" ? (
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    <Button asChild size="sm" variant="secondary">
-                      <a href="/review">去复习</a>
-                    </Button>
-                    <Button asChild size="sm" variant="secondary">
-                      <a href={`/notes?lessonId=${encodeURIComponent(plan.lessonId)}`}>写笔记</a>
-                    </Button>
-                    <Button asChild size="sm" variant="secondary">
-                      <a href={`/library?lessonId=${encodeURIComponent(plan.lessonId)}`}>查看课程库</a>
-                    </Button>
+                  <div className="grid gap-3 pt-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button asChild size="sm" variant="secondary">
+                        <a href="/review">去复习</a>
+                      </Button>
+                      <Button asChild size="sm" variant="secondary">
+                        <a href={`/notes?lessonId=${encodeURIComponent(plan.lessonId)}`}>写笔记</a>
+                      </Button>
+                      <Button asChild size="sm" variant="secondary">
+                        <a href={`/library?lessonId=${encodeURIComponent(plan.lessonId)}`}>查看课程库</a>
+                      </Button>
+                    </div>
+                    {activeProject ? (
+                      <div className="rounded-lg border bg-indigo-50/40 p-3 text-sm">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="font-medium">今日项目任务</div>
+                          <Badge variant="outline">{activeProject.title}</Badge>
+                        </div>
+                        <div className="mt-1 text-muted-foreground">
+                          {activeProjectMilestone
+                            ? activeProjectMilestone.title
+                            : "项目里程碑已完成，可以生成项目总结。"}
+                        </div>
+                        {activeProjectMilestone?.task ? (
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            {activeProjectMilestone.task}
+                          </div>
+                        ) : null}
+                        <div className="mt-3">
+                          <Button asChild size="sm" variant="outline">
+                            <Link href={`/projects?projectId=${encodeURIComponent(activeProject.id)}`}>
+                              继续项目
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
               </form>

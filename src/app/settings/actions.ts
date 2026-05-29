@@ -7,8 +7,10 @@ import {
   settingsSavedRedirectPath,
   updateUserProfileSettings,
 } from "@/server/profile/settings";
+import { assertWritableRequest } from "@/server/auth/preview";
 
 export async function updateSettingsAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
 
   const displayNameRaw = String(formData.get("displayName") ?? "").trim();

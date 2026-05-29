@@ -20,6 +20,14 @@
 - Demo cookie 不是长期鉴权方案，只用于开发和临时演示。
 - 密钥、数据库连接串、Supabase key 不写入知识库。
 
+## Read-only Preview Mode
+
+- `/preview?token=...&next=/today` 校验 `PREVIEW_TOKEN` 后设置 httpOnly `ral_preview=1`。
+- Preview 使用 `demo-user` 读取真实学习数据，但所有写操作必须调用 `assertWritableRequest()` 并拒绝执行。
+- Preview 下 `/admin` 直接 404，admin server actions 也会拒绝。
+- `AppShell` 在 Preview 下显示黄色只读提示条，说明保存、生成、提交和管理操作都会被拒绝。
+- Preview token 只允许放在服务端环境变量，不写入 README、知识库或提交记录。
+
 ## 本地验收
 
 - `npm test`：33 项通过。

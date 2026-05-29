@@ -15,6 +15,7 @@
 7. 点击“生成复习卡片”，卡片进入 `/review`。
 8. 在 `/today` 的今日术语和今日广度小卡中跳转到对应详情页。
 9. 在 `/map` 查看术语库覆盖、Radar 覆盖、类型分布和复习队列状态。
+10. 在 `/glossary` 和 `/radar` 使用学习路径查看“已制卡 / 已复习 / 下一项”。
 
 ## 每日广度轮转
 
@@ -82,6 +83,20 @@
 - `/review` 的队列和统计必须使用同一套 reviewable 过滤规则。
 - `sourceRefs` 用于资料来源提示，不记录 API Key、Admin Secret 或数据库连接串。
 - 不在服务端执行用户提交的代码。
+
+## 学习路径
+
+- 当前路径由 `src/server/knowledge/paths.ts` 定义，不新增表结构。
+- Glossary 路径：
+  - Agent 基础链路：`cot -> react -> reflexion -> agent -> swe-bench`
+  - RAG 基础链路：`embedding -> vector-database -> bm25 -> reranker -> rag`
+- Radar 路径：
+  - AI 组织与生态链路：`openai -> anthropic -> google-deepmind -> hugging-face -> cursor`
+  - 代码能力评测链路：`humaneval -> swe-bench -> langchain`
+- 路径进度通过稳定卡片 ID 计算：
+  - `glossary:<userId>:<slug>`
+  - `radar:<userId>:<slug>`
+- `reviewCount > 0` 视为已复习，`hasCard` 视为已制卡。
 
 ## Radar 可信度治理
 

@@ -18,6 +18,7 @@ const PROTECTED_PREFIXES = [
 const PUBLIC_PATH_PREFIXES = [
   "/login",
   "/error",
+  "/preview",
   "/auth/confirm",
   "/api/health",
   "/api/cron/daily",

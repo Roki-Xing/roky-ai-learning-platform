@@ -8,6 +8,10 @@ import {
   isDemoSessionTokenValid,
   isDemoUserAllowed,
 } from "@/server/auth/demo";
+import {
+  isPreviewSessionTokenValid,
+  isPreviewTokenValid,
+} from "@/server/auth/preview";
 
 test("learning data routes are protected by auth policy", () => {
   for (const path of [
@@ -30,8 +34,8 @@ test("learning data routes are protected by auth policy", () => {
   }
 });
 
-test("public auth and health routes stay public", () => {
-  for (const path of ["/login", "/auth/confirm", "/api/health", "/favicon.ico"]) {
+test("public auth, preview, admin login shell, and health routes stay public", () => {
+  for (const path of ["/login", "/preview", "/admin", "/auth/confirm", "/api/health", "/favicon.ico"]) {
     assert.equal(isProtectedPath(path), false, `${path} should be public`);
   }
 });
@@ -65,6 +69,30 @@ test("demo session token is only valid when demo mode is allowed", () => {
     }),
     false,
   );
+});
+
+test("preview token and session token require configured preview secret", () => {
+  const previous = process.env.PREVIEW_TOKEN;
+  delete process.env.PREVIEW_TOKEN;
+
+  try {
+    assert.equal(isPreviewTokenValid("secret"), false);
+    assert.equal(isPreviewSessionTokenValid("1"), false);
+  } finally {
+    if (previous) process.env.PREVIEW_TOKEN = previous;
+  }
+
+  assert.equal(isPreviewTokenValid("right", { previewToken: "right" }), true);
+  assert.equal(isPreviewTokenValid("wrong", { previewToken: "right" }), false);
+
+  process.env.PREVIEW_TOKEN = "a-preview-token-value";
+  try {
+    assert.equal(isPreviewSessionTokenValid("1"), true);
+    assert.equal(isPreviewSessionTokenValid("bad"), false);
+  } finally {
+    if (previous) process.env.PREVIEW_TOKEN = previous;
+    else delete process.env.PREVIEW_TOKEN;
+  }
 });
 
 test("protected routes redirect without real user or active demo session", () => {

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUserId } from "@/server/auth/user";
+import { assertWritableRequest } from "@/server/auth/preview";
 import { submitCodeForReview } from "@/server/coding/submit";
 
 function isMissingTableError(err: unknown) {
@@ -24,6 +25,7 @@ function isMissingTableError(err: unknown) {
 }
 
 export async function saveCodeSubmissionAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
 
   const lessonId = String(formData.get("lessonId") ?? "").trim();

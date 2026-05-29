@@ -12,6 +12,8 @@
 - Glossary / Radar：术语库与实体库 + 复习卡片生成 + 探索路径/关系卡
 - Projects：项目实践（里程碑、草稿、AI 代码评审、任务感 UI）
 - Knowledge Map：领域/主题统计、masteryScore、进度条、下一步建议
+- Read-only Preview：`/preview?token=...` 使用 demo-user 只读数据，拒绝生成、保存、提交和 admin 操作
+- Learning UX Polish：首页 Next Best Action、登录页产品入口、主课 Markdown/GFM 渲染、Today Focus Mode、Voice 录音计时器
 - Manual migrations：以 `prisma/manual-migrations/*.sql` 管理历史库演进
 
 ## Getting Started

@@ -2,6 +2,7 @@
 
 import { prisma } from "@/server/db";
 import { requireUserId } from "@/server/auth/user";
+import { assertWritableRequest } from "@/server/auth/preview";
 import { nextDueAtFromRating, type ReviewRating } from "@/server/review/schedule";
 import { revalidatePath } from "next/cache";
 
@@ -58,6 +59,7 @@ export async function rateFlashcard(args: {
 }
 
 export async function rateFlashcardAction(formData: FormData) {
+  await assertWritableRequest();
   const userId = await requireUserId();
   const flashcardId = String(formData.get("flashcardId") ?? "");
   const rating = String(formData.get("rating") ?? "") as ReviewRating;
