@@ -15,6 +15,11 @@ test("review session summary recommends coach when forgot and hard dominate", ()
   assert.equal(summary.tone, "danger");
   assert.match(summary.title, /补弱/);
   assert.equal(summary.primaryAction.href, "/coach");
+  assert.deepEqual(summary.actionPlan.map((item) => item.title), [
+    "先复述忘记的卡片",
+    "交给 Coach 找缺口",
+    "回到今日学习补上下文",
+  ]);
 });
 
 test("review session summary recommends progress when retention is strong", () => {
@@ -30,4 +35,9 @@ test("review session summary recommends progress when retention is strong", () =
   assert.equal(summary.tone, "success");
   assert.match(summary.title, /稳定/);
   assert.equal(summary.primaryAction.href, "/progress");
+  assert.deepEqual(summary.actionPlan.map((item) => item.title), [
+    "查看进度趋势",
+    "继续今日任务",
+    "保持明天复习节奏",
+  ]);
 });

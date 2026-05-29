@@ -246,6 +246,22 @@ export function ReviewTrainer(props: {
             <div>记得：{sessionCounts.good}</div>
             <div>很熟：{sessionCounts.easy}</div>
           </div>
+          <div className="mt-4 rounded-lg border bg-muted/20 p-3">
+            <div className="text-sm font-medium">复习后行动计划</div>
+            <div className="mt-3 grid gap-2">
+              {sessionSummary.actionPlan.map((item, index) => (
+                <div key={item.title} className="flex gap-3 rounded-md border bg-background px-3 py-2">
+                  <div className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-medium">
+                    {index + 1}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium">{item.title}</div>
+                    <div className="mt-1 text-xs leading-5 text-muted-foreground">{item.description}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button asChild size="sm" variant="secondary">
               <a href={sessionSummary.primaryAction.href}>{sessionSummary.primaryAction.label}</a>

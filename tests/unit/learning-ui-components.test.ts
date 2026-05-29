@@ -237,4 +237,6 @@ test("review trainer completion summary highlights retention and next action", (
   assert.match(markup, /留存 25%/);
   assert.match(markup, /去 Coach 补弱/);
   assert.match(markup, /需要补弱/);
+  assert.match(markup, /复习后行动计划/);
+  assert.match(markup, /先复述忘记的卡片/);
 });

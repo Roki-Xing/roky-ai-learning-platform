@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.81.0] - 2026-05-30
+
+### Added
+
+- **[Review Completion Action Plan]** 强化 `/review` 复习完成后的下一步反馈。
+  - `buildReviewSessionSummary()` 新增 `actionPlan`，按补弱、稳定、混合三种复习结果给出 3 步后续行动。
+  - `ReviewTrainer` 完成态新增“复习后行动计划”，把“先复述忘记的卡片 / 交给 Coach 找缺口 / 回到今日学习补上下文”等建议直接显示在总结卡片里。
+  - 保持原有 Space 显示答案、1-4 评分、留存率和 CTA 行为不变，只增强复习结束后的行动引导。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` 失败于缺少 `actionPlan` 和“复习后行动计划”UI。
+- 本地 GREEN：`npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` 10 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm test` 207 项通过。
+
 ## [0.80.0] - 2026-05-30
 
 ### Added
