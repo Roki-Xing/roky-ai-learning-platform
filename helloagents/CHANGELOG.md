@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.79.0] - 2026-05-30
+
+### Added
+
+- **[Voice Capture Status Panel]** 强化 `/voice` 的“说出理解”录音体验。
+  - 新增 `buildVoiceCaptureStatusPanel()` 和 `formatVoiceRecordingSeconds()`，把录音、转写、文件选择和手动 fallback 状态转成稳定 UI 文案。
+  - `VoiceCapture` 顶部新增录音状态面板，显示“准备说出理解 / 正在录音 / 转写已填入 Transcript”等提示和固定 `mm:ss` 计时器。
+  - Playwright smoke 增加 `/voice` 的“准备说出理解”和“把脑子里的想法说出来”断言，避免页面退回技术上传表单。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/voice-capture-status.test.ts tests/unit/voice-note.test.ts` 失败于缺少 `@/app/voice/ui/voice-capture-status`。
+- 本地 GREEN：`npm test -- tests/unit/voice-capture-status.test.ts tests/unit/voice-note.test.ts` 8 项通过。
+- 本地 GREEN：`npm test -- tests/unit/voice-capture-status.test.ts tests/unit/voice-note.test.ts tests/unit/learning-ui-components.test.ts` 16 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm test` 204 项通过。
+
 ## [0.78.0] - 2026-05-30
 
 ### Added

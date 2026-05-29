@@ -4,6 +4,10 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
+import {
+  buildVoiceCaptureStatusPanel,
+  type VoiceCaptureStatus,
+} from "@/app/voice/ui/voice-capture-status";
 
 type TranscribeResult = {
   ok: boolean;
@@ -25,9 +29,7 @@ export function VoiceCapture(props: {
   const chunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [status, setStatus] = useState<
-    "idle" | "recording" | "recorded" | "file-selected" | "file-too-large" | "transcribing"
-  >("idle");
+  const [status, setStatus] = useState<VoiceCaptureStatus>("idle");
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioName, setAudioName] = useState("");
   const [recordedSeconds, setRecordedSeconds] = useState(0);
@@ -51,12 +53,6 @@ export function VoiceCapture(props: {
     }, 500);
     return () => window.clearInterval(id);
   }, [status]);
-
-  function formatSeconds(total: number) {
-    const mm = String(Math.floor(total / 60)).padStart(2, "0");
-    const ss = String(total % 60).padStart(2, "0");
-    return `${mm}:${ss}`;
-  }
 
   async function startRecording() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -146,18 +142,34 @@ export function VoiceCapture(props: {
     });
   }
 
-  const statusBadge = useMemo(() => {
-    if (status === "file-too-large") return <LearningStatusBadge tone="danger">文件过大</LearningStatusBadge>;
-    if (status === "transcribing" || isPending) return <LearningStatusBadge tone="info">转写中</LearningStatusBadge>;
-    if (status === "recording") return <LearningStatusBadge tone="warning">录音中</LearningStatusBadge>;
-    if (status === "recorded") return <LearningStatusBadge tone="info">已录音</LearningStatusBadge>;
-    if (status === "file-selected") return <LearningStatusBadge tone="info">已选择音频</LearningStatusBadge>;
-    return <LearningStatusBadge tone="neutral">idle</LearningStatusBadge>;
-  }, [status, isPending]);
+  const statusPanel = useMemo(() => {
+    return buildVoiceCaptureStatusPanel({
+      status: status === "transcribing" || isPending ? "transcribing" : status,
+      seconds: recordedSeconds,
+      hasTranscript: Boolean(lastResult?.transcript?.trim()),
+      lastResultStatus: lastResult?.status ?? null,
+    });
+  }, [status, isPending, recordedSeconds, lastResult]);
 
   return (
     <div className="grid gap-3">
       <input type="hidden" name="audioName" value={audioName} />
+
+      <div className="rounded-lg border bg-muted/20 p-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="text-sm font-medium">{statusPanel.title}</div>
+              <LearningStatusBadge tone={statusPanel.tone}>{statusPanel.badgeLabel}</LearningStatusBadge>
+            </div>
+            <div className="mt-1 text-xs leading-5 text-muted-foreground">{statusPanel.description}</div>
+          </div>
+          <div className="rounded-md border bg-background px-3 py-2 text-right">
+            <div className="text-[0.68rem] font-medium uppercase tracking-wide text-muted-foreground">recording</div>
+            <div className="font-mono text-lg tabular-nums">{statusPanel.timerLabel}</div>
+          </div>
+        </div>
+      </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
@@ -180,14 +192,7 @@ export function VoiceCapture(props: {
             停止录音
           </Button>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          {status === "recording" ? (
-            <span className="font-mono tabular-nums text-amber-800">{formatSeconds(recordedSeconds)}</span>
-          ) : recordedSeconds > 0 ? (
-            <span className="font-mono tabular-nums">{formatSeconds(recordedSeconds)}</span>
-          ) : null}
-          {statusBadge}
-        </div>
+        <div className="text-xs text-muted-foreground">先说出理解，再决定是否转写或手动整理。</div>
       </div>
 
       <div className="grid gap-2">
