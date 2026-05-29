@@ -6,6 +6,7 @@ import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import { buildReviewableFlashcardWhere } from "@/server/review/filter";
 import { localDateInTimeZone } from "@/server/time/day";
 import { LearningMetricCard } from "@/components/learning/learning-metric-card";
+import { LearningMissionCard } from "@/components/learning/learning-mission-card";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { buildNextBestAction } from "@/server/learning/next-best-action";
@@ -355,33 +356,30 @@ export default async function HomePage() {
           }
         >
           <div className="grid gap-2 text-sm">
-            <div className="flex items-center justify-between gap-3 rounded-lg border bg-card p-3">
-              <div className="min-w-0">
-                <div className="font-medium">完成今日学习</div>
-                <div className="mt-0.5 text-xs text-muted-foreground">一步一步走完引导步骤与小测验</div>
-              </div>
-              <LearningStatusBadge tone={isTodayCompleted ? "success" : "warning"}>
-                {isTodayCompleted ? "已完成" : "待完成"}
-              </LearningStatusBadge>
-            </div>
-            <div className="flex items-center justify-between gap-3 rounded-lg border bg-card p-3">
-              <div className="min-w-0">
-                <div className="font-medium">清空到期复习</div>
-                <div className="mt-0.5 text-xs text-muted-foreground">主动回忆，比“看答案”更有效</div>
-              </div>
-              <LearningStatusBadge tone={dueFlashcardsCount > 0 ? "warning" : "success"}>
-                {dueFlashcardsCount > 0 ? `剩余 ${dueFlashcardsCount}` : "已清空"}
-              </LearningStatusBadge>
-            </div>
-            <div className="flex items-center justify-between gap-3 rounded-lg border bg-card p-3">
-              <div className="min-w-0">
-                <div className="font-medium">写下自己的理解</div>
-                <div className="mt-0.5 text-xs text-muted-foreground">一句话也行，沉淀到笔记库</div>
-              </div>
-              <Button asChild size="sm" variant="outline">
-                <Link href="/notes">去写</Link>
-              </Button>
-            </div>
+            <LearningMissionCard
+              title="完成今日学习"
+              description="一步一步走完引导步骤与小测验"
+              statusLabel={isTodayCompleted ? "已完成" : "待完成"}
+              tone={isTodayCompleted ? "success" : "warning"}
+              href="/today"
+              actionLabel={isTodayCompleted ? "查看" : "继续"}
+            />
+            <LearningMissionCard
+              title="清空到期复习"
+              description="主动回忆，比直接看答案更有效"
+              statusLabel={dueFlashcardsCount > 0 ? `剩余 ${dueFlashcardsCount}` : "已清空"}
+              tone={dueFlashcardsCount > 0 ? "warning" : "success"}
+              href="/review"
+              actionLabel="复习"
+            />
+            <LearningMissionCard
+              title="写下自己的理解"
+              description="一句话也行，沉淀到笔记库"
+              statusLabel={todayNoteCount > 0 ? `${todayNoteCount} 篇` : "待沉淀"}
+              tone={todayNoteCount > 0 ? "success" : "info"}
+              href="/notes"
+              actionLabel="去写"
+            />
           </div>
         </LearningSectionCard>
 

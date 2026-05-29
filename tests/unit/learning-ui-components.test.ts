@@ -4,6 +4,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LearningFocusPanel } from "@/components/learning/learning-focus-panel";
 import { LearningFocusPlayer } from "@/components/learning/learning-focus-player";
+import { LearningMissionCard } from "@/components/learning/learning-mission-card";
 import { LearningMarkdown } from "@/components/learning/learning-markdown";
 import { KnowledgePathExplorer } from "@/components/learning/knowledge-path-explorer";
 import { VoiceLearningPipeline } from "@/app/voice/ui/voice-learning-pipeline";
@@ -101,6 +102,25 @@ test("learning focus player renders one active stage with overview rail", () => 
   assert.match(markup, /2 \/ 2/);
   assert.match(markup, /完整视图/);
   assert.doesNotMatch(markup, /目标内容/);
+});
+
+test("learning mission card renders mission status, reason, and action", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(LearningMissionCard, {
+      title: "完成今日学习",
+      description: "一步一步走完引导步骤与小测验",
+      statusLabel: "待完成",
+      tone: "warning",
+      href: "/today",
+      actionLabel: "继续",
+    }),
+  );
+
+  assert.match(markup, /完成今日学习/);
+  assert.match(markup, /一步一步走完引导步骤与小测验/);
+  assert.match(markup, /待完成/);
+  assert.match(markup, /href="\/today"/);
+  assert.match(markup, /继续/);
 });
 
 test("voice learning pipeline shows coach note cards and review next steps", () => {

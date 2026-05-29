@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.75.0] - 2026-05-29
+
+### Added
+
+- **[Home Learning Mission Cards]** 将首页“今日三件事”从普通列表升级为每日任务卡。
+  - 新增 `LearningMissionCard`，统一展示任务标题、说明、状态徽标和下一步 CTA。
+  - 首页“完成今日学习 / 清空到期复习 / 写下自己的理解”改用任务卡，状态分别绑定今日完成、到期卡片和今日笔记数量。
+  - 任务卡沿用学习语义色：完成为 emerald，待办/到期为 amber，笔记沉淀为 indigo。
+
+### Verified
+
+- 本地 GREEN：`npm test -- tests/unit/learning-ui-components.test.ts` 8 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+
 ## [0.74.0] - 2026-05-29
 
 ### Added
