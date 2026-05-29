@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.76.0] - 2026-05-29
+
+### Added
+
+- **[Today Completion Next Actions]** 将 `/today` 完成后的三个普通按钮升级为“完成后下一步”接续面板。
+  - 新增 `buildTodayCompletionNextActions()`，按今日状态、到期卡片、笔记、Voice Note、Coach 评审、代码提交和进行中项目生成后续行动。
+  - 新增 `LearningCompletionCard`，统一展示完成状态、摘要和可点击行动项。
+  - `/today` 专注模式和完整视图都接入同一完成后面板；未完成时引导回到反思，完成后推荐复习、写笔记、语音复述、Coach 检查和项目实践。
+  - Playwright smoke 增加 `/today` 的“完成后下一步”断言，避免页面退回普通完成按钮集合。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/today-completion-next-actions.test.ts` 失败于缺少 `LearningCompletionCard` 模块。
+- 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 4 项通过。
+- 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/learning-ui-components.test.ts` 12 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 信息性检查：`npx tsc --noEmit` 暴露测试目录既有严格类型问题，和本次新增模块无关；项目生产构建 TypeScript 已通过。
+
 ## [0.75.0] - 2026-05-29
 
 ### Added

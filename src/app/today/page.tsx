@@ -26,12 +26,14 @@ import {
 import { LearningTimeline } from "@/components/learning/learning-timeline";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { LearningCTAGroup } from "@/components/learning/learning-cta-group";
+import { LearningCompletionCard } from "@/components/learning/learning-completion-card";
 import {
   LearningFocusPlayer,
   type LearningFocusPlayerOverviewItem,
   type LearningFocusPlayerStage,
 } from "@/components/learning/learning-focus-player";
 import { LearningMarkdown } from "@/components/learning/learning-markdown";
+import { buildTodayCompletionNextActions } from "@/server/learning/today-completion-actions";
 import type {
   LearningTimelineItem,
   LearningTimelineItemStatus,
@@ -64,7 +66,14 @@ export default async function TodayPage() {
   const plan = await getOrCreateTodayPlan({ userId });
   const now = new Date();
 
-  const [flashcardCount, lessonDueFlashcardCount, totalDueFlashcardCount] =
+  const [
+    flashcardCount,
+    lessonDueFlashcardCount,
+    totalDueFlashcardCount,
+    noteCount,
+    voiceNoteCount,
+    thoughtReviewCount,
+  ] =
     await Promise.all([
       prisma.flashcard.count({
         where: { userId, lessonId: plan.lessonId },
@@ -78,6 +87,9 @@ export default async function TodayPage() {
           dueAt: { lte: now },
         },
       }),
+      prisma.note.count({ where: { userId, lessonId: plan.lessonId } }),
+      prisma.voiceNote.count({ where: { userId, lessonId: plan.lessonId } }),
+      prisma.thoughtReview.count({ where: { userId, lessonId: plan.lessonId } }),
     ]);
 
   const reviewSummary = buildTodayReviewSummary({
@@ -331,6 +343,23 @@ export default async function TodayPage() {
     { label: "来源", value: plan.source ?? plan.lesson.createdBy },
     { label: "schema", value: plan.schemaVersion ?? "-" },
   ];
+  const completionNextActions = buildTodayCompletionNextActions({
+    planStatus: plan.status,
+    lessonId: plan.lessonId,
+    lessonDueFlashcardCount,
+    totalDueFlashcardCount,
+    noteCount,
+    voiceNoteCount,
+    thoughtReviewCount,
+    hasCodeSubmission: Boolean(codeSubmission),
+    activeProject: activeProject
+      ? {
+          id: activeProject.id,
+          title: activeProject.title,
+          activeMilestoneTitle: activeProjectMilestone?.title ?? null,
+        }
+      : null,
+  });
   const focusStages: LearningFocusPlayerStage[] = [
     {
       id: "goal",
@@ -497,40 +526,30 @@ export default async function TodayPage() {
       description: plan.status === "completed" ? "今日学习已完成，下一步进入复习或笔记。" : "写一句自己的总结，然后生成复习卡片。",
       status: plan.status === "completed" ? "done" : "todo",
       body: (
-        <div className="rounded-lg border bg-card p-4">
-          <form action={completeTodayAction} className="grid gap-3">
-            <input type="hidden" name="date" value={plan.date.toISOString()} />
-            <div className="text-sm text-muted-foreground">
-              写一句总结（完成后会生成复习卡片）
-            </div>
-            <textarea
-              name="reflection"
-              className="min-h-32 w-full rounded-lg border bg-transparent p-3 text-sm outline-none"
-              placeholder="今天我学到了..."
-              defaultValue={plan.reflection ?? ""}
-            />
-            <div className="flex flex-wrap items-center gap-2">
-              <Button type="submit" disabled={plan.status === "completed"}>
-                {plan.status === "completed" ? "已完成" : "标记完成并生成卡片"}
-              </Button>
-              <div className="text-xs text-muted-foreground">
-                当前状态：{plan.status} / 卡片：{flashcardCount}
+        <div className="grid gap-3">
+          <div className="rounded-lg border bg-card p-4">
+            <form action={completeTodayAction} className="grid gap-3">
+              <input type="hidden" name="date" value={plan.date.toISOString()} />
+              <div className="text-sm text-muted-foreground">
+                写一句总结（完成后会生成复习卡片）
               </div>
-            </div>
-            {plan.status === "completed" ? (
-              <LearningCTAGroup>
-                <Button asChild size="sm" variant="secondary">
-                  <a href="/review">去复习</a>
+              <textarea
+                name="reflection"
+                className="min-h-32 w-full rounded-lg border bg-transparent p-3 text-sm outline-none"
+                placeholder="今天我学到了..."
+                defaultValue={plan.reflection ?? ""}
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                <Button type="submit" disabled={plan.status === "completed"}>
+                  {plan.status === "completed" ? "已完成" : "标记完成并生成卡片"}
                 </Button>
-                <Button asChild size="sm" variant="secondary">
-                  <a href={`/notes?lessonId=${encodeURIComponent(plan.lessonId)}`}>写笔记</a>
-                </Button>
-                <Button asChild size="sm" variant="secondary">
-                  <a href={`/library?lessonId=${encodeURIComponent(plan.lessonId)}`}>查看课程库</a>
-                </Button>
-              </LearningCTAGroup>
-            ) : null}
-          </form>
+                <div className="text-xs text-muted-foreground">
+                  当前状态：{plan.status} / 卡片：{flashcardCount}
+                </div>
+              </div>
+            </form>
+          </div>
+          <LearningCompletionCard completion={completionNextActions} />
         </div>
       ),
     },
@@ -739,69 +758,31 @@ export default async function TodayPage() {
               )}
             </div>
 
-            <div id="today-reflection" className="rounded-lg border bg-card p-4 shadow-sm">
-              <div className="text-sm font-medium">沉淀</div>
-              <form action={completeTodayAction} className="mt-3 grid gap-3">
-                <input type="hidden" name="date" value={plan.date.toISOString()} />
-                <div className="text-sm text-muted-foreground">
-                  写一句总结（完成后会生成复习卡片）
-                </div>
-                <textarea
-                  name="reflection"
-                  className="min-h-24 w-full rounded-lg border bg-transparent p-3 text-sm outline-none"
-                  placeholder="今天我学到了..."
-                  defaultValue={plan.reflection ?? ""}
-                />
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button type="submit" disabled={plan.status === "completed"}>
-                    {plan.status === "completed" ? "已完成" : "标记完成并生成卡片"}
-                  </Button>
-                  <div className="text-xs text-muted-foreground">
-                    当前状态：{plan.status} / 卡片：{flashcardCount}
+            <div id="today-reflection" className="grid gap-3">
+              <div className="rounded-lg border bg-card p-4 shadow-sm">
+                <div className="text-sm font-medium">沉淀</div>
+                <form action={completeTodayAction} className="mt-3 grid gap-3">
+                  <input type="hidden" name="date" value={plan.date.toISOString()} />
+                  <div className="text-sm text-muted-foreground">
+                    写一句总结（完成后会生成复习卡片）
                   </div>
-                </div>
-
-                {plan.status === "completed" ? (
-                  <div className="grid gap-3 pt-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button asChild size="sm" variant="secondary">
-                        <a href="/review">去复习</a>
-                      </Button>
-                      <Button asChild size="sm" variant="secondary">
-                        <a href={`/notes?lessonId=${encodeURIComponent(plan.lessonId)}`}>写笔记</a>
-                      </Button>
-                      <Button asChild size="sm" variant="secondary">
-                        <a href={`/library?lessonId=${encodeURIComponent(plan.lessonId)}`}>查看课程库</a>
-                      </Button>
+                  <textarea
+                    name="reflection"
+                    className="min-h-24 w-full rounded-lg border bg-transparent p-3 text-sm outline-none"
+                    placeholder="今天我学到了..."
+                    defaultValue={plan.reflection ?? ""}
+                  />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button type="submit" disabled={plan.status === "completed"}>
+                      {plan.status === "completed" ? "已完成" : "标记完成并生成卡片"}
+                    </Button>
+                    <div className="text-xs text-muted-foreground">
+                      当前状态：{plan.status} / 卡片：{flashcardCount}
                     </div>
-                    {activeProject ? (
-                      <div className="rounded-lg border bg-indigo-50/40 p-3 text-sm">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="font-medium">今日项目任务</div>
-                          <Badge variant="outline">{activeProject.title}</Badge>
-                        </div>
-                        <div className="mt-1 text-muted-foreground">
-                          {activeProjectMilestone
-                            ? activeProjectMilestone.title
-                            : "项目里程碑已完成，可以生成项目总结。"}
-                        </div>
-                        {activeProjectMilestone?.task ? (
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            {activeProjectMilestone.task}
-                          </div>
-                        ) : null}
-                        <div className="mt-3">
-                          <Button asChild size="sm" variant="outline">
-                            <Link href={`/projects?projectId=${encodeURIComponent(activeProject.id)}`}>
-                              继续项目
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ) : null}
                   </div>
-                ) : null}
-              </form>
+                </form>
+              </div>
+              <LearningCompletionCard completion={completionNextActions} />
             </div>
         </div>
 
