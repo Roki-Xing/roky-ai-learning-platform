@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { APP_ROUTE_GROUPS } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { isPreviewMode } from "@/server/auth/preview";
@@ -70,10 +70,11 @@ export async function AppShell({
           <div className="flex min-w-0 items-center gap-2">
             <div className="md:hidden">
               <Sheet>
-                <SheetTrigger asChild>
-                  <Button size="icon" variant="ghost" aria-label="打开菜单">
-                    <Menu className="size-4" />
-                  </Button>
+                <SheetTrigger
+                  aria-label="打开菜单"
+                  className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
+                >
+                  <Menu className="size-4" />
                 </SheetTrigger>
                 <SheetContent side="left" className="w-80 p-0">
                   <div className="flex h-14 items-center gap-2 border-b px-4">

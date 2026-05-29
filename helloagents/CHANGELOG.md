@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.62.0] - 2026-05-29
+
+### Added
+
+- **[E2E / UI Smoke]** 接入 Playwright 浏览器级 smoke tests。
+  - 新增 `npm run e2e` 脚本。
+  - 新增 `playwright.config.ts`，默认启动本地 Next dev server，也支持 `E2E_BASE_URL` 指向外部环境。
+  - 新增 `tests/e2e/smoke.spec.ts`，覆盖登录/Preview 入口、首页、`/today` Focus player、`/review` 主动回忆 reveal、`/coach`、`/voice`。
+  - 新增 `helloagents/modules/e2e-ui-smoke.md` 记录运行方式和安全约束。
+  - `.gitignore` 忽略 Playwright 运行产物。
+
+### Fixed
+
+- **[AppShell]** 修复移动端 Sheet 菜单触发器的嵌套 button 结构，消除浏览器 E2E 暴露的 hydration mismatch 风险。
+
+### Verified
+
+- 本地：`npm run lint` 通过。
+- 本地：`npm test` 170 项通过。
+- 本地：`npm run build` 通过。
+- 本地：`npm run e2e` 2 项通过。
+
 ## [0.61.0] - 2026-05-29
 
 ### Added
