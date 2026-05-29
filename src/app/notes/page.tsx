@@ -12,6 +12,7 @@ import { buildLessonNoteTemplate } from "@/server/notes/template";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import { localDateInTimeZone } from "@/server/time/day";
 import { createNoteAction } from "@/app/notes/actions";
+import { NotesListPanel } from "@/app/notes/ui/notes-list-panel";
 
 function strings(value: unknown) {
   return Array.isArray(value)
@@ -22,7 +23,7 @@ function strings(value: unknown) {
 export default async function NotesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ lessonId?: string }>;
+  searchParams: Promise<{ lessonId?: string; noteId?: string }>;
 }) {
   const sp = await searchParams;
   const userId = await requireUserId();
@@ -65,6 +66,7 @@ export default async function NotesPage({
       })
     : [];
   const lessonTitleById = new Map(lessons.map((l) => [l.id, l.title]));
+  const selectedNoteId = notes.some((note) => note.id === sp.noteId) ? sp.noteId : null;
 
   const [selectedLesson, selectedLessonQuizCount, selectedLessonCodeSubmissionCount] =
     selectedLessonId
@@ -104,44 +106,17 @@ export default async function NotesPage({
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">笔记列表</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-2">
-            {notes.length ? (
-              <div className="grid gap-1">
-                {notes.map((n) => (
-                  <div key={n.id} className="rounded-md border px-3 py-2">
-                    <div className="text-sm font-medium">{n.title}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      {n.updatedAt.toISOString().slice(0, 16).replace("T", " ")}
-                      {n.lessonId ? (
-                        <>
-                          {" "}
-                          /{" "}
-                          <Link
-                            className="underline underline-offset-4"
-                            href={`/library?lessonId=${encodeURIComponent(n.lessonId)}`}
-                          >
-                            {lessonTitleById.get(n.lessonId) ?? "关联课程"}
-                          </Link>
-                        </>
-                      ) : null}
-                    </div>
-                    <div className="mt-2 line-clamp-3 whitespace-pre-wrap text-xs text-muted-foreground">
-                      {n.content}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-sm text-muted-foreground">
-                暂无笔记。你可以先去 /today 完成学习，然后在这里沉淀总结。
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <NotesListPanel
+          selectedNoteId={selectedNoteId}
+          notes={notes.map((note) => ({
+            id: note.id,
+            title: note.title,
+            content: note.content,
+            updatedAtLabel: note.updatedAt.toISOString().slice(0, 16).replace("T", " "),
+            lessonId: note.lessonId,
+            lessonTitle: note.lessonId ? (lessonTitleById.get(note.lessonId) ?? "关联课程") : null,
+          }))}
+        />
 
         <Card className="rounded-lg lg:col-span-2">
           <CardHeader className="pb-2">

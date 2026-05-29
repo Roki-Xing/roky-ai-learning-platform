@@ -154,7 +154,9 @@ export function VoiceLearningPipeline(props: {
 
           {props.noteId ? (
             <Button asChild size="sm" variant="outline">
-              <Link href="/notes">查看笔记</Link>
+              <Link href={`/notes?noteId=${encodeURIComponent(props.noteId)}`}>
+                查看这条笔记
+              </Link>
             </Button>
           ) : null}
 

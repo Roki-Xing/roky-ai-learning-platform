@@ -164,6 +164,8 @@ test("voice learning pipeline focuses review queue after cards are generated", (
   assert.match(markup, /当前最优动作/);
   assert.match(markup, /href="\/review\?source=voice-note"/);
   assert.match(markup, /语音卡片已进入复习队列/);
+  assert.match(markup, /href="\/notes\?noteId=note-1"/);
+  assert.match(markup, /查看这条笔记/);
 });
 
 test("knowledge path explorer renders viewed card reviewed weak and next states", () => {

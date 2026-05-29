@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.83.0] - 2026-05-30
+
+### Added
+
+- **[Voice Note Handoff]** 强化 `/voice` 整理成笔记后的接续。
+  - `VoiceLearningPipeline` 的“查看笔记”入口改为 `/notes?noteId=...`，直接指向由当前 Voice Note 生成的笔记。
+  - `/notes` 新增 `NotesListPanel`，支持根据 `noteId` 高亮当前笔记，并标注“来自 Voice 的当前笔记”。
+  - `/notes` 列表项现在可点击回到自身 deep link，便于从 Voice、后续项目实践或外部入口定位具体笔记。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/learning-ui-components.test.ts` 失败于 Voice Pipeline 缺少 `/notes?noteId=...` 和“查看这条笔记”。
+- 本地 RED：`npm test -- tests/unit/notes-page-ui.test.ts` 失败于缺少 `NotesListPanel`。
+- 本地 GREEN：`npm test -- tests/unit/learning-ui-components.test.ts` 8 项通过。
+- 本地 GREEN：`npm test -- tests/unit/notes-page-ui.test.ts` 1 项通过。
+
 ## [0.82.0] - 2026-05-30
 
 ### Added
