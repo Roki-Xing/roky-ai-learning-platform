@@ -81,6 +81,19 @@ test("project daily rhythm card connects active project to daily flow", () => {
   assert.match(markup, /继续项目/);
 });
 
+test("project daily rhythm card keeps today's task visible without active project", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(ProjectDailyRhythmCard, {
+      project: null,
+    }),
+  );
+
+  assert.match(markup, /当前项目进度/);
+  assert.match(markup, /今日项目任务/);
+  assert.match(markup, /先选择一个小项目/);
+  assert.match(markup, /选择项目/);
+});
+
 test("mission completion criteria keeps practical completion rules visible", () => {
   const markup = renderToStaticMarkup(React.createElement(MissionCompletionCriteria));
 

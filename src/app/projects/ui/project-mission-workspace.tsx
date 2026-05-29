@@ -162,6 +162,13 @@ export function ProjectDailyRhythmCard({ project }: { project: ProjectDailyRhyth
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           还没有进行中的项目。选一个小项目，把今天学到的概念落到代码和复盘里。
         </p>
+        <div className="mt-3 rounded-lg border bg-muted/20 p-3">
+          <div className="text-xs font-medium text-muted-foreground">今日项目任务</div>
+          <div className="mt-1 text-sm font-semibold">先选择一个小项目</div>
+          <div className="mt-1 text-xs leading-5 text-muted-foreground">
+            从第一个里程碑开始，只保存一段代码或一条反思也算推进。
+          </div>
+        </div>
         <div className="mt-3">
           <Button asChild size="sm" variant="secondary">
             <Link href="/projects">选择项目</Link>
