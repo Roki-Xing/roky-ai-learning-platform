@@ -34,6 +34,22 @@ function encodedLessonHref(lessonId: string) {
   return `/notes?lessonId=${encodeURIComponent(lessonId)}`;
 }
 
+function encodedVoiceHref(lessonId: string) {
+  const query = new URLSearchParams({
+    lessonId,
+    mode: "today_lesson",
+  });
+  return `/voice?${query.toString()}`;
+}
+
+function encodedCoachHref(lessonId: string) {
+  const query = new URLSearchParams({
+    lessonId,
+    mode: "today_lesson",
+  });
+  return `/coach?${query.toString()}`;
+}
+
 function encodedProjectHref(projectId: string) {
   return `/projects?projectId=${encodeURIComponent(projectId)}`;
 }
@@ -87,7 +103,7 @@ export function buildTodayCompletionNextActions(
     actions.push({
       label: "说出今天的理解",
       description: "用语音讲一遍，让转写、Coach 和卡片生成接上。",
-      href: "/voice",
+      href: encodedVoiceHref(input.lessonId),
       tone: "info",
     });
   }
@@ -98,7 +114,7 @@ export function buildTodayCompletionNextActions(
       description: input.hasCodeSubmission
         ? "把今日代码思路和概念理解交给 Coach 找漏洞。"
         : "把自己的理解交给 Coach，尽早暴露概念混淆。",
-      href: "/coach",
+      href: encodedCoachHref(input.lessonId),
       tone: "info",
     });
   }

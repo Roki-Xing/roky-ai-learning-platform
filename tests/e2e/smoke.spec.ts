@@ -41,12 +41,18 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
   await expect(page.getByText("我的理解")).toBeVisible();
   await expect(page.getByText("Context Compass")).toBeVisible();
 
+  await page.goto("/coach?mode=today_lesson");
+  await expect(page.locator('select[name="mode"]')).toHaveValue("today_lesson");
+
   await page.goto("/voice");
   await expect(page.getByRole("heading", { name: "语音学习捕获" })).toBeVisible();
   await expect(page.getByText("说出你的理解", { exact: true })).toBeVisible();
   await expect(page.getByText("语音学习流水线")).toBeVisible();
   await expect(page.getByRole("button", { name: "送 Coach 检查" })).toBeVisible();
   await expect(page.getByRole("button", { name: "整理成笔记" })).toBeVisible();
+
+  await page.goto("/voice?mode=today_lesson");
+  await expect(page.locator('select[name="mode"]')).toHaveValue("today_lesson");
 
   await page.goto("/notes");
   await expect(page.getByRole("heading", { name: "我的笔记" })).toBeVisible();

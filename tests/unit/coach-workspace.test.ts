@@ -67,12 +67,14 @@ test("coach mode rail renders the review mode options", () => {
         ["today_lesson", "今日课程"],
         ["code_reasoning", "代码思路"],
       ],
+      defaultMode: "code_reasoning",
     }),
   );
 
   assert.match(markup, /评审模式/);
   assert.match(markup, /今日课程/);
   assert.match(markup, /代码思路/);
+  assert.match(markup, /<option value="code_reasoning" selected="">代码思路<\/option>/);
 });
 
 test("coach context compass makes the strongest context signal visible", () => {

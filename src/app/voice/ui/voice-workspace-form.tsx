@@ -7,16 +7,25 @@ import { LearningSectionCard } from "@/components/learning/learning-section-card
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { LearningStepCard } from "@/components/learning/learning-step-card";
 import { VoiceCapture } from "@/app/voice/ui/voice-capture";
-import { saveVoiceNoteAction } from "@/app/voice/actions";
 
 export function VoiceWorkspaceForm(props: {
   modes: Array<readonly [string, string]>;
   recentPlan: null | { lessonId: string; localDate: string; title: string };
+  defaultMode?: string | null;
+  defaultLessonId?: string | null;
+  saveAction?: (formData: FormData) => void | Promise<void>;
 }) {
   const { modes, recentPlan } = props;
-  const [mode, setMode] = useState("free_thought");
+  const defaultMode = modes.some(([value]) => value === props.defaultMode)
+    ? props.defaultMode ?? "free_thought"
+    : "free_thought";
+  const [mode, setMode] = useState(defaultMode);
   const [transcript, setTranscript] = useState("");
   const [editedTranscript, setEditedTranscript] = useState("");
+  const linkedLessonId =
+    props.defaultLessonId && recentPlan?.lessonId === props.defaultLessonId
+      ? props.defaultLessonId
+      : recentPlan?.lessonId;
 
   const canSave = useMemo(() => {
     return Boolean((editedTranscript || transcript).trim());
@@ -51,7 +60,7 @@ export function VoiceWorkspaceForm(props: {
           />
         </div>
 
-        <form action={saveVoiceNoteAction} className="grid gap-3">
+        <form action={props.saveAction} className="grid gap-3">
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <LearningStatusBadge tone="info">Voice Note</LearningStatusBadge>
             {recentPlan ? (
@@ -79,7 +88,7 @@ export function VoiceWorkspaceForm(props: {
             </select>
           </div>
 
-          {recentPlan ? <input type="hidden" name="lessonId" value={recentPlan.lessonId} /> : null}
+          {linkedLessonId ? <input type="hidden" name="lessonId" value={linkedLessonId} /> : null}
 
           <VoiceCapture
             getMode={() => mode}

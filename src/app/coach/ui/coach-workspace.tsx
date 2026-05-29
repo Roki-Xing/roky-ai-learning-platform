@@ -97,13 +97,16 @@ export function CoachMetricPill({ label, value, tone = "neutral" }: CoachMetric)
   );
 }
 
-export function CoachModeRail(props: { modes: readonly (readonly [string, string])[] }) {
+export function CoachModeRail(props: {
+  modes: readonly (readonly [string, string])[];
+  defaultMode?: string | null;
+}) {
   return (
     <div className="grid gap-2">
       <div className="text-sm font-medium">评审模式</div>
       <select
         name="mode"
-        defaultValue="today_lesson"
+        defaultValue={props.defaultMode ?? "today_lesson"}
         className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {props.modes.map(([value, label]) => (

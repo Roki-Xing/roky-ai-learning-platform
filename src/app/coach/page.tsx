@@ -60,6 +60,10 @@ const MODES = [
   ["free_thought", "自由想法"],
 ] as const;
 
+function normalizeCoachPageMode(value: string | undefined) {
+  return MODES.some(([mode]) => mode === value) ? value ?? "today_lesson" : "today_lesson";
+}
+
 function asReviewJson(value: unknown): ReviewJson {
   return typeof value === "object" && value !== null ? (value as ReviewJson) : {};
 }
@@ -73,7 +77,7 @@ type ContextItem = { title: string; subtitle?: string; tone?: "neutral" | "info"
 export default async function CoachPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reviewId?: string }>;
+  searchParams: Promise<{ reviewId?: string; lessonId?: string; mode?: string }>;
 }) {
   const sp = await searchParams;
   const userId = await requireUserId();
@@ -83,13 +87,16 @@ export default async function CoachPage({
     orderBy: [{ localDate: "desc" }],
     include: { lesson: { select: { id: true, title: true } } },
   });
+  const requestedLessonId = sp.lessonId?.trim() || null;
+  const linkedLessonId = requestedLessonId ?? todayPlan?.lessonId ?? null;
+  const defaultMode = normalizeCoachPageMode(sp.mode);
 
   // This is a lightweight, UI-facing context snapshot (not the full prompt summary string).
   const coachContext = await buildCoachContext({
     userId,
-    mode: "free_thought",
+    mode: defaultMode,
     includeTodayLesson: true,
-    lessonId: todayPlan?.lessonId ?? null,
+    lessonId: linkedLessonId,
   });
 
   const reviews = await prisma.thoughtReview.findMany({
@@ -181,12 +188,12 @@ export default async function CoachPage({
           className="self-start rounded-lg"
         >
           <form action={submitThoughtReviewAction} className="grid gap-3">
-            <CoachModeRail modes={MODES} />
+            <CoachModeRail modes={MODES} defaultMode={defaultMode} />
             <label className="flex items-center gap-2 rounded-md border bg-muted/20 px-3 py-2 text-sm">
               <input type="checkbox" name="includeTodayLesson" defaultChecked className="size-4" />
               关联最近课程
             </label>
-            {todayPlan ? <input type="hidden" name="lessonId" value={todayPlan.lessonId} /> : null}
+            {coachContext.lessonId ? <input type="hidden" name="lessonId" value={coachContext.lessonId} /> : null}
             <div className="grid gap-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="text-sm font-medium">输入内容</div>

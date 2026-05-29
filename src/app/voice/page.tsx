@@ -6,6 +6,7 @@ import { requireUserId } from "@/server/auth/user";
 import { prisma } from "@/server/db";
 import {
   generateVoiceNoteFlashcardsAction,
+  saveVoiceNoteAction,
   saveVoiceNoteAsNoteAction,
   sendVoiceNoteToCoachAction,
 } from "@/app/voice/actions";
@@ -36,7 +37,7 @@ function compactText(value: string, max = 120) {
 export default async function VoicePage({
   searchParams,
 }: {
-  searchParams: Promise<{ voiceNoteId?: string }>;
+  searchParams: Promise<{ voiceNoteId?: string; lessonId?: string; mode?: string }>;
 }) {
   const sp = await searchParams;
   const userId = await requireUserId();
@@ -105,6 +106,9 @@ export default async function VoicePage({
                 }
               : null
           }
+          defaultMode={sp.mode ?? null}
+          defaultLessonId={sp.lessonId ?? null}
+          saveAction={saveVoiceNoteAction}
         />
 
         <div className="grid gap-4">

@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.77.0] - 2026-05-29
+
+### Added
+
+- **[Today Voice/Coach Context Handoff]** 强化 `/today` 完成后的 Voice 与 Coach 接续。
+  - “说出今天的理解”链接改为 `/voice?lessonId=...&mode=today_lesson`，让 Voice Note 默认使用今日课程模式和课程关联。
+  - “让 Coach 检查”链接改为 `/coach?lessonId=...&mode=today_lesson`，让 Coach 默认绑定今日课程上下文。
+  - `/voice` 读取 `mode` 与 `lessonId` query，表单默认选中今日课程并提交隐藏 lessonId。
+  - `/coach` 读取 `mode` 与 `lessonId` query，Context Compass 与提交表单使用同一课程上下文。
+  - `VoiceWorkspaceForm` 改为由页面传入 server action，避免客户端组件测试加载服务端 env。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/voice-note.test.ts tests/unit/coach-workspace.test.ts` 失败于 Voice/Coach 链接缺少上下文、Coach 默认模式不可控、Voice 表单测试加载 server env。
+- 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/voice-note.test.ts tests/unit/coach-workspace.test.ts` 13 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+
 ## [0.76.0] - 2026-05-29
 
 ### Added
