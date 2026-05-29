@@ -4,6 +4,23 @@ import { LearningCTAGroup } from "@/components/learning/learning-cta-group";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { LearningStepCard } from "@/components/learning/learning-step-card";
+import { buildVoicePipelineNextAction, type VoicePipelineNextActionTone } from "@/server/voice/pipeline-next-action";
+
+function nextActionPanelClassName(tone: VoicePipelineNextActionTone) {
+  switch (tone) {
+    case "success":
+      return "border-emerald-200 bg-emerald-50/70 text-emerald-950";
+    case "warning":
+      return "border-amber-200 bg-amber-50/80 text-amber-950";
+    case "danger":
+      return "border-red-200 bg-red-50/80 text-red-950";
+    case "info":
+      return "border-indigo-200 bg-indigo-50/70 text-indigo-950";
+    case "neutral":
+    default:
+      return "border-border bg-muted/30 text-foreground";
+  }
+}
 
 export function VoiceLearningPipeline(props: {
   hasSelected: boolean;
@@ -25,6 +42,15 @@ export function VoiceLearningPipeline(props: {
     props.hasCards && props.linkedCards > 0
       ? `复习这 ${props.linkedCards} 张语音卡片`
       : "去复习";
+  const nextAction = buildVoicePipelineNextAction({
+    hasSelected: props.hasSelected,
+    hasCoach: props.hasCoach,
+    hasNote: props.hasNote,
+    hasCards: props.hasCards,
+    linkedCards: props.linkedCards,
+    reviewId: props.reviewId,
+    noteId: props.noteId,
+  });
 
   return (
     <LearningSectionCard
@@ -63,6 +89,25 @@ export function VoiceLearningPipeline(props: {
             description="进入复习队列"
             status={props.hasCards ? "done" : props.hasCoach ? "active" : "todo"}
           />
+        </div>
+
+        <div className={`rounded-lg border p-3 ${nextActionPanelClassName(nextAction.tone)}`}>
+          <div className="text-xs font-medium uppercase tracking-wide opacity-75">当前最优动作</div>
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="font-medium">{nextAction.label}</div>
+              <div className="mt-1 text-xs opacity-80">{nextAction.description}</div>
+            </div>
+            {nextAction.href ? (
+              <Button asChild size="sm" variant={nextAction.tone === "success" ? "default" : "outline"}>
+                <Link href={nextAction.href}>{nextAction.primaryButtonLabel}</Link>
+              </Button>
+            ) : (
+              <LearningStatusBadge tone={nextAction.tone === "danger" ? "warning" : nextAction.tone}>
+                {nextAction.primaryButtonLabel}
+              </LearningStatusBadge>
+            )}
+          </div>
         </div>
 
         {props.hasCards ? (

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.78.0] - 2026-05-30
+
+### Added
+
+- **[Voice Pipeline Next Action]** 强化 `/voice` 保存后的接续体验。
+  - 新增 `buildVoicePipelineNextAction()`，按 Voice Note 是否已保存、是否完成 Coach、是否生成卡片、是否整理笔记，计算当前最优动作。
+  - `VoiceLearningPipeline` 新增“当前最优动作”聚焦面板，在流水线步骤和 CTA 之间明确提示下一步该做 Coach、生成卡片、补笔记或进入复习。
+  - 已生成语音卡片时，聚焦面板直接指向 `/review?source=voice-note`，让语音卡片进入主动回忆队列。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/voice-pipeline-next-action.test.ts tests/unit/learning-ui-components.test.ts` 失败于缺少 `@/server/voice/pipeline-next-action` 和 UI “当前最优动作”文案。
+- 本地 GREEN：`npm test -- tests/unit/voice-pipeline-next-action.test.ts tests/unit/learning-ui-components.test.ts` 12 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 本地 GREEN：`npm test` 200 项通过。
+
 ## [0.77.0] - 2026-05-29
 
 ### Added

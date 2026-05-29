@@ -138,7 +138,9 @@ test("voice learning pipeline shows coach note cards and review next steps", () 
   );
 
   assert.match(markup, /语音学习流水线/);
+  assert.match(markup, /当前最优动作/);
   assert.match(markup, /送 Coach 检查/);
+  assert.match(markup, /先检查概念混淆/);
   assert.match(markup, /整理成笔记/);
   assert.match(markup, /生成复习卡片/);
   assert.match(markup, /去复习/);
@@ -159,6 +161,7 @@ test("voice learning pipeline focuses review queue after cards are generated", (
   );
 
   assert.match(markup, /复习这 3 张语音卡片/);
+  assert.match(markup, /当前最优动作/);
   assert.match(markup, /href="\/review\?source=voice-note"/);
   assert.match(markup, /语音卡片已进入复习队列/);
 });
