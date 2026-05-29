@@ -18,6 +18,13 @@ type CoachContextItem = {
   tone?: LearningStatusTone;
 };
 
+export type CoachContextCompassSignal = {
+  label: string;
+  value: number;
+  tone?: LearningStatusTone;
+  href?: string;
+};
+
 function toneClass(tone: LearningStatusTone) {
   switch (tone) {
     case "info":
@@ -122,6 +129,83 @@ export function CoachSignalStrip(props: { items: CoachMetric[] }) {
         <CoachMetricPill key={item.label} {...item} />
       ))}
     </div>
+  );
+}
+
+export function CoachContextCompass(props: {
+  localDate: string;
+  lessonTitle?: string | null;
+  signals: CoachContextCompassSignal[];
+}) {
+  const totalSignals = props.signals.reduce((sum, item) => sum + Math.max(0, item.value), 0);
+  const strongest =
+    props.signals
+      .filter((item) => item.value > 0)
+      .sort((a, b) => b.value - a.value)[0] ?? null;
+
+  return (
+    <section className="rounded-lg border bg-card p-3 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <LearningStatusBadge tone="info">Context Compass</LearningStatusBadge>
+            <LearningStatusBadge tone="neutral">{props.localDate}</LearningStatusBadge>
+          </div>
+          <div className="mt-2 text-sm font-semibold">学习上下文指南针</div>
+        </div>
+        <div className="rounded-md border bg-muted/20 px-2.5 py-1 text-right">
+          <div className="text-[11px] text-muted-foreground">上下文信号</div>
+          <div className="text-sm font-semibold tabular-nums">{totalSignals}</div>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-md border bg-indigo-50/50 px-3 py-2">
+        <div className="text-xs text-indigo-900">关联课程</div>
+        <div className="mt-1 line-clamp-2 text-sm font-medium text-indigo-950">
+          {props.lessonTitle ?? "暂无"}
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-md border bg-muted/20 px-3 py-2">
+        <div className="text-xs text-muted-foreground">最强信号</div>
+        {strongest ? (
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+            <div className="text-sm font-medium">{strongest.label}</div>
+            <LearningStatusBadge tone={strongest.tone ?? "neutral"}>
+              {strongest.value}
+            </LearningStatusBadge>
+          </div>
+        ) : (
+          <div className="mt-1 text-sm text-muted-foreground">暂无强信号，适合自由提问。</div>
+        )}
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {props.signals.map((signal) => {
+          const body = (
+            <>
+              <div className="text-xs text-muted-foreground">{signal.label}</div>
+              <div className="mt-1 text-base font-semibold tabular-nums">{signal.value}</div>
+            </>
+          );
+          const className = cn(
+            "rounded-md border px-3 py-2 text-left transition-colors",
+            mutedToneClass(signal.tone ?? "neutral"),
+            signal.href ? "hover:bg-muted/60" : null,
+          );
+
+          return signal.href ? (
+            <Link key={signal.label} href={signal.href} className={className}>
+              {body}
+            </Link>
+          ) : (
+            <div key={signal.label} className={className}>
+              {body}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

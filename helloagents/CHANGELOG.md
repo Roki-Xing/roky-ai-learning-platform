@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.68.0] - 2026-05-29
+
+### Added
+
+- **[Coach Context Compass]** 强化 `/coach` 右侧学习上下文可视化。
+  - 新增 `CoachContextCompass`，集中显示本地日期、关联课程、上下文信号总数和最强信号。
+  - 将到期卡片、最近错题、代码反馈、活跃误区做成可点击信号块，分别回到 `/review`、`/progress`、`/projects`、`/coach`。
+  - `/coach` 右侧栏用 Context Compass 替代重复的本地日期/关联课程小块，保留下方详细上下文列表。
+  - Playwright smoke 增加 `/coach` 的 `Context Compass` 页面级断言。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/coach-workspace.test.ts` 失败于缺少 `CoachContextCompass` 导出。
+- 本地 GREEN：`npm test -- tests/unit/coach-workspace.test.ts` 4 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+
 ## [0.67.0] - 2026-05-29
 
 ### Added

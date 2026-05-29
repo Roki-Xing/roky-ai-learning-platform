@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, Code2, Lightbulb, MessageSquareText, RotateCcw } from "lucide-react";
+import { Code2, Lightbulb, MessageSquareText, RotateCcw } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,12 @@ import { LearningSectionCard } from "@/components/learning/learning-section-card
 import { LearningEmptyState } from "@/components/learning/learning-empty-state";
 import {
   CoachClaimCard,
+  CoachContextCompass,
   CoachContextGroup,
   CoachFlashcardPanel,
   CoachHero,
   CoachIssueList,
   CoachListBlock,
-  CoachMetricPill,
   CoachMissingConcepts,
   CoachModeRail,
   CoachQuickLinks,
@@ -149,12 +149,12 @@ export default async function CoachPage({
     subtitle: [k.kind, k.tag].filter(Boolean).join(" / ") || undefined,
     tone: "neutral",
   }));
-  const contextSignalCount =
-    dueCardItems.length +
-    quizMistakes.length +
-    codeFeedbackItems.length +
-    misconceptionItems.length +
-    recentKnowledgeItems.length;
+  const contextCompassSignals = [
+    { label: "到期卡片", value: dueCardItems.length, tone: "warning" as const, href: "/review" },
+    { label: "最近错题", value: quizMistakes.length, tone: "danger" as const, href: "/progress" },
+    { label: "代码反馈", value: codeFeedbackItems.length, tone: "info" as const, href: "/projects" },
+    { label: "活跃误区", value: misconceptionItems.length, tone: "warning" as const, href: "/coach" },
+  ];
 
   return (
     <AppShell activePath="/coach" title="思路评审">
@@ -315,19 +315,11 @@ export default async function CoachPage({
             className="self-start rounded-lg"
           >
             <div className="grid gap-3 text-sm">
-              <div className="grid grid-cols-2 gap-2">
-                <CoachMetricPill label="本地日期" value={coachContext.todayLocalDate} tone="neutral" />
-                <CoachMetricPill label="上下文信号" value={contextSignalCount} tone="info" />
-              </div>
-              <div className="rounded-lg border bg-indigo-50/50 px-3 py-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-indigo-950">
-                  <BookOpen className="size-4" aria-hidden="true" />
-                  关联课程
-                </div>
-                <div className="mt-1 line-clamp-2 text-sm text-indigo-900">
-                  {coachContext.lessonTitle ?? "暂无"}
-                </div>
-              </div>
+              <CoachContextCompass
+                localDate={coachContext.todayLocalDate}
+                lessonTitle={coachContext.lessonTitle}
+                signals={contextCompassSignals}
+              />
               <CoachContextGroup
                 title="到期卡片"
                 icon={RotateCcw}

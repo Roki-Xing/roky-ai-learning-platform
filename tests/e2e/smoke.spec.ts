@@ -35,6 +35,7 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
   await page.goto("/coach");
   await expect(page.getByRole("heading", { name: "思路评审" })).toBeVisible();
   await expect(page.getByText("我的理解")).toBeVisible();
+  await expect(page.getByText("Context Compass")).toBeVisible();
 
   await page.goto("/voice");
   await expect(page.getByRole("heading", { name: "语音学习捕获" })).toBeVisible();

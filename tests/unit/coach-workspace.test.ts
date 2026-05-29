@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
+  CoachContextCompass,
   CoachHero,
   CoachIssueList,
   CoachModeRail,
@@ -71,4 +72,26 @@ test("coach mode rail renders the review mode options", () => {
   assert.match(markup, /评审模式/);
   assert.match(markup, /今日课程/);
   assert.match(markup, /代码思路/);
+});
+
+test("coach context compass makes the strongest context signal visible", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(CoachContextCompass, {
+      localDate: "2026-05-29",
+      lessonTitle: "Transformer 架构入门",
+      signals: [
+        { label: "到期卡片", value: 5, tone: "warning", href: "/review" },
+        { label: "最近错题", value: 1, tone: "danger", href: "/progress" },
+        { label: "代码反馈", value: 0, tone: "info", href: "/projects" },
+        { label: "活跃误区", value: 2, tone: "warning", href: "/coach" },
+      ],
+    }),
+  );
+
+  assert.match(markup, /Context Compass/);
+  assert.match(markup, /最强信号/);
+  assert.match(markup, /到期卡片/);
+  assert.match(markup, /5/);
+  assert.match(markup, /Transformer 架构入门/);
+  assert.match(markup, /href="\/review"/);
 });
