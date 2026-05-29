@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "node --import tsx --test",
     "e2e": "playwright test",
+    "e2e:visual": "playwright test tests/e2e/visual.spec.ts",
     "verify:daily-loop": "node --import tsx scripts/verify-daily-loop.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",

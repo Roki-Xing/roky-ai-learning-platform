@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.66.0] - 2026-05-29
+
+### Added
+
+- **[E2E / Visual QA]** 新增 Playwright 视觉截图 smoke 回归。
+  - 新增 `npm run e2e:visual`，单独运行视觉截图检查。
+  - 新增 `tests/e2e/helpers.ts`，复用本地 Demo 登录与生产 Preview 入口逻辑。
+  - 新增 `tests/e2e/visual.spec.ts`，覆盖首页、今日学习、复习中心、思路评审、语音学习捕获、知识地图、项目实践 7 个页面。
+  - 每个页面覆盖 desktop `1440x1100` 与 mobile `390x900` 两个视口，并输出到被忽略的 `test-results/visual-smoke/`。
+  - `tests/e2e/smoke.spec.ts` 改为复用共享登录 helper，避免登录逻辑分叉。
+
+### Fixed
+
+- **[Visual QA Stability]** 修复视觉回归初版暴露的稳定性问题。
+  - RED：初次运行 `npm run e2e:visual` 因没有测试文件失败。
+  - RED：移动端 marker 断言匹配到隐藏导航链接，改为使用可访问 heading locator。
+  - RED：`/map` fullPage 截图超时，改为稳定 viewport 截图并禁用动画。
+
+### Verified
+
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm test` 176 项通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm run e2e` 16 项通过。
+- 本地 GREEN：`npm run e2e:visual` 14 项通过。
+
 ## [0.65.0] - 2026-05-29
 
 ### Added
