@@ -49,6 +49,20 @@ export type ProjectMissionView = {
   codeTotal: number;
 };
 
+export type ProjectDailyRhythmView = {
+  id: string;
+  title: string;
+  typeLabel: string;
+  status: string;
+  percent: number;
+  completedMilestones: number;
+  totalMilestones: number;
+  activeMilestoneTitle?: string | null;
+  activeMilestoneTask?: string | null;
+  reviewDue: number;
+  codeDue: number;
+};
+
 export type ProjectMilestonePathItem = {
   id: string;
   position: number;
@@ -84,6 +98,13 @@ export function ProjectMissionHero({ mission }: { mission: ProjectMissionView | 
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           从左侧模板开始一个项目后，这里会显示当前任务、完成条件和里程碑路线。
         </p>
+        <div className="mt-4 rounded-lg border bg-muted/20 p-3">
+          <div className="text-xs font-medium text-muted-foreground">今日项目任务</div>
+          <div className="mt-1 text-sm font-semibold">先从模板开始一个项目</div>
+          <div className="mt-1 text-sm text-muted-foreground">
+            建议选择一个 3 到 6 小时能收尾的小项目，今天只推进第一个里程碑。
+          </div>
+        </div>
       </section>
     );
   }
@@ -124,6 +145,86 @@ export function ProjectMissionHero({ mission }: { mission: ProjectMissionView | 
         {mission.activeMilestoneTask ? (
           <div className="mt-1 text-sm text-muted-foreground">{mission.activeMilestoneTask}</div>
         ) : null}
+      </div>
+    </section>
+  );
+}
+
+export function ProjectDailyRhythmCard({ project }: { project: ProjectDailyRhythmView | null }) {
+  if (!project) {
+    return (
+      <section className="rounded-lg border bg-card p-4 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <LearningStatusBadge tone="neutral">项目实践</LearningStatusBadge>
+          <LearningStatusBadge tone="warning">未开始</LearningStatusBadge>
+        </div>
+        <h2 className="mt-3 text-base font-semibold tracking-normal">当前项目进度</h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          还没有进行中的项目。选一个小项目，把今天学到的概念落到代码和复盘里。
+        </p>
+        <div className="mt-3">
+          <Button asChild size="sm" variant="secondary">
+            <Link href="/projects">选择项目</Link>
+          </Button>
+        </div>
+      </section>
+    );
+  }
+
+  const projectHref = `/projects?projectId=${encodeURIComponent(project.id)}`;
+
+  return (
+    <section className="rounded-lg border bg-card p-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <LearningStatusBadge tone="info">当前项目进度</LearningStatusBadge>
+          <LearningStatusBadge tone={statusTone(project.status)}>
+            {missionStatusText(project.status)}
+          </LearningStatusBadge>
+          <LearningStatusBadge tone="neutral">{project.typeLabel}</LearningStatusBadge>
+        </div>
+        <Button asChild size="sm" variant="secondary">
+          <Link href={projectHref}>继续项目</Link>
+        </Button>
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px]">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold tracking-normal">{project.title}</h2>
+          <div className="mt-2 rounded-lg border bg-indigo-50/40 p-3">
+            <div className="text-xs font-medium text-muted-foreground">今日项目任务</div>
+            <div className="mt-1 text-sm font-semibold">
+              {project.activeMilestoneTitle ?? "所有里程碑已完成"}
+            </div>
+            {project.activeMilestoneTask ? (
+              <div className="mt-1 text-xs leading-5 text-muted-foreground">
+                {project.activeMilestoneTask}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          <MissionMetric label="进度" value={`${project.percent}%`} tone="info" />
+          <MissionMetric
+            label="里程碑"
+            value={`${project.completedMilestones}/${project.totalMilestones}`}
+            tone={project.percent === 100 ? "success" : "warning"}
+          />
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <LearningProgressBar value={project.percent / 100} />
+      </div>
+
+      <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+        <div className="rounded-md border bg-muted/20 px-3 py-2">
+          项目卡片到期：{project.reviewDue}
+        </div>
+        <div className="rounded-md border bg-muted/20 px-3 py-2">
+          代码反馈到期：{project.codeDue}
+        </div>
       </div>
     </section>
   );

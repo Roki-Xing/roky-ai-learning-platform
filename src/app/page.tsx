@@ -9,6 +9,14 @@ import { LearningMetricCard } from "@/components/learning/learning-metric-card";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { buildNextBestAction } from "@/server/learning/next-best-action";
+import { ProjectDailyRhythmCard } from "@/app/projects/ui/project-mission-workspace";
+import {
+  PROJECT_TYPE_LABELS,
+  calculateProjectProgress,
+  normalizeProjectType,
+} from "@/server/projects/base";
+import { getProjectCodeFeedbackCardSummary } from "@/server/projects/code-feedback-summary";
+import { getProjectReviewCardSummary } from "@/server/projects/review-cards";
 
 const QUICK_ACTIONS = [
   {
@@ -126,6 +134,15 @@ export default async function HomePage() {
   const isTodayCompleted = todayPlan?.status === "completed";
   const activeMilestone =
     activeProject?.milestones.find((milestone) => milestone.status !== "completed") ?? null;
+  const activeProjectProgress = activeProject
+    ? calculateProjectProgress(activeProject.milestones)
+    : null;
+  const [activeProjectReviewCards, activeProjectCodeFeedbackCards] = activeProject
+    ? await Promise.all([
+        getProjectReviewCardSummary({ userId, projectId: activeProject.id }),
+        getProjectCodeFeedbackCardSummary({ userId, projectId: activeProject.id }),
+      ])
+    : [null, null];
   const nextBestAction = buildNextBestAction({
     todayPlanStatus: todayPlan?.status ?? null,
     dueFlashcardsCount,
@@ -256,6 +273,26 @@ export default async function HomePage() {
           </div>
         </div>
       </LearningSectionCard>
+
+      <ProjectDailyRhythmCard
+        project={
+          activeProject && activeProjectProgress
+            ? {
+                id: activeProject.id,
+                title: activeProject.title,
+                typeLabel: PROJECT_TYPE_LABELS[normalizeProjectType(activeProject.type)],
+                status: activeProject.status,
+                percent: activeProjectProgress.percent,
+                completedMilestones: activeProjectProgress.completed,
+                totalMilestones: activeProjectProgress.total,
+                activeMilestoneTitle: activeMilestone?.title ?? null,
+                activeMilestoneTask: activeMilestone?.task ?? null,
+                reviewDue: activeProjectReviewCards?.due ?? 0,
+                codeDue: activeProjectCodeFeedbackCards?.due ?? 0,
+              }
+            : null
+        }
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <LearningSectionCard

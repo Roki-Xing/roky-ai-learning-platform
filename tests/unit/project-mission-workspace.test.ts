@@ -4,6 +4,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   MissionCompletionCriteria,
+  ProjectDailyRhythmCard,
   ProjectListPanel,
   ProjectMilestonePath,
   ProjectMissionHero,
@@ -39,6 +40,45 @@ test("project mission hero renders the mission workspace hierarchy", () => {
   assert.match(markup, /今日只做这一小步/);
   assert.match(markup, /建立倒排索引/);
   assert.match(markup, /代码反馈到期/);
+});
+
+test("project mission hero keeps today's task slot visible before a project starts", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(ProjectMissionHero, {
+      mission: null,
+    }),
+  );
+
+  assert.match(markup, /选择一个项目开始实践/);
+  assert.match(markup, /今日项目任务/);
+  assert.match(markup, /先从模板开始一个项目/);
+});
+
+test("project daily rhythm card connects active project to daily flow", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(ProjectDailyRhythmCard, {
+      project: {
+        id: "project-1",
+        title: "RAG 问答原型",
+        typeLabel: "RAG 小项目",
+        status: "active",
+        percent: 67,
+        completedMilestones: 2,
+        totalMilestones: 3,
+        activeMilestoneTitle: "接入向量检索",
+        activeMilestoneTask: "把 query embedding 与文档 embedding 做相似度排序。",
+        reviewDue: 1,
+        codeDue: 2,
+      },
+    }),
+  );
+
+  assert.match(markup, /当前项目进度/);
+  assert.match(markup, /RAG 问答原型/);
+  assert.match(markup, /今日项目任务/);
+  assert.match(markup, /接入向量检索/);
+  assert.match(markup, /67%/);
+  assert.match(markup, /继续项目/);
 });
 
 test("mission completion criteria keeps practical completion rules visible", () => {

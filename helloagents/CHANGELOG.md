@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.64.0] - 2026-05-29
+
+### Added
+
+- **[Project Daily Rhythm]** 将项目实践更明确地接入每日使用路径。
+  - 首页新增 `ProjectDailyRhythmCard`，固定展示当前项目进度、今日项目任务、里程碑进度、项目卡片到期和代码反馈到期。
+  - 没有进行中项目时，首页给出“选择项目”入口，避免项目实践只藏在独立页面。
+  - `/projects` Mission Hero 空态保留“今日项目任务”槽位，让项目工作台结构在有无项目时保持一致。
+  - Playwright smoke 扩展首页项目节奏入口和 `/projects` Mission Mode 断言。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/project-mission-workspace.test.ts` 失败于缺少 `ProjectDailyRhythmCard`。
+- 本地 RED：`npm run e2e` 失败于 `/projects` 空态缺少“今日项目任务”稳定槽位。
+- 本地 GREEN：`npm test -- tests/unit/project-mission-workspace.test.ts` 6 项通过。
+- 本地 GREEN：`npm run e2e` 2 项通过。
+
 ## [0.63.0] - 2026-05-29
 
 ### Added

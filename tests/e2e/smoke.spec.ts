@@ -32,10 +32,16 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
   await enterLearningApp(page, "/");
   await expect(page.getByRole("heading", { name: "Roky Learn" })).toBeVisible();
   await expect(page.getByText("现在最值得做")).toBeVisible();
+  await expect(page.getByText("当前项目进度")).toBeVisible();
 
   await page.goto("/today");
   await expect(page.getByText("专注学习模式").first()).toBeVisible();
   await expect(page.getByText("今日概览").first()).toBeVisible();
+
+  await page.goto("/projects");
+  await expect(page.getByRole("heading", { name: "项目实践" })).toBeVisible();
+  await expect(page.getByText("Mission Mode").first()).toBeVisible();
+  await expect(page.getByText("今日项目任务").first()).toBeVisible();
 
   await page.goto("/coach");
   await expect(page.getByRole("heading", { name: "思路评审" })).toBeVisible();
