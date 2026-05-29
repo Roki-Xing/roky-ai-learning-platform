@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.70.0] - 2026-05-29
+
+### Added
+
+- **[Voice Review Handoff]** 强化 Voice Note 生成卡片后的复习接续。
+  - `VoiceLearningPipeline` 在已生成卡片后显示“语音卡片已进入复习队列”提示。
+  - 生成卡片后的主复习 CTA 改为“复习这 N 张语音卡片”。
+  - CTA 直接进入 `/review?source=voice-note`，避免用户在全量复习队列里找 Voice/Coach 卡片。
+  - 服务端测试补充 Voice 生成卡片同时带有 `voice-note` 与 `thought-review` 标签，保证队列过滤契约稳定。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/learning-ui-components.test.ts` 失败于缺少 Voice 卡片完成态复习接续文案和 `source=voice-note` 链接。
+- 本地 GREEN：`npm test -- tests/unit/learning-ui-components.test.ts` 7 项通过。
+- 本地 GREEN：`npm test -- tests/unit/voice-submit.test.ts tests/unit/review-filter.test.ts tests/unit/learning-ui-components.test.ts` 22 项通过。
+
 ## [0.69.0] - 2026-05-29
 
 ### Added

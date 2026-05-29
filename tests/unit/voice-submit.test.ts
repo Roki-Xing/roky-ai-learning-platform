@@ -249,6 +249,7 @@ test("generateVoiceNoteFlashcards creates stable cards for the linked ThoughtRev
   });
   assert.equal(cards.length, first.cards.length);
   assert.ok(cards.every((card) => JSON.stringify(card.tags).includes("voice-note")));
+  assert.ok(cards.every((card) => JSON.stringify(card.tags).includes("thought-review")));
 });
 
 test("generateVoiceNoteFlashcards rejects voice notes without a ThoughtReview", async () => {

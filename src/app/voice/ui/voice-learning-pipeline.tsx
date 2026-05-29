@@ -20,6 +20,11 @@ export function VoiceLearningPipeline(props: {
 }) {
   const canUseVoice = props.hasSelected && props.voiceNoteId;
   const canGenerateCards = Boolean(canUseVoice && props.hasCoach);
+  const reviewHref = props.hasCards ? "/review?source=voice-note" : "/review";
+  const reviewLabel =
+    props.hasCards && props.linkedCards > 0
+      ? `复习这 ${props.linkedCards} 张语音卡片`
+      : "去复习";
 
   return (
     <LearningSectionCard
@@ -60,6 +65,15 @@ export function VoiceLearningPipeline(props: {
           />
         </div>
 
+        {props.hasCards ? (
+          <div className="rounded-lg border bg-emerald-50/60 p-3 text-sm text-emerald-900">
+            <div className="font-medium">语音卡片已进入复习队列</div>
+            <div className="mt-1 text-xs text-emerald-800">
+              这次 Voice Note 生成了 {props.linkedCards} 张卡片，建议马上用主动回忆过一遍。
+            </div>
+          </div>
+        ) : null}
+
         <LearningCTAGroup>
           <form action={props.sendToCoachAction}>
             <input type="hidden" name="voiceNoteId" value={props.voiceNoteId ?? ""} />
@@ -99,8 +113,8 @@ export function VoiceLearningPipeline(props: {
             </Button>
           ) : null}
 
-          <Button asChild size="sm" variant="outline">
-            <Link href="/review">去复习</Link>
+          <Button asChild size="sm" variant={props.hasCards ? "default" : "outline"}>
+            <Link href={reviewHref}>{reviewLabel}</Link>
           </Button>
         </LearningCTAGroup>
       </div>

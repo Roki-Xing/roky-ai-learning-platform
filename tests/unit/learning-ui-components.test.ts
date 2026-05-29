@@ -124,6 +124,25 @@ test("voice learning pipeline shows coach note cards and review next steps", () 
   assert.match(markup, /去复习/);
 });
 
+test("voice learning pipeline focuses review queue after cards are generated", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(VoiceLearningPipeline, {
+      hasSelected: true,
+      hasCoach: true,
+      hasNote: true,
+      hasCards: true,
+      linkedCards: 3,
+      voiceNoteId: "voice-1",
+      reviewId: "review-1",
+      noteId: "note-1",
+    }),
+  );
+
+  assert.match(markup, /复习这 3 张语音卡片/);
+  assert.match(markup, /href="\/review\?source=voice-note"/);
+  assert.match(markup, /语音卡片已进入复习队列/);
+});
+
 test("knowledge path explorer renders viewed card reviewed weak and next states", () => {
   const markup = renderToStaticMarkup(
     React.createElement(KnowledgePathExplorer, {
