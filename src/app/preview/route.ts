@@ -3,6 +3,7 @@ import {
   PREVIEW_SESSION_COOKIE,
   PREVIEW_SESSION_TOKEN,
   isPreviewTokenValid,
+  previewRedirectLocation,
 } from "@/server/auth/preview";
 
 export async function GET(request: NextRequest) {
@@ -11,13 +12,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Invalid preview token" }, { status: 404 });
   }
 
-  const nextRaw = request.nextUrl.searchParams.get("next") ?? "/";
-  const next = nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "/";
-  const redirectTo = request.nextUrl.clone();
-  redirectTo.pathname = next;
-  redirectTo.search = "";
-
-  const response = NextResponse.redirect(redirectTo);
+  const response = new NextResponse(null, {
+    status: 307,
+    headers: {
+      Location: previewRedirectLocation(request.nextUrl.searchParams.get("next")),
+    },
+  });
   response.cookies.set(PREVIEW_SESSION_COOKIE, PREVIEW_SESSION_TOKEN, {
     httpOnly: true,
     sameSite: "lax",

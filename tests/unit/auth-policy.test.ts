@@ -9,6 +9,7 @@ import {
   isDemoUserAllowed,
 } from "@/server/auth/demo";
 import {
+  previewRedirectLocation,
   isPreviewSessionTokenValid,
   isPreviewTokenValid,
 } from "@/server/auth/preview";
@@ -93,6 +94,17 @@ test("preview token and session token require configured preview secret", () => 
     if (previous) process.env.PREVIEW_TOKEN = previous;
     else delete process.env.PREVIEW_TOKEN;
   }
+});
+
+test("preview redirect uses only relative same-site locations", () => {
+  assert.equal(previewRedirectLocation("/today"), "/today");
+  assert.equal(
+    previewRedirectLocation("/review?source=thought-review"),
+    "/review?source=thought-review",
+  );
+  assert.equal(previewRedirectLocation("//evil.test/today"), "/");
+  assert.equal(previewRedirectLocation("https://evil.test/today"), "/");
+  assert.equal(previewRedirectLocation("today"), "/");
 });
 
 test("protected routes redirect without real user or active demo session", () => {

@@ -23,6 +23,12 @@ export function isPreviewSessionTokenValid(token: string | null | undefined) {
   return token === PREVIEW_SESSION_TOKEN && Boolean(process.env.PREVIEW_TOKEN);
 }
 
+export function previewRedirectLocation(nextRaw: string | null | undefined) {
+  const next = nextRaw ?? "/";
+  if (!next.startsWith("/") || next.startsWith("//")) return "/";
+  return next;
+}
+
 export async function isPreviewMode() {
   const cookieStore = await cookies();
   return isPreviewSessionTokenValid(cookieStore.get(PREVIEW_SESSION_COOKIE)?.value ?? null);
