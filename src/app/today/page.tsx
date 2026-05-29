@@ -10,6 +10,7 @@ import { explainCurriculumDecision } from "@/server/curriculum/explain-decision"
 import { buildTodayCurriculumSignalInsight } from "@/server/curriculum/signal-snapshot";
 import { getOrCreateTodayPlan } from "@/server/lesson/daily-plan";
 import { buildKnowledgeLink, normalizeSlug } from "@/server/knowledge/base";
+import { calculateProjectProgress } from "@/server/projects/base";
 import { completeTodayAction, generateTodayAction } from "@/app/today/actions";
 import { TodayQuiz, type TodayQuizQuestion } from "@/app/today/ui/today-quiz";
 import { GuidedSteps, type GuidedStep } from "@/app/today/ui/guided-steps";
@@ -199,6 +200,9 @@ export default async function TodayPage() {
     include: { milestones: { orderBy: [{ position: "asc" }] } },
     orderBy: [{ updatedAt: "desc" }],
   });
+  const activeProjectProgress = activeProject
+    ? calculateProjectProgress(activeProject.milestones)
+    : null;
   const activeProjectMilestone =
     activeProject?.milestones.find((milestone) => milestone.status !== "completed") ?? null;
 
@@ -356,7 +360,9 @@ export default async function TodayPage() {
       ? {
           id: activeProject.id,
           title: activeProject.title,
+          percent: activeProjectProgress?.percent ?? 0,
           activeMilestoneTitle: activeProjectMilestone?.title ?? null,
+          activeMilestoneTask: activeProjectMilestone?.task ?? null,
         }
       : null,
   });

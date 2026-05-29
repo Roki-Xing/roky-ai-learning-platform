@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.84.0] - 2026-05-30
+
+### Added
+
+- **[Today Project Practice Handoff]** 强化 `/today` 完成后的项目实践接续。
+  - `buildTodayCompletionNextActions()` 新增 `projectPractice` 摘要，把 active project 的进度、当前里程碑和任务说明作为完成后独立聚焦区输出。
+  - `LearningCompletionCard` 在行动列表前新增“今日项目任务”面板，显示项目标题、当前里程碑、任务说明、进度条和“继续项目”入口。
+  - `/today` 传入 active project 的里程碑任务和进度百分比，让今日学习完成后直接接到项目实践，而不是只出现普通项目链接。
+- **[Lint Gate Stability]** 补齐 ESLint 对生成目录的忽略规则，避免 `test-results/`、`playwright-report/` 或 `coverage/` 不存在时让 `npm run lint` 抛 `ENOENT`。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/today-completion-next-actions.test.ts` 失败于缺少 `projectPractice` 和“今日项目任务”聚焦区。
+- 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 5 项通过。
+- 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/learning-ui-components.test.ts tests/unit/project-mission-workspace.test.ts` 20 项通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm test` 211 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 本地 GREEN：删除 `test-results/` 后 `npm run lint` 通过。
+
 ## [0.83.0] - 2026-05-30
 
 ### Added

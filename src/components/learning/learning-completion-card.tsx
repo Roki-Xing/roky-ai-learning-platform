@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, FolderKanban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
+import { LearningProgressBar } from "@/components/learning/learning-progress-bar";
 import type { TodayCompletionNextActions } from "@/server/learning/today-completion-actions";
 
 function actionToneClass(tone: string) {
@@ -42,6 +43,42 @@ export function LearningCompletionCard(props: {
           </div>
         </div>
       </div>
+
+      {props.completion.projectPractice ? (
+        <div className="mt-4 rounded-lg border border-orange-200 bg-orange-50/50 p-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <FolderKanban className="size-4 text-orange-700" aria-hidden="true" />
+                <div className="text-xs font-medium text-orange-900">今日项目任务</div>
+                <LearningStatusBadge tone="neutral">
+                  {props.completion.projectPractice.percent}%
+                </LearningStatusBadge>
+              </div>
+              <div className="mt-2 text-sm font-semibold">
+                {props.completion.projectPractice.title}
+              </div>
+              <div className="mt-1 text-sm font-medium">
+                {props.completion.projectPractice.milestoneTitle}
+              </div>
+              {props.completion.projectPractice.milestoneTask ? (
+                <div className="mt-1 text-xs leading-5 text-muted-foreground">
+                  {props.completion.projectPractice.milestoneTask}
+                </div>
+              ) : null}
+            </div>
+            <Button asChild size="sm" variant="secondary" className="shrink-0">
+              <Link href={props.completion.projectPractice.href}>
+                继续项目
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </Button>
+          </div>
+          <div className="mt-3">
+            <LearningProgressBar value={props.completion.projectPractice.percent / 100} />
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-4 grid gap-2">
         {props.completion.actions.map((action) => (

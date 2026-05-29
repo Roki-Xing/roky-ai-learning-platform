@@ -11,6 +11,13 @@ export type TodayCompletionNextActions = {
   title: string;
   statusLabel: string;
   summary: string;
+  projectPractice: null | {
+    title: string;
+    href: string;
+    percent: number;
+    milestoneTitle: string;
+    milestoneTask: string | null;
+  };
   actions: TodayCompletionAction[];
 };
 
@@ -26,7 +33,9 @@ export type TodayCompletionNextActionsInput = {
   activeProject: null | {
     id: string;
     title: string;
+    percent: number;
     activeMilestoneTitle: string | null;
+    activeMilestoneTask: string | null;
   };
 };
 
@@ -62,6 +71,7 @@ export function buildTodayCompletionNextActions(
       title: "完成后下一步",
       statusLabel: "等待完成",
       summary: "先写一句总结并完成今日学习，系统会生成复习卡片，再进入后续沉淀。",
+      projectPractice: null,
       actions: [
         {
           label: "完成沉淀",
@@ -130,6 +140,16 @@ export function buildTodayCompletionNextActions(
     });
   }
 
+  const projectPractice = input.activeProject
+    ? {
+        title: input.activeProject.title,
+        href: encodedProjectHref(input.activeProject.id),
+        percent: input.activeProject.percent,
+        milestoneTitle: input.activeProject.activeMilestoneTitle ?? "所有里程碑已完成",
+        milestoneTask: input.activeProject.activeMilestoneTask,
+      }
+    : null;
+
   if (!actions.length) {
     actions.push({
       label: "查看学习进度",
@@ -152,6 +172,7 @@ export function buildTodayCompletionNextActions(
     title: "完成后下一步",
     statusLabel: "今日已完成",
     summary,
+    projectPractice,
     actions,
   };
 }
