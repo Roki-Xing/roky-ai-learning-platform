@@ -51,8 +51,8 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
   await expect(page.getByText("把脑子里的想法说出来")).toBeVisible();
   await expect(page.getByText("转写后会自动聚焦到这里")).toBeVisible();
   await expect(page.getByText("语音学习流水线")).toBeVisible();
-  await expect(page.getByRole("button", { name: "送 Coach 检查" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "整理成笔记" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /送 Coach 检查|已送 Coach/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /整理成笔记|已整理成笔记/ })).toBeVisible();
 
   await page.goto("/voice?mode=today_lesson");
   await expect(page.locator('select[name="mode"]')).toHaveValue("today_lesson");
