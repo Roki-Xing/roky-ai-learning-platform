@@ -10,6 +10,7 @@ import type {
   ProgressWeakDomainSummary,
   QuizAccuracyTrendRow,
   ReviewRetentionTrendRow,
+  WeeklyRemediationPlan,
 } from "@/server/analytics/progress";
 
 export type QualityRow = {
@@ -57,11 +58,49 @@ export function Sprint9AnalyticsPanels(props: {
   reviewRetentionTrend: ReviewRetentionTrendRow[];
   knowledgeCoverage: KnowledgeCoverageSummary;
   generationHealth: GenerationHealthMetrics;
+  weeklyRemediationPlan: WeeklyRemediationPlan;
 }) {
   const latestQuality = props.qualityRows[0] ?? null;
 
   return (
     <div className="mb-4 grid gap-4 xl:grid-cols-3">
+      <Card className="rounded-lg xl:col-span-3">
+        <CardHeader className="pb-2">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="text-base">{props.weeklyRemediationPlan.title}</CardTitle>
+              <div className="mt-1 text-sm text-muted-foreground">
+                {props.weeklyRemediationPlan.summary}
+              </div>
+            </div>
+            {props.weeklyRemediationPlan.focusDomain ? (
+              <Badge variant="outline">
+                {props.weeklyRemediationPlan.focusDomain.label}
+              </Badge>
+            ) : null}
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-2 md:grid-cols-3">
+          {props.weeklyRemediationPlan.steps.map((step, index) => (
+            <a
+              key={`${step.href}:${index}`}
+              href={step.href}
+              className="rounded-md border px-3 py-3 text-sm transition-colors hover:bg-muted/50"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="font-medium">{step.title}</div>
+                <Badge variant={step.tone === "success" ? "secondary" : "outline"}>
+                  Step {index + 1}
+                </Badge>
+              </div>
+              <div className="mt-1 text-xs leading-5 text-muted-foreground">
+                {step.description}
+              </div>
+            </a>
+          ))}
+        </CardContent>
+      </Card>
+
       <Card className="rounded-lg xl:col-span-2">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">学习日历</CardTitle>

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   buildCalendarDays,
   buildProgressWeakDomainSummary,
+  buildWeeklyRemediationPlan,
   calculateContentQuality,
   calculateLearningEffect,
   calculateQualityScore,
@@ -525,6 +526,12 @@ export default async function ProgressPage() {
     plans: generationPlans,
     jobs: dailyGenerationJobs,
   });
+  const weeklyRemediationPlan = buildWeeklyRemediationPlan({
+    weakDomains,
+    dueFlashcardsCount,
+    openMisconceptionsCount,
+    codeFeedbackCount,
+  });
 
   const weakTopicIds = weakTopicStates.map((s) => s.topicId);
   const weakTopics = weakTopicIds.length
@@ -565,6 +572,7 @@ export default async function ProgressPage() {
         reviewRetentionTrend={reviewRetentionTrend}
         knowledgeCoverage={knowledgeCoverage}
         generationHealth={generationHealth}
+        weeklyRemediationPlan={weeklyRemediationPlan}
       />
 
       <div className="grid gap-4 lg:grid-cols-3">

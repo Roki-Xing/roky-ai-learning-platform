@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.72.0] - 2026-05-29
+
+### Added
+
+- **[Progress Weekly Remediation Plan]** 将 `/progress` 顶部看板从数据展示升级为本周可执行补弱计划。
+  - 新增 `buildWeeklyRemediationPlan()`，把薄弱领域、到期卡片、开放误区和代码反馈转成最多 3 个行动步骤。
+  - `/progress` 顶部新增“本周补弱计划”卡片，展示当前 focus domain 与 Step 1/2/3。
+  - 行动入口直接连接 `/review`、`/coach`、`/review?source=code-feedback`、`/today` 或 `/map?domain=...`，减少从数据到行动的跳转成本。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/progress-analytics.test.ts` 失败于缺少 `buildWeeklyRemediationPlan` 导出。
+- 本地 GREEN：`npm test -- tests/unit/progress-analytics.test.ts` 13 项通过。
+- 本地 GREEN：`npm test -- tests/unit/progress-analytics.test.ts && npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm test` 185 项通过。
+- 本地 GREEN：`npm run e2e` 16 项通过。
+
 ## [0.71.0] - 2026-05-29
 
 ### Added

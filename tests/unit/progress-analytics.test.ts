@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   buildCalendarDays,
+  buildWeeklyRemediationPlan,
   calculateContentQuality,
   calculateLearningEffect,
   calculateQualityScore,
@@ -313,6 +314,40 @@ test("buildProgressWeakDomainSummary ranks domains by mastery, review debt, code
   assert.match(weakDomains[0]?.reason ?? "", /代码练习 0/);
   assert.equal(weakDomains[1]?.slug, "algorithm-design");
   assert.ok((weakDomains[0]?.weaknessScore ?? 0) > (weakDomains[1]?.weaknessScore ?? 0));
+});
+
+test("buildWeeklyRemediationPlan turns weak domains into actionable weekly steps", () => {
+  const plan = buildWeeklyRemediationPlan({
+    weakDomains: [
+      {
+        slug: "python-coding",
+        label: "Python 编程",
+        masteryScore: 18,
+        weaknessScore: 96,
+        quizAccuracy: 33,
+        completedLessons: 1,
+        plannedLessons: 1,
+        dueFlashcardCount: 4,
+        activeMisconceptionCount: 2,
+        codeSubmissionCount: 0,
+        lastStudiedLocalDate: "2026-05-24",
+        reason: "活跃错题 2 / 复习欠账 4 / 代码练习 0 / 测验正确率 33%",
+      },
+    ],
+    dueFlashcardsCount: 6,
+    openMisconceptionsCount: 3,
+    codeFeedbackCount: 2,
+  });
+
+  assert.equal(plan.focusDomain?.slug, "python-coding");
+  assert.match(plan.title, /本周补弱计划/);
+  assert.equal(plan.steps.length, 3);
+  assert.equal(plan.steps[0]?.href, "/review");
+  assert.match(plan.steps[0]?.title ?? "", /复习/);
+  assert.equal(plan.steps[1]?.href, "/coach");
+  assert.match(plan.steps[1]?.description ?? "", /Python 编程/);
+  assert.equal(plan.steps[2]?.href, "/review?source=code-feedback");
+  assert.match(plan.summary, /Python 编程/);
 });
 
 test("summarizeReviewRetentionTrend groups review retention by local date", () => {

@@ -81,6 +81,20 @@ export type ProgressWeakDomainSummary = {
   reason: string;
 };
 
+export type WeeklyRemediationStep = {
+  title: string;
+  description: string;
+  href: string;
+  tone: "warning" | "danger" | "info" | "success";
+};
+
+export type WeeklyRemediationPlan = {
+  title: string;
+  summary: string;
+  focusDomain: ProgressWeakDomainSummary | null;
+  steps: WeeklyRemediationStep[];
+};
+
 export type ReviewRetentionTrendRow = {
   localDate: string;
   reviewed: number;
@@ -416,6 +430,78 @@ export function buildProgressWeakDomainSummary(inputs: ProgressWeakDomainInput[]
         b.dueFlashcardCount - a.dueFlashcardCount ||
         a.label.localeCompare(b.label),
     );
+}
+
+export function buildWeeklyRemediationPlan(args: {
+  weakDomains: ProgressWeakDomainSummary[];
+  dueFlashcardsCount: number;
+  openMisconceptionsCount: number;
+  codeFeedbackCount: number;
+}) {
+  const focusDomain = args.weakDomains[0] ?? null;
+  const focusLabel = focusDomain?.label ?? "当前学习";
+  const steps: WeeklyRemediationStep[] = [];
+
+  if (args.dueFlashcardsCount > 0 || focusDomain?.dueFlashcardCount) {
+    steps.push({
+      title: `先复习 ${args.dueFlashcardsCount || focusDomain?.dueFlashcardCount || 0} 张到期卡片`,
+      description: "先清掉记忆欠账，再继续补新内容。",
+      href: "/review",
+      tone: "warning",
+    });
+  }
+
+  if (args.openMisconceptionsCount > 0 || focusDomain?.activeMisconceptionCount) {
+    steps.push({
+      title: "用 Coach 澄清一个误区",
+      description: `围绕 ${focusLabel} 重讲一遍最模糊的概念，让 Coach 找出具体问题。`,
+      href: "/coach",
+      tone: "danger",
+    });
+  }
+
+  if (args.codeFeedbackCount > 0) {
+    steps.push({
+      title: "回看代码反馈卡",
+      description: "把最近实现错误转成主动回忆，先修正实现思路。",
+      href: "/review?source=code-feedback",
+      tone: "info",
+    });
+  } else if (focusDomain?.codeSubmissionCount === 0 && (focusDomain.completedLessons > 0 || focusDomain.plannedLessons > 0)) {
+    steps.push({
+      title: "补一次代码练习",
+      description: `${focusLabel} 已经学过但代码练习不足，回到今日学习或项目里写一个最小实现。`,
+      href: "/today",
+      tone: "info",
+    });
+  }
+
+  if (steps.length < 3 && focusDomain) {
+    steps.push({
+      title: "看知识地图里的薄弱领域",
+      description: `${focusLabel} 当前弱项分 ${focusDomain.weaknessScore}，先看关联课程和卡片。`,
+      href: `/map?domain=${encodeURIComponent(focusDomain.slug)}`,
+      tone: "success",
+    });
+  }
+
+  if (!steps.length) {
+    steps.push({
+      title: "保持每日闭环",
+      description: "今天没有明显补弱项，继续完成今日学习、复习和一句笔记。",
+      href: "/today",
+      tone: "success",
+    });
+  }
+
+  return {
+    title: "本周补弱计划",
+    summary: focusDomain
+      ? `本周优先补 ${focusDomain.label}：${focusDomain.reason || "当前弱项最高"}。`
+      : "本周没有明显弱项，保持每日学习闭环即可。",
+    focusDomain,
+    steps: steps.slice(0, 3),
+  } satisfies WeeklyRemediationPlan;
 }
 
 export function summarizeReviewRetentionTrend(
