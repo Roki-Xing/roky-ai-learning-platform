@@ -49,6 +49,7 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
   await expect(page.getByText("说出你的理解", { exact: true })).toBeVisible();
   await expect(page.getByText("准备说出理解")).toBeVisible();
   await expect(page.getByText("把脑子里的想法说出来")).toBeVisible();
+  await expect(page.getByText("转写后会自动聚焦到这里")).toBeVisible();
   await expect(page.getByText("语音学习流水线")).toBeVisible();
   await expect(page.getByRole("button", { name: "送 Coach 检查" })).toBeVisible();
   await expect(page.getByRole("button", { name: "整理成笔记" })).toBeVisible();

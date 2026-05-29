@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.80.0] - 2026-05-30
+
+### Added
+
+- **[Voice Transcript Autofocus]** 打磨 `/voice` 的“自动转写 → 检查 Transcript → 保存”接续。
+  - 新增 `resolveVoiceTranscriptAutofill()`，统一处理转写文本回填、手写 transcript 保护、空转写 fallback 和聚焦提示。
+  - `VoiceWorkspaceForm` 在转写成功后自动聚焦 Transcript，并显示“转写已填入，请检查 Transcript 后保存”等检查提示。
+  - `/voice` 默认提示补充“转写后会自动聚焦到这里”，让用户知道下一步要检查术语、变量名和漏掉的关键句。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/voice-transcript-autofill.test.ts tests/unit/voice-note.test.ts` 失败于缺少 `@/app/voice/ui/voice-transcript-autofill`。
+- 本地 GREEN：`npm test -- tests/unit/voice-transcript-autofill.test.ts tests/unit/voice-note.test.ts` 7 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm test` 207 项通过。
+
 ## [0.79.0] - 2026-05-30
 
 ### Added

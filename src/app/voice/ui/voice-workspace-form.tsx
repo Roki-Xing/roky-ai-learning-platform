@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { LearningStepCard } from "@/components/learning/learning-step-card";
 import { VoiceCapture } from "@/app/voice/ui/voice-capture";
+import { resolveVoiceTranscriptAutofill } from "@/app/voice/ui/voice-transcript-autofill";
 
 export function VoiceWorkspaceForm(props: {
   modes: Array<readonly [string, string]>;
@@ -22,6 +23,8 @@ export function VoiceWorkspaceForm(props: {
   const [mode, setMode] = useState(defaultMode);
   const [transcript, setTranscript] = useState("");
   const [editedTranscript, setEditedTranscript] = useState("");
+  const [transcriptNotice, setTranscriptNotice] = useState("");
+  const transcriptRef = useRef<HTMLTextAreaElement | null>(null);
   const linkedLessonId =
     props.defaultLessonId && recentPlan?.lessonId === props.defaultLessonId
       ? props.defaultLessonId
@@ -93,8 +96,19 @@ export function VoiceWorkspaceForm(props: {
           <VoiceCapture
             getMode={() => mode}
             onTranscript={(value) => {
-              // Only auto-fill if the user hasn't started typing.
-              setTranscript((prev) => (prev.trim() ? prev : value));
+              setTranscript((prev) => {
+                const result = resolveVoiceTranscriptAutofill({
+                  currentTranscript: prev,
+                  incomingTranscript: value,
+                });
+                setTranscriptNotice(result.notice);
+                if (result.shouldFocusTranscript) {
+                  window.requestAnimationFrame(() => {
+                    transcriptRef.current?.focus();
+                  });
+                }
+                return result.nextTranscript;
+              });
             }}
           />
 
@@ -105,12 +119,25 @@ export function VoiceWorkspaceForm(props: {
                 type="button"
                 size="sm"
                 variant="outline"
-                onClick={() => setTranscript("")}
+                onClick={() => {
+                  setTranscript("");
+                  setTranscriptNotice("");
+                }}
               >
                 清空
               </Button>
             </div>
+            {transcriptNotice ? (
+              <div className="rounded-md border bg-emerald-50/70 px-3 py-2 text-xs text-emerald-900">
+                {transcriptNotice}
+              </div>
+            ) : (
+              <div className="rounded-md border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                转写后会自动聚焦到这里；先检查术语、变量名和漏掉的关键句，再保存。
+              </div>
+            )}
             <Textarea
+              ref={transcriptRef}
               name="transcript"
               className="min-h-44"
               placeholder="录音后点“自动转写”，或者直接写下你刚才说的理解、疑问、代码思路..."
