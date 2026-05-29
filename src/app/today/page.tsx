@@ -26,7 +26,11 @@ import {
 import { LearningTimeline } from "@/components/learning/learning-timeline";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { LearningCTAGroup } from "@/components/learning/learning-cta-group";
-import { LearningFocusPanel, type LearningFocusStage } from "@/components/learning/learning-focus-panel";
+import {
+  LearningFocusPlayer,
+  type LearningFocusPlayerOverviewItem,
+  type LearningFocusPlayerStage,
+} from "@/components/learning/learning-focus-player";
 import { LearningMarkdown } from "@/components/learning/learning-markdown";
 import type {
   LearningTimelineItem,
@@ -319,55 +323,216 @@ export default async function TodayPage() {
       hint: plan.status === "completed" ? "已生成卡片" : "写一句话总结",
     },
   ];
-  const focusStages: LearningFocusStage[] = [
+  const focusOverview: LearningFocusPlayerOverviewItem[] = [
+    { label: "状态", value: plan.status, helper: plan.status === "completed" ? "今天已沉淀" : "等待完成" },
+    { label: "日期", value: plan.localDate },
+    { label: "复习卡片", value: flashcardCount, helper: `${lessonDueFlashcardCount} 张本课到期` },
+    { label: "全部到期", value: totalDueFlashcardCount, helper: reviewSummary.helperText },
+    { label: "来源", value: plan.source ?? plan.lesson.createdBy },
+    { label: "schema", value: plan.schemaVersion ?? "-" },
+  ];
+  const focusStages: LearningFocusPlayerStage[] = [
     {
       id: "goal",
       title: "今日目标",
+      eyebrow: "Step 1",
       description: `先明确今天要掌握什么：${plan.lesson.title}`,
-      href: "#today-hero",
       status: "done",
+      body: (
+        <div className="rounded-lg border bg-muted/20 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-xs text-muted-foreground">今日主题</div>
+              <div className="mt-1 text-lg font-semibold leading-snug">{plan.lesson.title}</div>
+              <div className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                这节课会按主课、引导、代码、小测验、知识卡和反思推进。先把目标看清楚，再进入主课。
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <LearningStatusBadge tone={plan.status === "completed" ? "success" : "info"}>
+                {plan.status}
+              </LearningStatusBadge>
+              <LearningStatusBadge tone="neutral">{plan.localDate}</LearningStatusBadge>
+            </div>
+          </div>
+          <LearningCTAGroup className="mt-4">
+            <Button asChild size="sm">
+              <a href="#full-view">完整视图</a>
+            </Button>
+            <Button asChild size="sm" variant="secondary">
+              <a href="/review">复习入口</a>
+            </Button>
+          </LearningCTAGroup>
+        </div>
+      ),
     },
     {
       id: "lesson",
       title: "主课通读",
+      eyebrow: "Step 2",
       description: "用 Markdown 结构读完正文，重点看标题、列表、代码块和例子。",
-      href: "#today-lesson",
       status: "active",
+      body: (
+        <div className="rounded-lg border bg-card p-4">
+          <LearningMarkdown content={plan.lesson.contentMarkdown} />
+        </div>
+      ),
     },
     {
       id: "guided",
       title: "引导步骤",
+      eyebrow: "Step 3",
       description: guidedSteps.length ? `逐步完成 ${guidedSteps.length} 个引导问题。` : "今天没有引导步骤。",
-      href: "#today-guided",
       status: guidedStatus,
+      body: guidedSteps.length ? (
+        <div className="rounded-lg border bg-card p-4">
+          <GuidedSteps
+            planId={plan.id}
+            steps={guidedSteps}
+            initialProgress={guidedProgress}
+          />
+        </div>
+      ) : (
+        <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+          今天没有引导步骤，可以直接进入代码或测验。
+        </div>
+      ),
     },
     {
       id: "code",
       title: "代码练习",
+      eyebrow: "Step 4",
       description: codingExercise ? "先保存实现思路，必要时请求 AI 反馈；服务端不会执行你的代码。" : "今天没有代码练习。",
-      href: "#today-code",
       status: codingExercise ? (codeSubmission ? "done" : "todo") : "todo",
+      body: codingExercise ? (
+        <div className="rounded-lg border bg-card p-4">
+          <CodeExercise
+            lessonId={plan.lessonId}
+            localDate={plan.localDate}
+            exercise={codingExercise as TodayCodingExercise}
+            submission={codeSubmission}
+            feedback={codeFeedback}
+            supported={codeSubmissionSupported}
+          />
+        </div>
+      ) : (
+        <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+          今天没有代码练习。
+        </div>
+      ),
     },
     {
       id: "quiz",
       title: "小测验",
+      eyebrow: "Step 5",
       description: quizQuestions.length ? "提交答案后看解析，把错误点交给复习系统。" : "今天没有测验题。",
-      href: "#today-quiz",
       status: quizQuestions.some((q) => q.attempt) ? "done" : "todo",
+      body: (
+        <div className="rounded-lg border bg-card p-4">
+          {quizQuestions.length ? (
+            <TodayQuiz questions={quizQuestions} />
+          ) : (
+            <div className="text-sm text-muted-foreground">暂无测验题。</div>
+          )}
+        </div>
+      ),
     },
     {
       id: "knowledge",
       title: "术语与广度",
+      eyebrow: "Step 6",
       description: "把今日术语、人物、公司或 Benchmark 连接到长期知识库。",
-      href: "#today-knowledge",
       status: glossary || breadth ? "todo" : "done",
+      body: (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {glossary ? (
+            <div className="rounded-lg border bg-card p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-medium">今日术语</div>
+                {glossaryDetail ? <Badge variant="outline">{glossaryDetail.category}</Badge> : null}
+              </div>
+              <div className="mt-2 text-sm">{glossary.term}</div>
+              <div className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
+                {glossary.definition}
+              </div>
+              {glossary.selfCheckQuestion ? (
+                <div className="mt-3 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground whitespace-pre-wrap">
+                  自测：{glossary.selfCheckQuestion}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+          {breadth ? (
+            <div className="rounded-lg border bg-card p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-medium">今日广度小卡</div>
+                {breadthDetail ? <Badge variant="outline">{breadthDetail.confidence}</Badge> : null}
+              </div>
+              <div className="mt-2 text-xs text-muted-foreground">
+                类型：{breadthDetail?.type ?? breadth.kind}
+              </div>
+              <div className="mt-1 text-sm">{breadth.title}</div>
+              <div className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
+                {breadth.oneLine ?? breadth.blurb ?? ""}
+              </div>
+              {breadth.selfCheckQuestion ? (
+                <div className="mt-3 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground whitespace-pre-wrap">
+                  自测：{breadth.selfCheckQuestion}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+          {!glossary && !breadth ? (
+            <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+              今天没有术语或广度卡。
+            </div>
+          ) : null}
+        </div>
+      ),
     },
     {
       id: "reflection",
       title: "反思与完成",
+      eyebrow: "Step 7",
       description: plan.status === "completed" ? "今日学习已完成，下一步进入复习或笔记。" : "写一句自己的总结，然后生成复习卡片。",
-      href: "#today-reflection",
       status: plan.status === "completed" ? "done" : "todo",
+      body: (
+        <div className="rounded-lg border bg-card p-4">
+          <form action={completeTodayAction} className="grid gap-3">
+            <input type="hidden" name="date" value={plan.date.toISOString()} />
+            <div className="text-sm text-muted-foreground">
+              写一句总结（完成后会生成复习卡片）
+            </div>
+            <textarea
+              name="reflection"
+              className="min-h-32 w-full rounded-lg border bg-transparent p-3 text-sm outline-none"
+              placeholder="今天我学到了..."
+              defaultValue={plan.reflection ?? ""}
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="submit" disabled={plan.status === "completed"}>
+                {plan.status === "completed" ? "已完成" : "标记完成并生成卡片"}
+              </Button>
+              <div className="text-xs text-muted-foreground">
+                当前状态：{plan.status} / 卡片：{flashcardCount}
+              </div>
+            </div>
+            {plan.status === "completed" ? (
+              <LearningCTAGroup>
+                <Button asChild size="sm" variant="secondary">
+                  <a href="/review">去复习</a>
+                </Button>
+                <Button asChild size="sm" variant="secondary">
+                  <a href={`/notes?lessonId=${encodeURIComponent(plan.lessonId)}`}>写笔记</a>
+                </Button>
+                <Button asChild size="sm" variant="secondary">
+                  <a href={`/library?lessonId=${encodeURIComponent(plan.lessonId)}`}>查看课程库</a>
+                </Button>
+              </LearningCTAGroup>
+            ) : null}
+          </form>
+        </div>
+      ),
     },
   ];
 
@@ -389,9 +554,23 @@ export default async function TodayPage() {
         badge="今日"
       />
 
-      <LearningFocusPanel stages={focusStages} className="mb-4" />
+      <LearningFocusPlayer
+        stages={focusStages}
+        overview={focusOverview}
+        actions={
+          <>
+            <Button asChild size="sm" variant="secondary">
+              <a href="#full-view">查看完整视图</a>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <a href="#today-reflection">完成沉淀</a>
+            </Button>
+          </>
+        }
+        className="mb-4"
+      />
 
-      <div className="grid gap-4 lg:grid-cols-[260px_1fr_340px]">
+      <div id="full-view" className="grid gap-4 lg:grid-cols-[260px_1fr_340px]">
         <div className="hidden lg:block">
           <div className="sticky top-16">
             <LearningTimeline title="今日流程" items={timelineItems} />

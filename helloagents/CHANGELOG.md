@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.61.0] - 2026-05-29
+
+### Added
+
+- **[Today Focus Player]** 将 `/today` 从轻量 Focus 面板升级为真正的专注学习播放器。
+  - 新增 `LearningFocusPlayer`，一次只展示一个学习阶段，支持上一步、下一步、阶段圆点和右侧阶段列表切换。
+  - 播放器右侧保留今日概览，展示状态、日期、复习卡片、到期卡片、内容来源和 schema。
+  - `/today` 顶部接入完整学习阶段：今日目标、主课通读、引导步骤、代码练习、小测验、术语与广度、反思与完成。
+  - 下方继续保留完整视图和原有 Timeline，避免丢失快速跳转、编辑和调试能力。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/learning-ui-components.test.ts` 失败于缺少 `@/components/learning/learning-focus-player`。
+- 本地 GREEN：`npm test -- tests/unit/learning-ui-components.test.ts` 3 项通过。
+- 本地：`npm run lint` 通过。
+- 本地：`npm test` 170 项通过。
+- 本地：`npm run build` 通过。
+- 生产验收见本次提交后的部署记录。
+
 ## [0.60.0] - 2026-05-29
 
 ### Added
