@@ -8,6 +8,15 @@ type KnowledgePath = {
   description: string;
 };
 
+export type KnowledgePathItemStatus = {
+  slug: string;
+  viewed: boolean;
+  hasCard: boolean;
+  reviewed: boolean;
+  weak: boolean;
+  statusLabel: "未看过" | "已看过" | "已制卡" | "已复习" | "未掌握";
+};
+
 export const DEFAULT_KNOWLEDGE_PATHS: KnowledgePath[] = [
   {
     id: "agent_basics",
@@ -51,29 +60,60 @@ export function buildRelatedSlugChain(input: string[], candidates: string[]) {
 
 export function buildKnowledgePathProgress(args: {
   path: KnowledgePath;
+  viewedSlugs?: Set<string>;
   generatedCardIds: Set<string>;
   reviewedCardIds: Set<string>;
+  weakCardIds?: Set<string>;
   cardIdForSlug: (slug: string) => string;
 }) {
   const items = args.path.slugs.map((slug) => {
     const normalized = normalizeSlug(slug);
     const cardId = args.cardIdForSlug(normalized);
+    const viewed = args.viewedSlugs?.has(normalized) ?? false;
     const hasCard = args.generatedCardIds.has(cardId);
     const reviewed = args.reviewedCardIds.has(cardId);
+    const weak = args.weakCardIds?.has(cardId) ?? false;
     return {
       slug: normalized,
+      viewed,
       hasCard,
       reviewed,
-    };
+      weak,
+      statusLabel: knowledgePathStatusLabel({ viewed, hasCard, reviewed, weak }),
+    } satisfies KnowledgePathItemStatus;
   });
+  const viewedCount = items.filter((item) => item.viewed).length;
   const cardCount = items.filter((item) => item.hasCard).length;
   const reviewedCount = items.filter((item) => item.reviewed).length;
-  const next = items.find((item) => !item.reviewed) ?? items[items.length - 1] ?? null;
+  const weakCount = items.filter((item) => item.weak).length;
+  const next =
+    items.find((item) => item.weak) ??
+    items.find((item) => !item.viewed) ??
+    items.find((item) => !item.hasCard) ??
+    items.find((item) => !item.reviewed) ??
+    items[items.length - 1] ??
+    null;
   return {
     ...args.path,
     items,
+    viewedCount,
     cardCount,
     reviewedCount,
+    weakCount,
     nextSlug: next?.slug ?? null,
+    nextStatusLabel: next?.statusLabel ?? null,
   };
+}
+
+function knowledgePathStatusLabel(args: {
+  viewed: boolean;
+  hasCard: boolean;
+  reviewed: boolean;
+  weak: boolean;
+}): KnowledgePathItemStatus["statusLabel"] {
+  if (args.weak) return "未掌握";
+  if (args.reviewed) return "已复习";
+  if (args.hasCard) return "已制卡";
+  if (args.viewed) return "已看过";
+  return "未看过";
 }

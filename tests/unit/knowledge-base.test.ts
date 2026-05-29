@@ -136,14 +136,21 @@ test("buildKnowledgePathProgress marks card and review progress", () => {
 
   const progress = buildKnowledgePathProgress({
     path,
+    viewedSlugs: new Set(["cot"]),
     generatedCardIds: new Set(["glossary:demo-user:cot", "glossary:demo-user:react"]),
     reviewedCardIds: new Set(["glossary:demo-user:cot"]),
+    weakCardIds: new Set(["glossary:demo-user:react"]),
     cardIdForSlug: (slug) => `glossary:demo-user:${slug}`,
   });
 
+  assert.equal(progress.viewedCount, 1);
   assert.equal(progress.cardCount, 2);
   assert.equal(progress.reviewedCount, 1);
+  assert.equal(progress.weakCount, 1);
+  assert.equal(progress.items[0]?.viewed, true);
   assert.equal(progress.items[0]?.hasCard, true);
   assert.equal(progress.items[0]?.reviewed, true);
+  assert.equal(progress.items[1]?.weak, true);
   assert.equal(progress.nextSlug, "react");
+  assert.equal(progress.nextStatusLabel, "未掌握");
 });

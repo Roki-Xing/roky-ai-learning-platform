@@ -11,6 +11,7 @@ import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import { buildKnowledgeLink } from "@/server/knowledge/base";
 import { DEFAULT_KNOWLEDGE_PATHS, buildKnowledgePathProgress } from "@/server/knowledge/paths";
 import { generateGlossaryFlashcardAction } from "@/app/glossary/actions";
+import { KnowledgePathExplorer } from "@/components/learning/knowledge-path-explorer";
 
 type SourceRef = { title?: string; url?: string };
 type GlossaryCardStatus = {
@@ -33,6 +34,29 @@ function sourceRefs(value: unknown) {
   return Array.isArray(value)
     ? value.filter((x): x is SourceRef => typeof x === "object" && x !== null)
     : [];
+}
+
+function collectViewedGlossarySlugs(plans: Array<{ lesson: { connections: unknown } | null }>) {
+  const slugs = new Set<string>();
+  for (const plan of plans) {
+    const connections = plan.lesson?.connections;
+    if (!connections || typeof connections !== "object") continue;
+    const record = connections as {
+      glossary?: { sourceSlug?: unknown } | null;
+      knowledgeFocus?: { glossarySlugs?: unknown } | null;
+    };
+    const sourceSlug = record.glossary?.sourceSlug;
+    if (typeof sourceSlug === "string" && sourceSlug.trim()) {
+      slugs.add(sourceSlug.trim().toLowerCase());
+    }
+    const glossarySlugs = record.knowledgeFocus?.glossarySlugs;
+    if (Array.isArray(glossarySlugs)) {
+      for (const slug of glossarySlugs) {
+        if (typeof slug === "string" && slug.trim()) slugs.add(slug.trim().toLowerCase());
+      }
+    }
+  }
+  return slugs;
 }
 
 export default async function GlossaryPage({
@@ -63,7 +87,7 @@ export default async function GlossaryPage({
       : {}),
   };
 
-  const [terms, categories, generatedCards] = await Promise.all([
+  const [terms, categories, generatedCards, viewedPlans] = await Promise.all([
     prisma.glossaryTerm.findMany({
       where,
       orderBy: [{ category: "asc" }, { difficulty: "asc" }, { slug: "asc" }],
@@ -79,6 +103,12 @@ export default async function GlossaryPage({
       select: glossaryCardSelect,
       take: 500,
     }) as Promise<GlossaryCardStatus[]>,
+    prisma.dailyPlan.findMany({
+      where: { userId, isTest: false, archivedAt: null },
+      select: { lesson: { select: { connections: true } } },
+      orderBy: [{ localDate: "desc" }],
+      take: 120,
+    }),
   ]);
 
   const selectedTerm =
@@ -87,10 +117,17 @@ export default async function GlossaryPage({
     terms[0] ??
     null;
   const generatedCardIds = new Set(generatedCards.map((card) => card.id));
+  const viewedSlugs = collectViewedGlossarySlugs(viewedPlans);
   const selectedCardId = selectedTerm ? `glossary:${userId}:${selectedTerm.slug}` : null;
   const selectedHasCard = selectedCardId ? generatedCardIds.has(selectedCardId) : false;
   const reviewedCardIds = new Set(
     generatedCards.filter((card) => card.reviewCount > 0).map((card) => card.id),
+  );
+  const now = new Date();
+  const weakCardIds = new Set(
+    generatedCards
+      .filter((card) => card.dueAt <= now && card.reviewCount === 0)
+      .map((card) => card.id),
   );
 
   const selectedRelated = selectedTerm ? strings(selectedTerm.relatedTerms) : [];
@@ -108,8 +145,10 @@ export default async function GlossaryPage({
     .map((path) =>
       buildKnowledgePathProgress({
         path,
+        viewedSlugs,
         generatedCardIds,
         reviewedCardIds,
+        weakCardIds,
         cardIdForSlug: (slug) => `glossary:${userId}:${slug}`,
       }),
     );
@@ -136,41 +175,10 @@ export default async function GlossaryPage({
             <CardTitle className="text-base">检索与分类</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
-            <div className="rounded-md border bg-muted/20 p-3">
-              <div className="text-sm font-medium">今日推荐链路</div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                不是看词典，而是在建立概念地图。
-              </div>
-              <div className="mt-2 grid gap-2">
-                {recommendedPaths.map((p) => (
-                  <div key={p.id} className="rounded-md border bg-background p-2">
-                    <div className="text-sm font-medium">{p.label}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      已制卡 {p.cardCount}/{p.items.length}，已复习 {p.reviewedCount}/{p.items.length}
-                    </div>
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {p.items.slice(0, 5).map((item) => (
-                        <Badge key={item.slug} asChild variant={item.reviewed ? "secondary" : "outline"}>
-                          <Link href={`/glossary?term=${encodeURIComponent(item.slug)}`}>
-                            {item.slug}
-                            {item.hasCard ? " · card" : ""}
-                          </Link>
-                        </Badge>
-                      ))}
-                    </div>
-                    {p.nextSlug ? (
-                      <div className="mt-2">
-                        <Button asChild size="sm" variant="ghost">
-                          <Link href={`/glossary?term=${encodeURIComponent(p.nextSlug)}`}>
-                            learn next: {p.nextSlug}
-                          </Link>
-                        </Button>
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <KnowledgePathExplorer
+              paths={recommendedPaths}
+              hrefForSlug={(slug) => `/glossary?term=${encodeURIComponent(slug)}`}
+            />
 
             <form className="grid gap-2">
               <Input name="q" placeholder="搜索 CoT / RAG / SWE-bench" defaultValue={q} />

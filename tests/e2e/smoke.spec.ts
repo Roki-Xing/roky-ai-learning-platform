@@ -43,6 +43,16 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
   await expect(page.getByText("Mission Mode").first()).toBeVisible();
   await expect(page.getByText("今日项目任务").first()).toBeVisible();
 
+  await page.goto("/glossary");
+  await expect(page.getByRole("heading", { name: "术语库" })).toBeVisible();
+  await expect(page.getByText("路径化学习").first()).toBeVisible();
+  await expect(page.getByText(/已看过/).first()).toBeVisible();
+
+  await page.goto("/radar");
+  await expect(page.getByRole("heading", { name: "AI Radar" })).toBeVisible();
+  await expect(page.getByText("路径化学习").first()).toBeVisible();
+  await expect(page.getByText(/未掌握/).first()).toBeVisible();
+
   await page.goto("/coach");
   await expect(page.getByRole("heading", { name: "思路评审" })).toBeVisible();
   await expect(page.getByText("我的理解")).toBeVisible();

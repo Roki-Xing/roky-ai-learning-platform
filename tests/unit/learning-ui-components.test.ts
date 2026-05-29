@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LearningFocusPanel } from "@/components/learning/learning-focus-panel";
 import { LearningFocusPlayer } from "@/components/learning/learning-focus-player";
 import { LearningMarkdown } from "@/components/learning/learning-markdown";
+import { KnowledgePathExplorer } from "@/components/learning/knowledge-path-explorer";
 import { VoiceLearningPipeline } from "@/app/voice/ui/voice-learning-pipeline";
 
 test("learning markdown renders headings, tables, and code without raw html", () => {
@@ -120,4 +121,53 @@ test("voice learning pipeline shows coach note cards and review next steps", () 
   assert.match(markup, /整理成笔记/);
   assert.match(markup, /生成复习卡片/);
   assert.match(markup, /去复习/);
+});
+
+test("knowledge path explorer renders viewed card reviewed weak and next states", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(KnowledgePathExplorer, {
+      paths: [
+        {
+          id: "agent_basics",
+          label: "Agent 基础链路",
+          kind: "glossary",
+          description: "从 CoT 到 SWE-bench。",
+          items: [
+            {
+              slug: "cot",
+              viewed: true,
+              hasCard: true,
+              reviewed: true,
+              weak: false,
+              statusLabel: "已复习",
+            },
+            {
+              slug: "react",
+              viewed: true,
+              hasCard: true,
+              reviewed: false,
+              weak: true,
+              statusLabel: "未掌握",
+            },
+          ],
+          viewedCount: 2,
+          cardCount: 2,
+          reviewedCount: 1,
+          weakCount: 1,
+          nextSlug: "react",
+          nextStatusLabel: "未掌握",
+        },
+      ],
+      hrefForSlug: (slug) => `/glossary?term=${slug}`,
+    }),
+  );
+
+  assert.match(markup, /路径化学习/);
+  assert.match(markup, /Agent 基础链路/);
+  assert.match(markup, /已看过 2\/2/);
+  assert.match(markup, /已制卡 2\/2/);
+  assert.match(markup, /已复习 1\/2/);
+  assert.match(markup, /未掌握 1/);
+  assert.match(markup, /下一项/);
+  assert.match(markup, /react/);
 });

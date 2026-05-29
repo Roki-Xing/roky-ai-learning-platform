@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.65.0] - 2026-05-29
+
+### Added
+
+- **[Knowledge Path Explorer]** 将 Glossary/Radar 从资料库进一步升级成路径化学习体验。
+  - `buildKnowledgePathProgress()` 增加 `viewed / hasCard / reviewed / weak` 节点状态、路径计数和下一项状态。
+  - 新增 `KnowledgePathExplorer`，统一展示“已看过 / 已制卡 / 已复习 / 未掌握 / 下一项”。
+  - `/glossary` 读取历史 DailyPlan 的 glossary 连接，推断术语路径已看过状态，并用到期未复习卡片标记未掌握。
+  - `/radar` 读取历史 DailyPlan 的 radar 连接，推断广度路径已看过状态，并复用同一 Path Mode UI。
+  - Playwright smoke 扩展 `/glossary` 和 `/radar` 路径化学习断言。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/knowledge-base.test.ts` 失败于缺少 `viewedCount / weakCount / nextStatusLabel`。
+- 本地 RED：`npm test -- tests/unit/learning-ui-components.test.ts` 失败于缺少 `KnowledgePathExplorer`。
+- 本地 GREEN：`npm test -- tests/unit/knowledge-base.test.ts tests/unit/learning-ui-components.test.ts` 14 项通过。
+- 本地 GREEN：`npm run e2e` 2 项通过。
+
 ## [0.64.0] - 2026-05-29
 
 ### Added

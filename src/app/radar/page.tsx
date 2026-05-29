@@ -14,6 +14,7 @@ import {
 } from "@/server/knowledge/base";
 import { DEFAULT_KNOWLEDGE_PATHS, buildKnowledgePathProgress } from "@/server/knowledge/paths";
 import { generateRadarFlashcardAction } from "@/app/radar/actions";
+import { KnowledgePathExplorer } from "@/components/learning/knowledge-path-explorer";
 
 type SourceRef = { title?: string; url?: string };
 type TimelineItem = { year?: string; event?: string };
@@ -38,6 +39,31 @@ function timeline(value: unknown) {
   return Array.isArray(value)
     ? value.filter((x): x is TimelineItem => typeof x === "object" && x !== null)
     : [];
+}
+
+function collectViewedRadarSlugs(plans: Array<{ lesson: { connections: unknown } | null }>) {
+  const slugs = new Set<string>();
+  for (const plan of plans) {
+    const connections = plan.lesson?.connections;
+    if (!connections || typeof connections !== "object") continue;
+    const record = connections as {
+      breadth?: { sourceKind?: unknown; sourceSlug?: unknown } | null;
+      knowledgeFocus?: { radarSlugs?: unknown } | null;
+    };
+    if (record.breadth?.sourceKind === "radar") {
+      const sourceSlug = record.breadth.sourceSlug;
+      if (typeof sourceSlug === "string" && sourceSlug.trim()) {
+        slugs.add(sourceSlug.trim().toLowerCase());
+      }
+    }
+    const radarSlugs = record.knowledgeFocus?.radarSlugs;
+    if (Array.isArray(radarSlugs)) {
+      for (const slug of radarSlugs) {
+        if (typeof slug === "string" && slug.trim()) slugs.add(slug.trim().toLowerCase());
+      }
+    }
+  }
+  return slugs;
 }
 
 export default async function RadarPage({
@@ -66,7 +92,7 @@ export default async function RadarPage({
       : {}),
   };
 
-  const [entities, typeGroups, generatedCards] = await Promise.all([
+  const [entities, typeGroups, generatedCards, viewedPlans] = await Promise.all([
     prisma.knowledgeEntity.findMany({
       where,
       orderBy: [{ type: "asc" }, { confidence: "desc" }, { slug: "asc" }],
@@ -82,6 +108,12 @@ export default async function RadarPage({
       select: radarCardSelect,
       take: 500,
     }),
+    prisma.dailyPlan.findMany({
+      where: { userId, isTest: false, archivedAt: null },
+      select: { lesson: { select: { connections: true } } },
+      orderBy: [{ localDate: "desc" }],
+      take: 120,
+    }),
   ]);
 
   const selectedEntity =
@@ -90,8 +122,15 @@ export default async function RadarPage({
     entities[0] ??
     null;
   const generatedCardIds = new Set(generatedCards.map((card) => card.id));
+  const viewedSlugs = collectViewedRadarSlugs(viewedPlans);
   const reviewedCardIds = new Set(
     generatedCards.filter((card) => card.reviewCount > 0).map((card) => card.id),
+  );
+  const now = new Date();
+  const weakCardIds = new Set(
+    generatedCards
+      .filter((card) => card.dueAt <= now && card.reviewCount === 0)
+      .map((card) => card.id),
   );
   const selectedCardId = selectedEntity ? `radar:${userId}:${selectedEntity.slug}` : null;
   const selectedHasCard = selectedCardId ? generatedCardIds.has(selectedCardId) : false;
@@ -118,8 +157,10 @@ export default async function RadarPage({
     .map((path) =>
       buildKnowledgePathProgress({
         path,
+        viewedSlugs,
         generatedCardIds,
         reviewedCardIds,
+        weakCardIds,
         cardIdForSlug: (slug) => `radar:${userId}:${slug}`,
       }),
     );
@@ -146,41 +187,10 @@ export default async function RadarPage({
             <CardTitle className="text-base">筛选实体</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
-            <div className="rounded-md border bg-muted/20 p-3">
-              <div className="text-sm font-medium">探索路径</div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                从一个实体出发，串起相关术语与下一步学习。
-              </div>
-              <div className="mt-2 grid gap-2">
-                {recommendedPaths.map((p) => (
-                  <div key={p.id} className="rounded-md border bg-background p-2">
-                    <div className="text-sm font-medium">{p.label}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      已制卡 {p.cardCount}/{p.items.length}，已复习 {p.reviewedCount}/{p.items.length}
-                    </div>
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {p.items.slice(0, 5).map((item) => (
-                        <Badge key={item.slug} asChild variant={item.reviewed ? "secondary" : "outline"}>
-                          <Link href={`/radar?entity=${encodeURIComponent(item.slug)}`}>
-                            {item.slug}
-                            {item.hasCard ? " · card" : ""}
-                          </Link>
-                        </Badge>
-                      ))}
-                    </div>
-                    {p.nextSlug ? (
-                      <div className="mt-2">
-                        <Button asChild size="sm" variant="ghost">
-                          <Link href={`/radar?entity=${encodeURIComponent(p.nextSlug)}`}>
-                            learn next: {p.nextSlug}
-                          </Link>
-                        </Button>
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <KnowledgePathExplorer
+              paths={recommendedPaths}
+              hrefForSlug={(slug) => `/radar?entity=${encodeURIComponent(slug)}`}
+            />
 
             <form className="grid gap-2">
               <Input name="q" placeholder="搜索 OpenAI / SWE-bench / Cursor" defaultValue={q} />
