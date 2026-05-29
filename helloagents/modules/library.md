@@ -5,6 +5,7 @@
 - UI: `/library`
 - Plan filters: `src/server/library/plan-filter.ts`
 - Lesson detail helpers: `src/server/library/lesson-detail.ts`
+- Lesson next actions: `src/server/library/next-actions.ts`
 
 ## Behavior
 
@@ -27,6 +28,10 @@
    - Coach thought reviews
    - notes
    - code submissions and feedback
+5. Course detail starts with a "课程下一步" action panel:
+   - unfinished lessons route back to `/today`
+   - completed lessons prioritize due cards, missing notes, missing Coach review, missing code submission, or overall progress
+   - actions are intentionally capped to 3 so the archive remains decision-oriented
 
 ## Security Boundary
 
@@ -39,5 +44,6 @@
 ## Verification
 
 - `npm test -- tests/unit/library-lesson-detail.test.ts`
+- `npm test -- tests/unit/library-next-actions.test.ts`
 - `npm test -- tests/unit/library-lesson-detail.test.ts tests/unit/library-plan-filter.test.ts`
 - `npm test -- tests/unit/notes-create.test.ts tests/unit/library-lesson-detail.test.ts`

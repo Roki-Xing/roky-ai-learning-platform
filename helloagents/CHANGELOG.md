@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.74.0] - 2026-05-29
+
+### Added
+
+- **[Library Lesson Next Actions]** 将 `/library` 课程详情从历史查看页升级为可行动的课程档案。
+  - 新增 `buildLibraryLessonNextActions()`，把课程完成状态、到期卡片、笔记、Coach 评审、代码提交和卡片数量转成最多 3 个下一步行动。
+  - 课程未完成时优先回到 `/today`，避免在课程库里只看档案不完成闭环。
+  - 课程完成后优先推荐 `/review`、`/notes?lessonId=...`、`/coach`、`/today` 或 `/progress`，让复习、沉淀、思路检查和代码记录直接接续。
+  - `/library` 课程详情顶部新增“课程下一步”面板，显示摘要、行动按钮和每个行动的简短说明。
+  - Playwright smoke 增加 `/library` 的“课程下一步”断言，避免课程档案入口退回纯详情展示。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/library-next-actions.test.ts` 失败于缺少 `@/server/library/next-actions`。
+- 本地 GREEN：`npm test -- tests/unit/library-next-actions.test.ts` 3 项通过。
+- 本地 GREEN：`npm test` 190 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+
 ## [0.73.0] - 2026-05-29
 
 ### Added

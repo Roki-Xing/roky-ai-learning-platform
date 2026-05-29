@@ -16,6 +16,7 @@ import {
   getLessonDetailNotes,
   resolveVisibleLibraryLessonId,
 } from "@/server/library/lesson-detail";
+import { buildLibraryLessonNextActions } from "@/server/library/next-actions";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import { LearningMarkdown } from "@/components/learning/learning-markdown";
 
@@ -161,6 +162,19 @@ export default async function LibraryPage({
   const codeFeedbackBySubmissionId = new Map(
     codeFeedbackRows.map((row) => [row.submissionId, toCodeFeedbackView(row)]),
   );
+  const now = new Date();
+  const lessonNextActions =
+    lesson && planForLesson
+      ? buildLibraryLessonNextActions({
+          lessonId: lesson.id,
+          planStatus: planForLesson.status,
+          flashcardCount: flashcards.length,
+          dueFlashcardCount: flashcards.filter((card) => card.dueAt <= now).length,
+          noteCount: lessonNotes.length,
+          thoughtReviewCount: thoughtReviews.length,
+          codeSubmissionCount: codeSubmissions.length,
+        })
+      : null;
 
   return (
     <AppShell activePath="/library" title="课程库">
@@ -374,6 +388,41 @@ export default async function LibraryPage({
                       </div>
                     ) : null}
                   </div>
+
+                  {lessonNextActions ? (
+                    <div className="rounded-md border bg-muted/20 p-3">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium">{lessonNextActions.title}</div>
+                          <div className="mt-1 text-sm text-muted-foreground">
+                            {lessonNextActions.summary}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {lessonNextActions.actions.map((action, index) => (
+                            <Button
+                              key={`${action.href}:${action.label}`}
+                              asChild
+                              size="sm"
+                              variant={index === 0 ? "default" : "outline"}
+                            >
+                              <Link href={action.href}>{action.label}</Link>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="mt-3 grid gap-2 md:grid-cols-3">
+                        {lessonNextActions.actions.map((action) => (
+                          <div
+                            key={`${action.href}:${action.description}`}
+                            className="rounded-md border bg-background/70 p-2 text-xs text-muted-foreground"
+                          >
+                            {action.description}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
 
                   <div className="rounded-md border p-3">
                     <div className="text-sm font-medium">正文</div>
