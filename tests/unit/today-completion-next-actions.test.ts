@@ -62,7 +62,7 @@ test("today completion actions prioritize review, notes, voice, coach, and proje
   assert.match(result.projectPractice?.milestoneTask ?? "", /失败样例/);
 });
 
-test("today completion actions recommend progress when the lesson is already well covered", () => {
+test("today completion actions recommend project practice and progress when the lesson is already well covered", () => {
   const result = buildTodayCompletionNextActions({
     planStatus: "completed",
     lessonId: "lesson-3",
@@ -75,9 +75,32 @@ test("today completion actions recommend progress when the lesson is already wel
     activeProject: null,
   });
 
-  assert.equal(result.actions.length, 1);
-  assert.equal(result.actions[0]?.href, "/progress");
+  assert.deepEqual(
+    result.actions.map((action) => action.href),
+    ["/projects", "/progress"],
+  );
+  assert.equal(result.actions[0]?.label, "开始项目实践");
   assert.match(result.summary, /复习、笔记、语音和 Coach 都已接上/);
+});
+
+test("today completion actions keep project practice alive when no active project exists", () => {
+  const result = buildTodayCompletionNextActions({
+    planStatus: "completed",
+    lessonId: "lesson-6",
+    lessonDueFlashcardCount: 0,
+    totalDueFlashcardCount: 0,
+    noteCount: 1,
+    voiceNoteCount: 1,
+    thoughtReviewCount: 1,
+    hasCodeSubmission: true,
+    activeProject: null,
+  });
+
+  assert.equal(result.projectPractice?.title, "项目实践");
+  assert.equal(result.projectPractice?.href, "/projects");
+  assert.equal(result.projectPractice?.percent, 0);
+  assert.match(result.projectPractice?.milestoneTitle ?? "", /开始一个小项目/);
+  assert.match(result.actions.map((action) => action.href).join(" "), /\/projects/);
 });
 
 test("learning completion card renders ordered next actions", () => {
@@ -137,4 +160,27 @@ test("learning completion card highlights the active project milestone as today'
   assert.match(markup, /用 Python 生成一张 heatmap/);
   assert.match(markup, /50%/);
   assert.match(markup, /href="\/projects\?projectId=project-2"/);
+});
+
+test("learning completion card suggests starting a project when none is active", () => {
+  const completion = buildTodayCompletionNextActions({
+    planStatus: "completed",
+    lessonId: "lesson-7",
+    lessonDueFlashcardCount: 0,
+    totalDueFlashcardCount: 0,
+    noteCount: 1,
+    voiceNoteCount: 1,
+    thoughtReviewCount: 1,
+    hasCodeSubmission: true,
+    activeProject: null,
+  });
+
+  const markup = renderToStaticMarkup(
+    React.createElement(LearningCompletionCard, { completion }),
+  );
+
+  assert.match(markup, /今日项目任务/);
+  assert.match(markup, /开始一个小项目/);
+  assert.match(markup, /把今天学到的内容落到代码或复盘里/);
+  assert.match(markup, /href="\/projects"/);
 });

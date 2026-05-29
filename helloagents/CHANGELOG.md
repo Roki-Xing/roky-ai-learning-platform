@@ -4,6 +4,10 @@
 
 ### Added
 
+- **[Today Project Starter Handoff]** 补强 `/today` 完成后没有 active project 的项目实践接续。
+  - `buildTodayCompletionNextActions()` 在复习、笔记、语音和 Coach 都完成但没有未完成项目时，新增“项目实践 / 开始一个小项目”starter 摘要。
+  - `LearningCompletionCard` 复用“今日项目任务”面板展示 starter 空态，并把 CTA 文案切换为“选择项目”。
+  - 完成后行动列表现在先推荐“开始项目实践”，再保留“查看学习进度”，避免学习闭环在课程沉淀后停在数据页。
 - **[Today Project Practice Handoff]** 强化 `/today` 完成后的项目实践接续。
   - `buildTodayCompletionNextActions()` 新增 `projectPractice` 摘要，把 active project 的进度、当前里程碑和任务说明作为完成后独立聚焦区输出。
   - `LearningCompletionCard` 在行动列表前新增“今日项目任务”面板，显示项目标题、当前里程碑、任务说明、进度条和“继续项目”入口。
@@ -15,6 +19,13 @@
 
 ### Verified
 
+- 本地 RED：`npm test -- tests/unit/today-completion-next-actions.test.ts` 失败于无 active project 时缺少“项目实践 / 开始一个小项目”。
+- 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 7 项通过。
+- 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/learning-ui-components.test.ts tests/unit/project-mission-workspace.test.ts` 22 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm test` 214 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
 - 本地 RED：`npm test -- tests/unit/today-completion-next-actions.test.ts` 失败于缺少 `projectPractice` 和“今日项目任务”聚焦区。
 - 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 5 项通过。
 - 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/learning-ui-components.test.ts tests/unit/project-mission-workspace.test.ts` 20 项通过。

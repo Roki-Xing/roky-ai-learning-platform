@@ -17,6 +17,7 @@ export type TodayCompletionNextActions = {
     percent: number;
     milestoneTitle: string;
     milestoneTask: string | null;
+    ctaLabel: string;
   };
   actions: TodayCompletionAction[];
 };
@@ -147,10 +148,28 @@ export function buildTodayCompletionNextActions(
         percent: input.activeProject.percent,
         milestoneTitle: input.activeProject.activeMilestoneTitle ?? "所有里程碑已完成",
         milestoneTask: input.activeProject.activeMilestoneTask,
+        ctaLabel: "继续项目",
       }
-    : null;
+    : input.noteCount > 0 && input.voiceNoteCount > 0 && input.thoughtReviewCount > 0
+      ? {
+          title: "项目实践",
+          href: "/projects",
+          percent: 0,
+          milestoneTitle: "开始一个小项目",
+          milestoneTask: "把今天学到的内容落到代码或复盘里，避免只停留在阅读和卡片。",
+          ctaLabel: "选择项目",
+        }
+      : null;
 
   if (!actions.length) {
+    if (projectPractice) {
+      actions.push({
+        label: "开始项目实践",
+        description: "选一个 3 到 6 小时能收尾的小项目，把今天的概念落到代码里。",
+        href: projectPractice.href,
+        tone: "neutral",
+      });
+    }
     actions.push({
       label: "查看学习进度",
       description: "今日学习、复习和沉淀都已完成，回到进度页看长期趋势。",

@@ -69,7 +69,7 @@ export function LearningCompletionCard(props: {
             </div>
             <Button asChild size="sm" variant="secondary" className="shrink-0">
               <Link href={props.completion.projectPractice.href}>
-                继续项目
+                {props.completion.projectPractice.ctaLabel}
                 <ArrowRight className="size-3.5" />
               </Link>
             </Button>
