@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.71.0] - 2026-05-29
+
+### Added
+
+- **[Coach Remediation Queue]** 将 `/coach` 右侧上下文里的活跃误区和代码反馈整理成可执行补弱队列。
+  - 新增 `CoachRemediationQueue`，优先展示当前最需要澄清的误区和最新代码反馈。
+  - 队列中的误区回到 `/coach`，鼓励用户用自己的话重讲一遍。
+  - 队列中的代码反馈进入 `/review?source=code-feedback`，直接复习实现错误卡。
+  - `/coach` 学习上下文区域现在先显示 Context Compass，再显示补弱队列和详细上下文列表。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/coach-workspace.test.ts` 失败于缺少 `CoachRemediationQueue` 导出。
+- 本地 GREEN：`npm test -- tests/unit/coach-workspace.test.ts` 5 项通过。
+
 ## [0.70.0] - 2026-05-29
 
 ### Added

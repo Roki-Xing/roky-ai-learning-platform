@@ -25,6 +25,7 @@ import {
   CoachMissingConcepts,
   CoachModeRail,
   CoachQuickLinks,
+  CoachRemediationQueue,
   CoachResultBlock,
   CoachSignalStrip,
   coachIcons,
@@ -319,6 +320,10 @@ export default async function CoachPage({
                 localDate={coachContext.todayLocalDate}
                 lessonTitle={coachContext.lessonTitle}
                 signals={contextCompassSignals}
+              />
+              <CoachRemediationQueue
+                misconceptions={misconceptionItems}
+                codeFeedback={codeFeedbackItems}
               />
               <CoachContextGroup
                 title="到期卡片"

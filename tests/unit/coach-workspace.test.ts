@@ -7,6 +7,7 @@ import {
   CoachHero,
   CoachIssueList,
   CoachModeRail,
+  CoachRemediationQueue,
   CoachSignalStrip,
 } from "@/app/coach/ui/coach-workspace";
 
@@ -94,4 +95,32 @@ test("coach context compass makes the strongest context signal visible", () => {
   assert.match(markup, /5/);
   assert.match(markup, /Transformer 架构入门/);
   assert.match(markup, /href="\/review"/);
+});
+
+test("coach remediation queue turns misconceptions and code feedback into next tasks", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(CoachRemediationQueue, {
+      misconceptions: [
+        {
+          title: "把 attention 当成简单平均",
+          subtitle: "权重来自 Q/K 相似度，不是平均。",
+          tone: "warning",
+        },
+      ],
+      codeFeedback: [
+        {
+          title: "缺少 softmax 归一化",
+          subtitle: "2026-05-29 / partially_correct",
+          tone: "info",
+        },
+      ],
+    }),
+  );
+
+  assert.match(markup, /补弱队列/);
+  assert.match(markup, /优先澄清/);
+  assert.match(markup, /把 attention 当成简单平均/);
+  assert.match(markup, /缺少 softmax 归一化/);
+  assert.match(markup, /href="\/coach"/);
+  assert.match(markup, /href="\/review\?source=code-feedback"/);
 });

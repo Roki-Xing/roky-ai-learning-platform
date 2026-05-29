@@ -418,6 +418,76 @@ export function CoachContextGroup(props: {
   );
 }
 
+export function CoachRemediationQueue(props: {
+  misconceptions: CoachContextItem[];
+  codeFeedback: CoachContextItem[];
+}) {
+  const firstMisconception = props.misconceptions[0] ?? null;
+  const firstCodeFeedback = props.codeFeedback[0] ?? null;
+  const total = props.misconceptions.length + props.codeFeedback.length;
+
+  return (
+    <section className="rounded-lg border bg-card p-3 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <LearningStatusBadge tone={total ? "danger" : "success"}>补弱队列</LearningStatusBadge>
+            <LearningStatusBadge tone="neutral">{total}</LearningStatusBadge>
+          </div>
+          <div className="mt-2 text-sm font-semibold">优先澄清</div>
+          <div className="mt-1 text-xs leading-5 text-muted-foreground">
+            先处理误区，再回看代码反馈；这些信号会让 Coach 的下一次评审更具体。
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-2">
+        {firstMisconception ? (
+          <Link
+            href="/coach"
+            className={cn("rounded-md border px-3 py-2 transition-colors hover:bg-muted/60", mutedToneClass("warning"))}
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <LearningStatusBadge tone="warning">误区</LearningStatusBadge>
+              <span className="text-xs text-muted-foreground">先用自己的话重讲一遍</span>
+            </div>
+            <div className="mt-2 line-clamp-2 text-sm font-medium">{firstMisconception.title}</div>
+            {firstMisconception.subtitle ? (
+              <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                {firstMisconception.subtitle}
+              </div>
+            ) : null}
+          </Link>
+        ) : null}
+
+        {firstCodeFeedback ? (
+          <Link
+            href="/review?source=code-feedback"
+            className={cn("rounded-md border px-3 py-2 transition-colors hover:bg-muted/60", mutedToneClass("info"))}
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <LearningStatusBadge tone="info">代码反馈</LearningStatusBadge>
+              <span className="text-xs text-muted-foreground">复习实现错误卡</span>
+            </div>
+            <div className="mt-2 line-clamp-2 text-sm font-medium">{firstCodeFeedback.title}</div>
+            {firstCodeFeedback.subtitle ? (
+              <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                {firstCodeFeedback.subtitle}
+              </div>
+            ) : null}
+          </Link>
+        ) : null}
+
+        {!total ? (
+          <div className="rounded-md border bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
+            暂无补弱任务。可以提交一个新的理解，让 Coach 继续检查。
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 export function CoachQuickLinks(props: { lessonId?: string | null }) {
   return (
     <div className="grid grid-cols-2 gap-2">
