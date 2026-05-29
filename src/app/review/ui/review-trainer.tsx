@@ -6,6 +6,10 @@ import { LearningProgressBar } from "@/components/learning/learning-progress-bar
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { LearningEmptyState } from "@/components/learning/learning-empty-state";
 import { rateFlashcardAction } from "@/server/review/actions";
+import {
+  buildReviewSessionSummary,
+  type ReviewSessionCounts,
+} from "@/server/review/session-summary";
 
 export type ReviewCardDto = {
   id: string;
@@ -145,15 +149,19 @@ export function ReviewTrainer(props: {
   card: ReviewCardDto | null;
   queueSize: number;
   emptyState: ReviewEmptyState;
+  initialSessionCounts?: ReviewSessionCounts;
 }) {
-  const { card, queueSize, emptyState } = props;
-  const [sessionTotal, setSessionTotal] = useState(() => queueSize);
+  const { card, queueSize, emptyState, initialSessionCounts } = props;
+  const initialReviewed = initialSessionCounts
+    ? Object.values(initialSessionCounts).reduce((a, b) => a + b, 0)
+    : 0;
+  const [sessionTotal, setSessionTotal] = useState(() => queueSize + initialReviewed);
   const [lastRating, setLastRating] = useState<Rating | null>(null);
   const [sessionCounts, setSessionCounts] = useState<Record<Rating, number>>({
-    forgot: 0,
-    hard: 0,
-    good: 0,
-    easy: 0,
+    forgot: initialSessionCounts?.forgot ?? 0,
+    hard: initialSessionCounts?.hard ?? 0,
+    good: initialSessionCounts?.good ?? 0,
+    easy: initialSessionCounts?.easy ?? 0,
   });
 
   const handleRated = useCallback(
@@ -178,6 +186,7 @@ export function ReviewTrainer(props: {
   }, [queueSize, sessionTotal]);
 
   const sessionReviewed = Object.values(sessionCounts).reduce((a, b) => a + b, 0);
+  const sessionSummary = buildReviewSessionSummary(sessionCounts);
   const sessionHasStarted = sessionTotal > 0 || sessionReviewed > 0;
   const sessionComplete = sessionHasStarted && queueSize === 0;
 
@@ -203,13 +212,35 @@ export function ReviewTrainer(props: {
       ) : sessionComplete ? (
         <div className="rounded-lg border bg-card p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="text-base font-semibold">本次复习完成</div>
-            <LearningStatusBadge tone="success">queue empty</LearningStatusBadge>
+            <div className="text-base font-semibold">{sessionSummary.title}</div>
+            <LearningStatusBadge tone={sessionSummary.tone}>
+              留存 {sessionSummary.retentionRate}%
+            </LearningStatusBadge>
           </div>
           <div className="mt-2 text-sm text-muted-foreground">
-            共复习 {sessionReviewed} 张（本次会话内统计）。
+            {sessionSummary.description}
           </div>
-          <div className="mt-3 grid gap-1 text-sm text-muted-foreground">
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            <div className="rounded-md border bg-muted/20 px-3 py-2">
+              <div className="text-xs text-muted-foreground">本轮复习</div>
+              <div className="mt-1 text-xl font-semibold tabular-nums">
+                {sessionSummary.reviewedCount}
+              </div>
+            </div>
+            <div className="rounded-md border bg-emerald-50 px-3 py-2 text-emerald-800">
+              <div className="text-xs">稳定记住</div>
+              <div className="mt-1 text-xl font-semibold tabular-nums">
+                {sessionSummary.retainedCount}
+              </div>
+            </div>
+            <div className="rounded-md border bg-amber-50 px-3 py-2 text-amber-900">
+              <div className="text-xs">需要补弱</div>
+              <div className="mt-1 text-xl font-semibold tabular-nums">
+                {sessionSummary.weakCount}
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-1 text-sm text-muted-foreground sm:grid-cols-4">
             <div>忘了：{sessionCounts.forgot}</div>
             <div>模糊：{sessionCounts.hard}</div>
             <div>记得：{sessionCounts.good}</div>
@@ -217,10 +248,12 @@ export function ReviewTrainer(props: {
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button asChild size="sm" variant="secondary">
-              <a href="/today">回到今日学习</a>
+              <a href={sessionSummary.primaryAction.href}>{sessionSummary.primaryAction.label}</a>
             </Button>
             <Button asChild size="sm" variant="outline">
-              <a href="/progress">查看进度</a>
+              <a href={sessionSummary.secondaryAction.href}>
+                {sessionSummary.secondaryAction.label}
+              </a>
             </Button>
           </div>
         </div>

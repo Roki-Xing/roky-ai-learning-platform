@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.67.0] - 2026-05-29
+
+### Added
+
+- **[Review Completion Feedback]** 强化 `/review` 本轮复习完成后的反馈。
+  - 新增 `buildReviewSessionSummary()`，根据 forgot/hard/good/easy 计算本轮复习数、稳定记住数、补弱数和留存率。
+  - 忘了/模糊占优时，完成卡片推荐进入 Coach 补弱；留存稳定时，推荐查看进度。
+  - `ReviewTrainer` 完成态从简单 queue empty 升级为留存率徽标、三项统计和下一步 CTA。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/review-session-summary.test.ts` 失败于缺少 `@/server/review/session-summary`。
+- 本地 RED：`npm test -- tests/unit/learning-ui-components.test.ts` 失败于完成态仍渲染空状态，缺少会话统计注入。
+- 本地 GREEN：`npm test -- tests/unit/review-session-summary.test.ts` 2 项通过。
+- 本地 GREEN：`npm test -- tests/unit/learning-ui-components.test.ts` 6 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm test` 179 项通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm run e2e` 16 项通过。
+
 ## [0.66.0] - 2026-05-29
 
 ### Added

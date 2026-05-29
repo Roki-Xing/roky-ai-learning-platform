@@ -7,6 +7,7 @@ import { LearningFocusPlayer } from "@/components/learning/learning-focus-player
 import { LearningMarkdown } from "@/components/learning/learning-markdown";
 import { KnowledgePathExplorer } from "@/components/learning/knowledge-path-explorer";
 import { VoiceLearningPipeline } from "@/app/voice/ui/voice-learning-pipeline";
+import { ReviewTrainer } from "@/app/review/ui/review-trainer";
 
 test("learning markdown renders headings, tables, and code without raw html", () => {
   const markup = renderToStaticMarkup(
@@ -170,4 +171,28 @@ test("knowledge path explorer renders viewed card reviewed weak and next states"
   assert.match(markup, /未掌握 1/);
   assert.match(markup, /下一项/);
   assert.match(markup, /react/);
+});
+
+test("review trainer completion summary highlights retention and next action", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(ReviewTrainer, {
+      card: null,
+      queueSize: 0,
+      initialSessionCounts: {
+        forgot: 2,
+        hard: 1,
+        good: 1,
+        easy: 0,
+      },
+      emptyState: {
+        title: "暂无到期卡片",
+        actions: [],
+      },
+    }),
+  );
+
+  assert.match(markup, /这轮复习暴露了补弱点/);
+  assert.match(markup, /留存 25%/);
+  assert.match(markup, /去 Coach 补弱/);
+  assert.match(markup, /需要补弱/);
 });
