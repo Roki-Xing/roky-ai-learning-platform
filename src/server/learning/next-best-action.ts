@@ -12,6 +12,7 @@ export type NextBestActionInput = {
   };
   todayLessonId: string | null;
   todayNoteCount: number;
+  todayVoiceNoteCount: number;
 };
 
 export type NextBestAction = {
@@ -72,6 +73,16 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       href: `/notes?lessonId=${encodeURIComponent(input.todayLessonId)}`,
       ctaLabel: "写今日笔记",
       tone: "success",
+    };
+  }
+
+  if (input.todayLessonId && input.todayVoiceNoteCount === 0) {
+    return {
+      title: "说出今天的理解",
+      reason: "今天已经完成学习和文字笔记，但还没有用语音把理解讲出来。说一遍可以更快暴露卡住点，并接到 Coach 检查。",
+      href: "/voice",
+      ctaLabel: "去说一遍",
+      tone: "info",
     };
   }
 

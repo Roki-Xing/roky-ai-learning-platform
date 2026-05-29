@@ -78,7 +78,7 @@ export default async function HomePage() {
     }),
   ]);
 
-  const [openMisconceptionCount, codeFeedbackNeedsAttentionCount, activeProject, todayNoteCount] =
+  const [openMisconceptionCount, codeFeedbackNeedsAttentionCount, activeProject, todayNoteCount, todayVoiceNoteCount] =
     await Promise.all([
       prisma.misconception.count({ where: { userId, status: "open" } }),
       prisma.codeFeedback.count({
@@ -94,6 +94,9 @@ export default async function HomePage() {
       }),
       todayPlan
         ? prisma.note.count({ where: { userId, lessonId: todayPlan.lessonId } })
+        : Promise.resolve(0),
+      todayPlan
+        ? prisma.voiceNote.count({ where: { userId, lessonId: todayPlan.lessonId } })
         : Promise.resolve(0),
     ]);
 
@@ -137,6 +140,7 @@ export default async function HomePage() {
       : null,
     todayLessonId: todayPlan?.lessonId ?? null,
     todayNoteCount,
+    todayVoiceNoteCount,
   });
 
   return (
@@ -244,8 +248,9 @@ export default async function HomePage() {
             </div>
             <div className="mt-2 text-lg font-semibold leading-snug">{nextBestAction.title}</div>
           </div>
-          <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3 md:min-w-[360px]">
+          <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-md border bg-muted/20 px-3 py-2">今日笔记：{todayNoteCount}</div>
+            <div className="rounded-md border bg-muted/20 px-3 py-2">语音表达：{todayVoiceNoteCount}</div>
             <div className="rounded-md border bg-muted/20 px-3 py-2">误区：{openMisconceptionCount}</div>
             <div className="rounded-md border bg-muted/20 px-3 py-2">代码反馈：{codeFeedbackNeedsAttentionCount}</div>
           </div>

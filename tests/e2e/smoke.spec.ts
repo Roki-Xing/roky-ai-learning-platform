@@ -44,6 +44,9 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
   await page.goto("/voice");
   await expect(page.getByRole("heading", { name: "语音学习捕获" })).toBeVisible();
   await expect(page.getByText("说出你的理解", { exact: true })).toBeVisible();
+  await expect(page.getByText("语音学习流水线")).toBeVisible();
+  await expect(page.getByRole("button", { name: "送 Coach 检查" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "整理成笔记" })).toBeVisible();
 });
 
 test("review trainer hides answers until reveal @smoke", async ({ page }) => {

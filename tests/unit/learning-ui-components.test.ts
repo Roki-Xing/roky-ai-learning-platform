@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LearningFocusPanel } from "@/components/learning/learning-focus-panel";
 import { LearningFocusPlayer } from "@/components/learning/learning-focus-player";
 import { LearningMarkdown } from "@/components/learning/learning-markdown";
+import { VoiceLearningPipeline } from "@/app/voice/ui/voice-learning-pipeline";
 
 test("learning markdown renders headings, tables, and code without raw html", () => {
   const markup = renderToStaticMarkup(
@@ -98,4 +99,25 @@ test("learning focus player renders one active stage with overview rail", () => 
   assert.match(markup, /2 \/ 2/);
   assert.match(markup, /完整视图/);
   assert.doesNotMatch(markup, /目标内容/);
+});
+
+test("voice learning pipeline shows coach note cards and review next steps", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(VoiceLearningPipeline, {
+      hasSelected: true,
+      hasCoach: false,
+      hasNote: false,
+      hasCards: false,
+      linkedCards: 0,
+      voiceNoteId: "voice-1",
+      reviewId: null,
+      noteId: null,
+    }),
+  );
+
+  assert.match(markup, /语音学习流水线/);
+  assert.match(markup, /送 Coach 检查/);
+  assert.match(markup, /整理成笔记/);
+  assert.match(markup, /生成复习卡片/);
+  assert.match(markup, /去复习/);
 });

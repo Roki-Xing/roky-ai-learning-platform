@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.63.0] - 2026-05-29
+
+### Added
+
+- **[Voice / Coach Flow]** 强化 Voice Note 到 Coach、Note、Flashcards、Review 的学习流水线。
+  - 新增 `VoiceLearningPipeline`，在 `/voice` 中集中展示“已保存 → Coach → Note → Cards”的阶段状态。
+  - Pipeline CTA 明确为“送 Coach 检查 / 整理成笔记 / 生成复习卡片 / 去复习”，替代分散按钮。
+  - 首页 `Next Best Action` 增加 `todayVoiceNoteCount` 信号：今日学习和笔记已完成但还没语音表达时，优先推荐去 `/voice` 说出理解。
+  - 首页 Next Best Action 指标增加“语音表达”计数。
+  - Playwright smoke 扩展 `/voice` 流水线断言。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/next-best-action.test.ts` 失败于仍跳转 `/projects`，未推荐 `/voice`。
+- 本地 RED：`npm test -- tests/unit/learning-ui-components.test.ts` 失败于缺少 `VoiceLearningPipeline`。
+- 本地 GREEN：`npm test -- tests/unit/next-best-action.test.ts` 5 项通过。
+- 本地 GREEN：`npm test -- tests/unit/learning-ui-components.test.ts` 4 项通过。
+- 本地：`npm run e2e` 2 项通过。
+
 ## [0.62.0] - 2026-05-29
 
 ### Added

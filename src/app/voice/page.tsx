@@ -9,13 +9,12 @@ import {
   saveVoiceNoteAsNoteAction,
   sendVoiceNoteToCoachAction,
 } from "@/app/voice/actions";
+import { VoiceLearningPipeline } from "@/app/voice/ui/voice-learning-pipeline";
 import { VoiceWorkspaceForm } from "@/app/voice/ui/voice-workspace-form";
-import { LearningCTAGroup } from "@/components/learning/learning-cta-group";
 import { LearningCompassCard } from "@/components/learning/learning-compass-card";
 import { LearningEmptyState } from "@/components/learning/learning-empty-state";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
-import { LearningStepCard } from "@/components/learning/learning-step-card";
 
 const MODES = [
   ["free_thought", "自由想法"],
@@ -126,6 +125,20 @@ export default async function VoicePage({
               : "Voice Note 的价值不是保存音频，而是把口语思路变成可复习、可追问的学习材料。"}
           </LearningCompassCard>
 
+          <VoiceLearningPipeline
+            hasSelected={hasSelected}
+            hasCoach={hasCoach}
+            hasNote={hasNote}
+            hasCards={hasCards}
+            linkedCards={linkedCards}
+            voiceNoteId={selected?.id ?? null}
+            reviewId={selected?.thoughtReviewId ?? null}
+            noteId={selected?.noteId ?? null}
+            sendToCoachAction={sendVoiceNoteToCoachAction}
+            saveAsNoteAction={saveVoiceNoteAsNoteAction}
+            generateFlashcardsAction={generateVoiceNoteFlashcardsAction}
+          />
+
           <div className="rounded-lg border bg-card p-4 shadow-sm">
             {selected ? (
               <div className="grid gap-4">
@@ -145,44 +158,6 @@ export default async function VoicePage({
                     {selectedText}
                   </div>
                 </div>
-
-                <LearningCTAGroup>
-                  <form action={sendVoiceNoteToCoachAction}>
-                    <input type="hidden" name="voiceNoteId" value={selected.id} />
-                    <Button type="submit" size="sm">
-                      送 Coach 检查
-                    </Button>
-                  </form>
-                  <form action={saveVoiceNoteAsNoteAction}>
-                    <input type="hidden" name="voiceNoteId" value={selected.id} />
-                    <Button type="submit" size="sm" variant="secondary">
-                      保存为 Note
-                    </Button>
-                  </form>
-                  <form action={generateVoiceNoteFlashcardsAction}>
-                    <input type="hidden" name="voiceNoteId" value={selected.id} />
-                    <Button
-                      type="submit"
-                      size="sm"
-                      variant="outline"
-                      disabled={!selected.thoughtReviewId}
-                    >
-                      生成 Flashcards
-                    </Button>
-                  </form>
-                  {selected.thoughtReviewId ? (
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={`/coach?reviewId=${encodeURIComponent(selected.thoughtReviewId)}`}>
-                        查看 Coach
-                      </Link>
-                    </Button>
-                  ) : null}
-                  {selected.noteId ? (
-                    <Button asChild size="sm" variant="outline">
-                      <Link href="/notes">查看 Note</Link>
-                    </Button>
-                  ) : null}
-                </LearningCTAGroup>
               </div>
             ) : (
               <LearningEmptyState
@@ -196,32 +171,6 @@ export default async function VoicePage({
             )}
           </div>
 
-          <div className="grid gap-2 md:grid-cols-4">
-            <LearningStepCard
-              index={1}
-              title="已保存"
-              description="有 transcript 才能沉淀"
-              status={hasSelected ? "done" : "active"}
-            />
-            <LearningStepCard
-              index={2}
-              title="Coach"
-              description="检查概念混淆"
-              status={hasCoach ? "done" : hasSelected ? "active" : "todo"}
-            />
-            <LearningStepCard
-              index={3}
-              title="Note"
-              description="写进笔记库"
-              status={hasNote ? "done" : hasSelected ? "active" : "todo"}
-            />
-            <LearningStepCard
-              index={4}
-              title="Cards"
-              description="进入复习队列"
-              status={hasCards ? "done" : hasCoach ? "active" : "todo"}
-            />
-          </div>
         </div>
 
         <div className="grid gap-4 content-start">

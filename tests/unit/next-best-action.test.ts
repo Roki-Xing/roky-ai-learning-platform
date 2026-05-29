@@ -10,6 +10,7 @@ const baseInput = {
   activeProject: null,
   todayLessonId: "lesson-1",
   todayNoteCount: 1,
+  todayVoiceNoteCount: 1,
 };
 
 test("next best action starts with today's lesson when the plan is not complete", () => {
@@ -56,4 +57,22 @@ test("next best action links active project when learning chores are clear", () 
 
   assert.equal(action.href, "/projects?projectId=project-1");
   assert.match(action.reason, /实现检索器/);
+});
+
+test("next best action asks for a voice reflection before project work", () => {
+  const action = buildNextBestAction({
+    ...baseInput,
+    todayNoteCount: 1,
+    todayVoiceNoteCount: 0,
+    activeProject: {
+      id: "project-1",
+      title: "RAG 原型",
+      activeMilestoneTitle: "实现检索器",
+    },
+  });
+
+  assert.equal(action.href, "/voice");
+  assert.equal(action.tone, "info");
+  assert.match(action.title, /说出/);
+  assert.match(action.reason, /语音/);
 });

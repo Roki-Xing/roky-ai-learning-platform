@@ -11,9 +11,22 @@
 3. 上传音频可临时发送到服务端转写；无转写密钥时使用手动 transcript。
 4. 在 Transcript 区粘贴或编辑转写文本。
 5. 保存 Voice Note。
-6. 发送到 Coach，生成结构化 ThoughtReview。
-7. 保存为 Note。
-8. 生成 Flashcards，并进入 `/review` 复习。
+6. 在“语音学习流水线”中继续执行：
+   - 送 Coach 检查，生成结构化 ThoughtReview。
+   - 整理成笔记，保存为 Note。
+   - 生成复习卡片。
+   - 进入 `/review` 复习。
+
+## 首页推荐
+
+首页 `Next Best Action` 已纳入 `todayVoiceNoteCount`：
+
+- 今日学习未完成：优先 `/today`。
+- 今日有到期卡片：优先 `/review`。
+- 有 open misconception：优先 `/coach`。
+- 今日还没有笔记：优先 `/notes`。
+- 今日已经学习并写过笔记，但还没有 Voice Note：优先 `/voice`，提示“说出今天的理解”。
+- 学习、复习、笔记和语音表达都完成后，再推荐项目实践或知识地图。
 
 ## 数据模型
 
@@ -55,6 +68,9 @@
   - 按 `userId + voiceNoteId` 将 VoiceNote 发送到 Coach，重复调用复用同一条 linked ThoughtReview。
   - `generateVoiceNoteFlashcards()`
   - 按 `userId + voiceNoteId` 将 linked ThoughtReview 生成稳定 Flashcards，重复调用不重复创建。
+- `src/app/voice/ui/voice-learning-pipeline.tsx`
+  - 展示 Voice Note → Coach → Note → Flashcards → Review 的阶段状态和 CTA。
+  - 组件不直接 import server actions；由 `/voice` page 注入 action，保持 UI 单测不加载服务端 env。
 
 ## 本地验收
 
