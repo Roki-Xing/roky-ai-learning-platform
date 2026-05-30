@@ -4,6 +4,11 @@
 
 ### Added
 
+- **[Voice Interaction E2E]** 补齐 Sprint E Voice transcript 保存回归。
+  - 新增 `tests/e2e/voice-interactions.spec.ts`，本地 Demo 模式下覆盖 `/voice` 手动 transcript、整理版输入、保存后 `voiceNoteId` 跳转和学习流水线展示。
+  - `/voice` 保存表单新增稳定 `data-testid`，Transcript 与整理版输入框补充可访问 `aria-label`，方便 Playwright 按真实控件语义定位。
+  - 测试结束后清理专用 VoiceNote 及可能关联的 Note、ThoughtReview、Flashcard、ReviewLog，避免污染 demo 数据。
+  - 交互测试在生产 Preview 模式下显式跳过写操作，保持只读线上验收边界。
 - **[Review Interaction E2E]** 补齐 Sprint E 复习评分后的队列推进回归。
   - 新增 `tests/e2e/review-interactions.spec.ts`，本地 Demo 模式下创建专用到期卡，覆盖 `/review?source=thought-review` 显示答案、评分和卡片离开当前队列。
   - 测试数据使用唯一 marker 和独立到期卡，避免依赖现有 demo 数据是否刚好有复习卡。
@@ -37,6 +42,7 @@
 
 ### Verified
 
+- 本地 GREEN：`npm run e2e -- tests/e2e/voice-interactions.spec.ts` 1 项通过，完成 Voice transcript 保存和流水线展示。
 - 本地 RED：`npm run e2e -- tests/e2e/review-interactions.spec.ts` 失败于测试进程直接动态导入项目 TS 模块准备数据。
 - 本地 GREEN：`npm run e2e -- tests/e2e/review-interactions.spec.ts` 1 项通过，完成显示答案、评分和复习队列推进。
 - 生产 GREEN：`5bce6f2` 已部署到 `learn.roky.chat`，`/api/health` 返回 `ok: true`。

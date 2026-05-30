@@ -63,7 +63,7 @@ export function VoiceWorkspaceForm(props: {
           />
         </div>
 
-        <form action={props.saveAction} className="grid gap-3">
+        <form action={props.saveAction} className="grid gap-3" data-testid="voice-note-form">
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <LearningStatusBadge tone="info">Voice Note</LearningStatusBadge>
             {recentPlan ? (
@@ -139,6 +139,7 @@ export function VoiceWorkspaceForm(props: {
             <Textarea
               ref={transcriptRef}
               name="transcript"
+              aria-label="Transcript"
               className="min-h-44"
               placeholder="录音后点“自动转写”，或者直接写下你刚才说的理解、疑问、代码思路..."
               value={transcript}
@@ -153,6 +154,7 @@ export function VoiceWorkspaceForm(props: {
           >
             <Textarea
               name="editedTranscript"
+              aria-label="整理版"
               className="min-h-28"
               placeholder="把核心观点写成 3-5 句..."
               value={editedTranscript}
