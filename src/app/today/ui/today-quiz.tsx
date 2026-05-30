@@ -54,11 +54,11 @@ export function TodayQuiz(props: { questions: TodayQuizQuestion[] }) {
   const { questions } = props;
 
   return (
-    <div className="mt-3 grid gap-3">
+    <div className="mt-3 grid gap-3" data-testid="today-quiz">
       {questions.map((q, idx) => {
         const attempt = q.attempt;
         return (
-          <div key={q.id} className="rounded-md border p-3">
+          <div key={q.id} className="rounded-md border p-3" data-testid="today-quiz-question">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="text-sm font-medium">

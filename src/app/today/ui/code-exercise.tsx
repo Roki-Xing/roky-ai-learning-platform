@@ -73,7 +73,7 @@ export function CodeExercise(props: {
     language.startsWith("py") ? "python" : language.startsWith("ts") ? "typescript" : language;
 
   return (
-    <div className="mt-2 grid gap-3">
+    <div className="mt-2 grid gap-3" data-testid="today-code-exercise">
       {exercise.title ? (
         <div className="text-sm font-medium">{exercise.title}</div>
       ) : null}
@@ -90,6 +90,7 @@ export function CodeExercise(props: {
           <div className="text-sm font-medium">我的提交（仅保存，不执行）</div>
           <Textarea
             name="code"
+            aria-label="我的提交（仅保存，不执行）"
             className="min-h-56 font-mono text-xs"
             defaultValue={defaultCode}
             disabled={!supported}

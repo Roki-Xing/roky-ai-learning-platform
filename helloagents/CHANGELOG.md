@@ -4,6 +4,10 @@
 
 ### Added
 
+- **[Today Interaction E2E]** 补齐 Sprint E 今日学习主流程交互回归。
+  - 新增 `tests/e2e/today-interactions.spec.ts`，本地 Demo 模式下覆盖 `/today` 测验提交和代码草稿保存。
+  - `/today` 测验和代码练习区域新增稳定 `data-testid`，代码输入框补充可访问 `aria-label`，方便 Playwright 按真实控件语义定位。
+  - 交互测试在生产 Preview 模式下显式跳过写操作，保持只读预览边界。
 - **[Visual QA Library Coverage]** 补齐 Sprint E 课程库截图回归覆盖。
   - 把 visual smoke 页面清单抽到 `tests/e2e/visual-pages.ts`，避免 Node 单测直接 import Playwright spec。
   - `tests/e2e/visual.spec.ts` 新增 `/library` 桌面和移动端截图 smoke，确保课程库也进入 UI 回归基线。
@@ -25,6 +29,12 @@
 
 ### Verified
 
+- 本地 RED：`npm run e2e -- tests/e2e/today-interactions.spec.ts` 失败于 `/today` 缺少稳定 `today-quiz` 测试区域。
+- 本地 GREEN：`npm run e2e -- tests/e2e/today-interactions.spec.ts` 1 项通过，完成 quiz 提交和 code submission 保存。
+- 本地 GREEN：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/quiz-submit.test.ts tests/unit/code-submit.test.ts` 12 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
 - 本地 RED：`npm test -- tests/unit/learning-ui-components.test.ts` 失败于 visual smoke 页面清单缺少 `library`。
 - 本地 GREEN：`npm test -- tests/unit/learning-ui-components.test.ts` 9 项通过。
 - 本地 GREEN：`npm run e2e:visual` 16 项通过，覆盖 homepage/today/review/library/coach/voice/map/projects 的桌面和移动端截图 smoke。
