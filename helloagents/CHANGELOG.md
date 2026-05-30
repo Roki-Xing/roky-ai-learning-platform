@@ -43,6 +43,8 @@
 ### Verified
 
 - 本地 GREEN：`npm run e2e -- tests/e2e/voice-interactions.spec.ts` 1 项通过，完成 Voice transcript 保存和流水线展示。
+- 生产 GREEN：`b92b789` 已部署到 `learn.roky.chat`，`/api/health` 返回 `ok: true`。
+- 生产 GREEN：`E2E_BASE_URL=https://learn.roky.chat npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过，且已清理 `test-results/`。
 - 本地 RED：`npm run e2e -- tests/e2e/review-interactions.spec.ts` 失败于测试进程直接动态导入项目 TS 模块准备数据。
 - 本地 GREEN：`npm run e2e -- tests/e2e/review-interactions.spec.ts` 1 项通过，完成显示答案、评分和复习队列推进。
 - 生产 GREEN：`5bce6f2` 已部署到 `learn.roky.chat`，`/api/health` 返回 `ok: true`。
