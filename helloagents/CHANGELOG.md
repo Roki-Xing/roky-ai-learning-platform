@@ -39,6 +39,8 @@
 
 - 本地 RED：`npm run e2e -- tests/e2e/review-interactions.spec.ts` 失败于测试进程直接动态导入项目 TS 模块准备数据。
 - 本地 GREEN：`npm run e2e -- tests/e2e/review-interactions.spec.ts` 1 项通过，完成显示答案、评分和复习队列推进。
+- 生产 GREEN：`5bce6f2` 已部署到 `learn.roky.chat`，`/api/health` 返回 `ok: true`。
+- 生产 GREEN：`E2E_BASE_URL=https://learn.roky.chat npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过，且已清理 `test-results/`。
 - 本地 RED：`npm run e2e -- tests/e2e/coach-interactions.spec.ts` 失败于 `/coach` 缺少稳定 `coach-thought-form` 测试区域。
 - 本地 GREEN：`npm run e2e -- tests/e2e/coach-interactions.spec.ts` 1 项通过，完成 Coach 思路提交和结构化反馈展示。
 - 本地 GREEN：`npm test -- tests/unit/coach-workspace.test.ts tests/unit/coach-submit.test.ts` 10 项通过。
