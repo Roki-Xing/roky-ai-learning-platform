@@ -57,6 +57,8 @@
 - 本地 GREEN：`npm run build` 通过。
 - 本地 GREEN：`npm test` 217 项通过。
 - 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 生产 GREEN：`e0ad2a2` 已部署到 `learn.roky.chat`，容器内 `npm run build` 通过，`/api/health` 返回 `ok: true`。
+- 生产 GREEN：`E2E_BASE_URL=https://learn.roky.chat E2E_PREVIEW_TOKEN=*** npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过，且已清理 `test-results/`。
 - 本地 RED：`npm run e2e -- tests/e2e/voice-interactions.spec.ts` 失败于断言使用了页面不存在的“语音卡片”文本，而实际聚焦复习页显示“语音笔记复习”。
 - 本地 GREEN：`npm test -- tests/unit/review-filter.test.ts` 7 项通过。
 - 本地 GREEN：`npm run e2e -- tests/e2e/voice-interactions.spec.ts` 2 项通过，完成 Voice transcript → Coach → 生成卡片 → `/review?source=voice-note`。
