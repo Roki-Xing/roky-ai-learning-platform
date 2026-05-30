@@ -38,11 +38,11 @@ export async function generateCardsFromThoughtReviewAction(formData: FormData) {
   const reviewId = String(formData.get("reviewId") ?? "").trim();
   if (!reviewId) throw new Error("Missing reviewId");
 
-  const result = await generateFlashcardsForThoughtReview({ userId, reviewId });
+  await generateFlashcardsForThoughtReview({ userId, reviewId });
 
   revalidatePath("/coach");
   revalidatePath("/review");
   revalidatePath("/library");
   revalidatePath("/progress");
-  redirect(`/coach?reviewId=${encodeURIComponent(result.reviewId)}`);
+  redirect("/review?source=thought-review");
 }

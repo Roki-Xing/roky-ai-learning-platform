@@ -4,6 +4,10 @@
 
 ### Added
 
+- **[Coach Review Direct Handoff E2E]** 补齐 Coach 思路评审到主动回忆的直达链路。
+  - `generateCardsFromThoughtReviewAction()` 生成 Coach 卡片后直接跳转 `/review?source=thought-review`，让“输入理解 → Coach 检查 → 生成卡片 → 主动回忆”成为连续流程。
+  - `tests/e2e/coach-interactions.spec.ts` 新增完整交互：提交 Coach 思路、生成复习卡、进入思路评审聚焦复习队列并看到本次卡片。
+  - Coach E2E 增加专用 `ThoughtReview`/`Flashcard`/`ReviewLog`/`Misconception` 清理逻辑，避免交互测试污染 demo 数据。
 - **[Voice Coach Review Handoff E2E]** 补齐 Sprint B/E 的语音理解到 Coach 再到复习队列组合链路。
   - `buildReviewableFlashcardWhere()` 对 `voice-note` 聚焦队列不再强制 `lessonId = null`，确保绑定最近课程的语音 Coach 卡也能在 `/review?source=voice-note` 出现。
   - `tests/e2e/voice-interactions.spec.ts` 新增完整交互：保存 Voice transcript、送 Coach 检查、生成语音复习卡、打开语音聚焦复习队列。
@@ -46,6 +50,13 @@
 
 ### Verified
 
+- 本地 RED：`npm run e2e -- tests/e2e/coach-interactions.spec.ts` 失败于点击“生成卡片”后仍回到 `/coach?reviewId=...`，没有进入 `/review?source=thought-review`。
+- 本地 GREEN：`npm run e2e -- tests/e2e/coach-interactions.spec.ts` 2 项通过，完成 Coach 思路 → 生成卡片 → `/review?source=thought-review`。
+- 本地 GREEN：`npm test -- tests/unit/coach-workspace.test.ts tests/unit/coach-submit.test.ts tests/unit/review-filter.test.ts` 17 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm test` 217 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
 - 本地 RED：`npm run e2e -- tests/e2e/voice-interactions.spec.ts` 失败于断言使用了页面不存在的“语音卡片”文本，而实际聚焦复习页显示“语音笔记复习”。
 - 本地 GREEN：`npm test -- tests/unit/review-filter.test.ts` 7 项通过。
 - 本地 GREEN：`npm run e2e -- tests/e2e/voice-interactions.spec.ts` 2 项通过，完成 Voice transcript → Coach → 生成卡片 → `/review?source=voice-note`。
