@@ -53,6 +53,8 @@
 - 本地 GREEN：`npm run build` 通过。
 - 本地 GREEN：`npm test` 217 项通过。
 - 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 生产 GREEN：`e9fbff1` 已部署到 `learn.roky.chat`，容器内 `npm run build` 通过，`/api/health` 返回 `ok: true`。
+- 生产 GREEN：`E2E_BASE_URL=https://learn.roky.chat E2E_PREVIEW_TOKEN=*** npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过，且已清理 `test-results/`。
 - 本地 GREEN：`npm run e2e -- tests/e2e/voice-interactions.spec.ts` 1 项通过，完成 Voice transcript 保存和流水线展示。
 - 生产 GREEN：`b92b789` 已部署到 `learn.roky.chat`，`/api/health` 返回 `ok: true`。
 - 生产 GREEN：`E2E_BASE_URL=https://learn.roky.chat npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过，且已清理 `test-results/`。
