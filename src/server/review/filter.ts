@@ -43,7 +43,11 @@ export function buildReviewableFlashcardWhere(
       tags: { array_contains: [options.source] },
     };
 
-    if (options.source !== "code-feedback" && options.source !== "thought-review") {
+    if (
+      options.source !== "code-feedback" &&
+      options.source !== "thought-review" &&
+      options.source !== "voice-note"
+    ) {
       where.lessonId = null;
     }
 

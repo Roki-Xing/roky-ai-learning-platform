@@ -81,3 +81,65 @@ test("voice flow saves a manual transcript and shows the learning pipeline @inte
     if (voiceNoteId) deleteVoiceNote(voiceNoteId);
   }
 });
+
+test("voice flow sends transcript to coach, creates cards, and opens focused review @interaction", async ({ page }) => {
+  test.skip(Boolean(previewToken), "Preview Mode is read-only; mutation flow runs only in local Demo mode.");
+
+  const marker = `e2e-voice-coach-${Date.now()}`;
+  let voiceNoteId: string | null = null;
+
+  try {
+    await enterLearningApp(page, "/voice?mode=free_thought");
+    await expect(page.getByRole("heading", { name: "语音学习捕获" })).toBeVisible();
+
+    const form = page.getByTestId("voice-note-form");
+    await expect(form).toBeVisible();
+    await form.getByLabel("Transcript").fill(
+      `我觉得 attention 就是把所有 token 平均一下。${marker}`,
+    );
+
+    await Promise.all([
+      page.waitForURL((url) => url.pathname === "/voice" && url.searchParams.has("voiceNoteId"), {
+        timeout: 20_000,
+      }),
+      form.getByRole("button", { name: "保存并进入分析" }).click(),
+    ]);
+
+    voiceNoteId = new URL(page.url()).searchParams.get("voiceNoteId");
+    expect(voiceNoteId).toBeTruthy();
+
+    await Promise.all([
+      page.waitForURL((url) => url.pathname === "/voice" && url.searchParams.get("voiceNoteId") === voiceNoteId, {
+        timeout: 20_000,
+      }),
+      page.getByRole("button", { name: "送 Coach 检查" }).click(),
+    ]);
+    await expect(page.getByRole("button", { name: "已送 Coach" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "查看 Coach" })).toBeVisible();
+
+    await Promise.all([
+      page.waitForURL((url) => url.pathname === "/voice" && url.searchParams.get("voiceNoteId") === voiceNoteId, {
+        timeout: 20_000,
+      }),
+      page.getByRole("button", { name: "生成复习卡片" }).click(),
+    ]);
+
+    await expect(page.getByText("语音卡片已进入复习队列")).toBeVisible();
+    const reviewLink = page.getByRole("link", { name: /复习这 \d+ 张语音卡片/ });
+    await expect(reviewLink).toBeVisible();
+
+    await Promise.all([
+      page.waitForURL((url) => url.pathname === "/review" && url.searchParams.get("source") === "voice-note", {
+        timeout: 20_000,
+      }),
+      reviewLink.click(),
+    ]);
+
+    await expect(page.getByRole("heading", { name: /复习/ })).toBeVisible();
+    await expect(page.getByText("语音笔记复习")).toBeVisible();
+    await expect(page.getByText(marker).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "显示答案" })).toBeVisible();
+  } finally {
+    if (voiceNoteId) deleteVoiceNote(voiceNoteId);
+  }
+});

@@ -69,3 +69,14 @@ test("buildReviewableFlashcardWhere keeps thought review queue independent of le
     tags: { array_contains: ["thought-review"] },
   });
 });
+
+test("buildReviewableFlashcardWhere keeps voice note queue independent of lesson binding", () => {
+  const where = buildReviewableFlashcardWhere("demo-user", {
+    source: "voice-note",
+  });
+
+  assert.deepEqual(where, {
+    userId: "demo-user",
+    tags: { array_contains: ["voice-note"] },
+  });
+});

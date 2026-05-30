@@ -4,6 +4,10 @@
 
 ### Added
 
+- **[Voice Coach Review Handoff E2E]** 补齐 Sprint B/E 的语音理解到 Coach 再到复习队列组合链路。
+  - `buildReviewableFlashcardWhere()` 对 `voice-note` 聚焦队列不再强制 `lessonId = null`，确保绑定最近课程的语音 Coach 卡也能在 `/review?source=voice-note` 出现。
+  - `tests/e2e/voice-interactions.spec.ts` 新增完整交互：保存 Voice transcript、送 Coach 检查、生成语音复习卡、打开语音聚焦复习队列。
+  - `tests/unit/review-filter.test.ts` 新增 `voice-note` 过滤断言，防止后续把语音卡片重新限制为无课程绑定。
 - **[Voice Interaction E2E]** 补齐 Sprint E Voice transcript 保存回归。
   - 新增 `tests/e2e/voice-interactions.spec.ts`，本地 Demo 模式下覆盖 `/voice` 手动 transcript、整理版输入、保存后 `voiceNoteId` 跳转和学习流水线展示。
   - `/voice` 保存表单新增稳定 `data-testid`，Transcript 与整理版输入框补充可访问 `aria-label`，方便 Playwright 按真实控件语义定位。
@@ -42,6 +46,13 @@
 
 ### Verified
 
+- 本地 RED：`npm run e2e -- tests/e2e/voice-interactions.spec.ts` 失败于断言使用了页面不存在的“语音卡片”文本，而实际聚焦复习页显示“语音笔记复习”。
+- 本地 GREEN：`npm test -- tests/unit/review-filter.test.ts` 7 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/voice-interactions.spec.ts` 2 项通过，完成 Voice transcript → Coach → 生成卡片 → `/review?source=voice-note`。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm test` 217 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
 - 本地 GREEN：`npm run e2e -- tests/e2e/voice-interactions.spec.ts` 1 项通过，完成 Voice transcript 保存和流水线展示。
 - 生产 GREEN：`b92b789` 已部署到 `learn.roky.chat`，`/api/health` 返回 `ok: true`。
 - 生产 GREEN：`E2E_BASE_URL=https://learn.roky.chat npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过，且已清理 `test-results/`。
