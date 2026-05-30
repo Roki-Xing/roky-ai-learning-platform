@@ -40,6 +40,8 @@
 - 本地 GREEN：`npm run lint` 通过。
 - 本地 GREEN：`npm run build` 通过。
 - 本地 GREEN：`npm test` 216 项通过。
+- 生产 GREEN：`5d1407c` 已部署到 `learn.roky.chat`，`/api/health` 返回 `ok: true`。
+- 生产 GREEN：`E2E_BASE_URL=https://learn.roky.chat npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过，且已清理 `test-results/`。
 - 本地 RED：`npm run e2e -- tests/e2e/today-interactions.spec.ts` 失败于 `/today` 缺少稳定 `today-quiz` 测试区域。
 - 本地 GREEN：`npm run e2e -- tests/e2e/today-interactions.spec.ts` 1 项通过，完成 quiz 提交和 code submission 保存。
 - 本地 GREEN：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/quiz-submit.test.ts tests/unit/code-submit.test.ts` 12 项通过。
