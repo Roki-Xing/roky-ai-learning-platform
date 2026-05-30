@@ -4,6 +4,10 @@
 
 ### Added
 
+- **[Review Interaction E2E]** 补齐 Sprint E 复习评分后的队列推进回归。
+  - 新增 `tests/e2e/review-interactions.spec.ts`，本地 Demo 模式下创建专用到期卡，覆盖 `/review?source=thought-review` 显示答案、评分和卡片离开当前队列。
+  - 测试数据使用唯一 marker 和独立到期卡，避免依赖现有 demo 数据是否刚好有复习卡。
+  - 交互测试在生产 Preview 模式下显式跳过写操作，保持只读线上验收边界。
 - **[Coach Interaction E2E]** 补齐 Sprint E Coach 思路提交交互回归。
   - 新增 `tests/e2e/coach-interactions.spec.ts`，本地 Demo 模式下覆盖 `/coach` 思路输入、提交、`reviewId` 跳转和结构化反馈展示。
   - `/coach` 表单和反馈结果区新增稳定 `data-testid`，输入框补充可访问 `aria-label`，让 Playwright 按真实控件语义完成提交链路。
@@ -33,6 +37,8 @@
 
 ### Verified
 
+- 本地 RED：`npm run e2e -- tests/e2e/review-interactions.spec.ts` 失败于测试进程直接动态导入项目 TS 模块准备数据。
+- 本地 GREEN：`npm run e2e -- tests/e2e/review-interactions.spec.ts` 1 项通过，完成显示答案、评分和复习队列推进。
 - 本地 RED：`npm run e2e -- tests/e2e/coach-interactions.spec.ts` 失败于 `/coach` 缺少稳定 `coach-thought-form` 测试区域。
 - 本地 GREEN：`npm run e2e -- tests/e2e/coach-interactions.spec.ts` 1 项通过，完成 Coach 思路提交和结构化反馈展示。
 - 本地 GREEN：`npm test -- tests/unit/coach-workspace.test.ts tests/unit/coach-submit.test.ts` 10 项通过。
