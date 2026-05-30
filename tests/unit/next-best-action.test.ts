@@ -109,3 +109,20 @@ test("next best action asks for a voice reflection before project work", () => {
   assert.match(action.title, /说出/);
   assert.match(action.reason, /语音/);
 });
+
+test("next best action recommends starting a project when learning chores are clear and no project is active", () => {
+  const action = buildNextBestAction({
+    ...baseInput,
+    todayPlanStatus: "completed",
+    dueFlashcardsCount: 0,
+    openMisconceptionCount: 0,
+    codeFeedbackNeedsAttentionCount: 0,
+    todayVoiceNoteCount: 1,
+    activeProject: null,
+  });
+
+  assert.equal(action.href, "/projects");
+  assert.match(action.title, /开始一个小项目/);
+  assert.match(action.reason, /把今天学到的内容落到代码里/);
+  assert.equal(action.ctaLabel, "开始项目实践");
+});

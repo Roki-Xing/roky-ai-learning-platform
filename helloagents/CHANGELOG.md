@@ -4,6 +4,9 @@
 
 ### Added
 
+- **[Home Project Starter Next Action]** 补强首页 `Next Best Action` 的项目实践接续。
+  - `buildNextBestAction()` 在今日学习、复习、误区、代码反馈、笔记和语音沉淀都清空且没有 active project 时，推荐“开始一个小项目”。
+  - 首页下一步 CTA 直接进入 `/projects`，让学习闭环完成后优先落到项目实践，而不是退回知识地图浏览。
 - **[Today Project Starter Handoff]** 补强 `/today` 完成后没有 active project 的项目实践接续。
   - `buildTodayCompletionNextActions()` 在复习、笔记、语音和 Coach 都完成但没有未完成项目时，新增“项目实践 / 开始一个小项目”starter 摘要。
   - `LearningCompletionCard` 复用“今日项目任务”面板展示 starter 空态，并把 CTA 文案切换为“选择项目”。
@@ -19,6 +22,12 @@
 
 ### Verified
 
+- 本地 RED：`npm test -- tests/unit/next-best-action.test.ts` 失败于无 active project 时首页下一步仍返回 `/map`。
+- 本地 GREEN：`npm test -- tests/unit/next-best-action.test.ts` 8 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm test` 215 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
 - 本地 RED：`npm test -- tests/unit/today-completion-next-actions.test.ts` 失败于无 active project 时缺少“项目实践 / 开始一个小项目”。
 - 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 7 项通过。
 - 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/learning-ui-components.test.ts tests/unit/project-mission-workspace.test.ts` 22 项通过。

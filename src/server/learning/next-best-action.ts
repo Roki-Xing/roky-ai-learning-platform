@@ -115,10 +115,10 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
   }
 
   return {
-    title: "查看知识地图",
-    reason: "今日学习、复习和沉淀都已完成，可以回到知识地图选择下一块能力。",
-    href: "/map",
-    ctaLabel: "查看地图",
-    tone: "neutral",
+    title: "开始一个小项目",
+    reason: "今日学习、复习和沉淀都已完成，现在适合把今天学到的内容落到代码里，避免只停留在阅读和卡片。",
+    href: "/projects",
+    ctaLabel: "开始项目实践",
+    tone: "success",
   };
 }
