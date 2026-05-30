@@ -35,6 +35,9 @@
 - 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
 - 本地 GREEN：`npm run lint` 通过。
 - 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm test` 216 项通过。
+- 生产 GREEN：`992f78e` 已部署到 `learn.roky.chat`，`/api/health` 返回 `ok: true`。
+- 生产 GREEN：`E2E_BASE_URL=https://learn.roky.chat npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过，且已清理 `test-results/`。
 - 本地 RED：`npm test -- tests/unit/learning-ui-components.test.ts` 失败于 visual smoke 页面清单缺少 `library`。
 - 本地 GREEN：`npm test -- tests/unit/learning-ui-components.test.ts` 9 项通过。
 - 本地 GREEN：`npm run e2e:visual` 16 项通过，覆盖 homepage/today/review/library/coach/voice/map/projects 的桌面和移动端截图 smoke。
