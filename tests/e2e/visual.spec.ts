@@ -2,16 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { enterLearningApp } from "@/../tests/e2e/helpers";
-
-const visualPages = [
-  { name: "homepage", path: "/", heading: "Roky Learn" },
-  { name: "today", path: "/today", heading: "今日学习" },
-  { name: "review", path: "/review", heading: /复习/ },
-  { name: "coach", path: "/coach", heading: "思路评审" },
-  { name: "voice", path: "/voice", heading: "语音学习捕获" },
-  { name: "map", path: "/map", heading: "知识地图" },
-  { name: "projects", path: "/projects", heading: "项目实践" },
-] as const;
+import { visualPages } from "@/../tests/e2e/visual-pages";
 
 const viewports = [
   { name: "desktop", width: 1440, height: 1100 },

@@ -9,6 +9,15 @@ import { LearningMarkdown } from "@/components/learning/learning-markdown";
 import { KnowledgePathExplorer } from "@/components/learning/knowledge-path-explorer";
 import { VoiceLearningPipeline } from "@/app/voice/ui/voice-learning-pipeline";
 import { ReviewTrainer } from "@/app/review/ui/review-trainer";
+import { visualPages } from "@/../tests/e2e/visual-pages";
+
+test("visual smoke covers the core learning archive pages", () => {
+  const pageNames = visualPages.map((page) => page.name);
+
+  assert.ok(pageNames.includes("library"));
+  assert.ok(pageNames.includes("map"));
+  assert.ok(pageNames.includes("projects"));
+});
 
 test("learning markdown renders headings, tables, and code without raw html", () => {
   const markup = renderToStaticMarkup(
