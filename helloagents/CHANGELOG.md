@@ -4,6 +4,10 @@
 
 ### Added
 
+- **[Coach Interaction E2E]** 补齐 Sprint E Coach 思路提交交互回归。
+  - 新增 `tests/e2e/coach-interactions.spec.ts`，本地 Demo 模式下覆盖 `/coach` 思路输入、提交、`reviewId` 跳转和结构化反馈展示。
+  - `/coach` 表单和反馈结果区新增稳定 `data-testid`，输入框补充可访问 `aria-label`，让 Playwright 按真实控件语义完成提交链路。
+  - 交互测试在生产 Preview 模式下显式跳过写操作，避免线上只读 smoke 触发数据修改。
 - **[Today Interaction E2E]** 补齐 Sprint E 今日学习主流程交互回归。
   - 新增 `tests/e2e/today-interactions.spec.ts`，本地 Demo 模式下覆盖 `/today` 测验提交和代码草稿保存。
   - `/today` 测验和代码练习区域新增稳定 `data-testid`，代码输入框补充可访问 `aria-label`，方便 Playwright 按真实控件语义定位。
@@ -29,6 +33,13 @@
 
 ### Verified
 
+- 本地 RED：`npm run e2e -- tests/e2e/coach-interactions.spec.ts` 失败于 `/coach` 缺少稳定 `coach-thought-form` 测试区域。
+- 本地 GREEN：`npm run e2e -- tests/e2e/coach-interactions.spec.ts` 1 项通过，完成 Coach 思路提交和结构化反馈展示。
+- 本地 GREEN：`npm test -- tests/unit/coach-workspace.test.ts tests/unit/coach-submit.test.ts` 10 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm run build` 通过。
+- 本地 GREEN：`npm test` 216 项通过。
 - 本地 RED：`npm run e2e -- tests/e2e/today-interactions.spec.ts` 失败于 `/today` 缺少稳定 `today-quiz` 测试区域。
 - 本地 GREEN：`npm run e2e -- tests/e2e/today-interactions.spec.ts` 1 项通过，完成 quiz 提交和 code submission 保存。
 - 本地 GREEN：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/quiz-submit.test.ts tests/unit/code-submit.test.ts` 12 项通过。

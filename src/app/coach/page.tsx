@@ -187,7 +187,7 @@ export default async function CoachPage({
           description="先说判断，再写证据或代码思路。越具体，反馈越可用。"
           className="self-start rounded-lg"
         >
-          <form action={submitThoughtReviewAction} className="grid gap-3">
+          <form action={submitThoughtReviewAction} className="grid gap-3" data-testid="coach-thought-form">
             <CoachModeRail modes={MODES} defaultMode={defaultMode} />
             <label className="flex items-center gap-2 rounded-md border bg-muted/20 px-3 py-2 text-sm">
               <input type="checkbox" name="includeTodayLesson" defaultChecked className="size-4" />
@@ -201,6 +201,7 @@ export default async function CoachPage({
               </div>
               <Textarea
                 name="rawText"
+                aria-label="输入内容"
                 className="min-h-72 resize-y text-sm leading-6"
                 placeholder="例如：我觉得 Self-Attention 就是把所有 token 平均一下；或者贴一段代码思路让 Coach 找问题。"
                 required
@@ -220,7 +221,7 @@ export default async function CoachPage({
           description="先看主张是否成立，再处理问题、缺口和下一步。"
           className="rounded-lg"
         >
-          <div className="grid gap-4">
+          <div className="grid gap-4" data-testid="coach-review-result">
               {selected ? (
                 <>
                   <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/20 px-3 py-2">
