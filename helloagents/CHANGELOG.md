@@ -28,6 +28,8 @@
 - 本地 GREEN：`npm run build` 通过。
 - 本地 GREEN：`npm test` 215 项通过。
 - 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 生产 GREEN：`97cbb3e` 已部署到 `learn.roky.chat`，`/api/health` 返回 `ok: true`。
+- 生产 GREEN：`E2E_BASE_URL=https://learn.roky.chat npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过，且已清理 `test-results/`。
 - 本地 RED：`npm test -- tests/unit/today-completion-next-actions.test.ts` 失败于无 active project 时缺少“项目实践 / 开始一个小项目”。
 - 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 7 项通过。
 - 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/learning-ui-components.test.ts tests/unit/project-mission-workspace.test.ts` 22 项通过。
