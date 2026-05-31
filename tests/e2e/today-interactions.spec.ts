@@ -31,3 +31,41 @@ test("today learning flow submits quiz answer and saves code draft @interaction"
   await expect(code.getByText("上次保存：")).toBeVisible();
   await expect(code.getByLabel("我的提交（仅保存，不执行）")).toHaveValue(new RegExp(marker));
 });
+
+test("today completion next actions carry lesson context into voice and coach @interaction", async ({ page }) => {
+  test.skip(Boolean(previewToken), "Preview Mode is read-only; completion setup runs only in local Demo mode.");
+
+  await enterLearningApp(page, "/today");
+  await expect(page.getByRole("heading", { name: "今日学习" })).toBeVisible();
+
+  let completion = page.getByTestId("learning-completion-card").filter({ hasText: "今日已完成" }).first();
+  if (!(await completion.isVisible().catch(() => false))) {
+    const completeButton = page.getByRole("button", { name: "标记完成并生成卡片" }).first();
+    await expect(completeButton).toBeVisible();
+    await Promise.all([
+      page.waitForLoadState("networkidle"),
+      completeButton.click(),
+    ]);
+    completion = page.getByTestId("learning-completion-card").filter({ hasText: "今日已完成" }).first();
+    await expect(completion).toBeVisible();
+  }
+
+  await completion.getByRole("link", { name: /说出今天的理解|继续语音复盘/ }).click();
+  await expect(page).toHaveURL(/\/voice\?lessonId=.+&mode=today_lesson/);
+  await expect(page.getByRole("heading", { name: "语音学习捕获" })).toBeVisible();
+  await expect(page.locator('select[name="mode"]')).toHaveValue("today_lesson");
+  expect(new URL(page.url()).searchParams.get("lessonId")).toBeTruthy();
+
+  await enterLearningApp(page, "/today");
+  await expect(page.getByRole("heading", { name: "今日学习" })).toBeVisible();
+  const refreshedCompletion = page.getByTestId("learning-completion-card").filter({
+    hasText: "今日已完成",
+  }).first();
+  await expect(refreshedCompletion).toBeVisible();
+
+  await refreshedCompletion.getByRole("link", { name: /让 Coach 检查|继续 Coach 检查/ }).click();
+  await expect(page).toHaveURL(/\/coach\?lessonId=.+&mode=today_lesson/);
+  await expect(page.getByRole("heading", { name: "思路评审" })).toBeVisible();
+  await expect(page.locator('select[name="mode"]')).toHaveValue("today_lesson");
+  expect(new URL(page.url()).searchParams.get("lessonId")).toBeTruthy();
+});

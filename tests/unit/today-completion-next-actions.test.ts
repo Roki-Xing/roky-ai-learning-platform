@@ -62,7 +62,7 @@ test("today completion actions prioritize review, notes, voice, coach, and proje
   assert.match(result.projectPractice?.milestoneTask ?? "", /失败样例/);
 });
 
-test("today completion actions recommend project practice and progress when the lesson is already well covered", () => {
+test("today completion actions keep voice and coach available when the lesson is already well covered", () => {
   const result = buildTodayCompletionNextActions({
     planStatus: "completed",
     lessonId: "lesson-3",
@@ -77,10 +77,17 @@ test("today completion actions recommend project practice and progress when the 
 
   assert.deepEqual(
     result.actions.map((action) => action.href),
-    ["/projects", "/progress"],
+    [
+      "/voice?lessonId=lesson-3&mode=today_lesson",
+      "/coach?lessonId=lesson-3&mode=today_lesson",
+      "/projects",
+      "/progress",
+    ],
   );
-  assert.equal(result.actions[0]?.label, "开始项目实践");
-  assert.match(result.summary, /复习、笔记、语音和 Coach 都已接上/);
+  assert.equal(result.actions[0]?.label, "继续语音复盘");
+  assert.equal(result.actions[1]?.label, "继续 Coach 检查");
+  assert.equal(result.actions[2]?.label, "开始项目实践");
+  assert.match(result.summary, /可以继续复盘或进入项目实践/);
 });
 
 test("today completion actions keep project practice alive when no active project exists", () => {
@@ -101,6 +108,8 @@ test("today completion actions keep project practice alive when no active projec
   assert.equal(result.projectPractice?.percent, 0);
   assert.match(result.projectPractice?.milestoneTitle ?? "", /开始一个小项目/);
   assert.match(result.actions.map((action) => action.href).join(" "), /\/projects/);
+  assert.match(result.actions.map((action) => action.href).join(" "), /\/voice/);
+  assert.match(result.actions.map((action) => action.href).join(" "), /\/coach/);
 });
 
 test("learning completion card renders ordered next actions", () => {
@@ -126,6 +135,8 @@ test("learning completion card renders ordered next actions", () => {
   assert.match(markup, /写今日笔记/);
   assert.match(markup, /说出今天的理解/);
   assert.match(markup, /让 Coach 检查/);
+  assert.match(markup, /aria-label="说出今天的理解"/);
+  assert.match(markup, /aria-label="让 Coach 检查"/);
   assert.match(markup, /href="\/notes\?lessonId=lesson-4"/);
   assert.match(markup, /href="\/voice\?lessonId=lesson-4&amp;mode=today_lesson"/);
   assert.match(markup, /href="\/coach\?lessonId=lesson-4&amp;mode=today_lesson"/);
@@ -182,5 +193,7 @@ test("learning completion card suggests starting a project when none is active",
   assert.match(markup, /今日项目任务/);
   assert.match(markup, /开始一个小项目/);
   assert.match(markup, /把今天学到的内容落到代码或复盘里/);
+  assert.match(markup, /继续语音复盘/);
+  assert.match(markup, /继续 Coach 检查/);
   assert.match(markup, /href="\/projects"/);
 });

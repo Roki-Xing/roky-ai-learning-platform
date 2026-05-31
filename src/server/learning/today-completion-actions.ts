@@ -110,25 +110,27 @@ export function buildTodayCompletionNextActions(
     });
   }
 
-  if (input.voiceNoteCount === 0) {
-    actions.push({
-      label: "说出今天的理解",
-      description: "用语音讲一遍，让转写、Coach 和卡片生成接上。",
-      href: encodedVoiceHref(input.lessonId),
-      tone: "info",
-    });
-  }
+  actions.push({
+    label: input.voiceNoteCount === 0 ? "说出今天的理解" : "继续语音复盘",
+    description:
+      input.voiceNoteCount === 0
+        ? "用语音讲一遍，让转写、Coach 和卡片生成接上。"
+        : `本课已有 ${input.voiceNoteCount} 条语音记录，可以继续补充新的理解。`,
+    href: encodedVoiceHref(input.lessonId),
+    tone: "info",
+  });
 
-  if (input.thoughtReviewCount === 0) {
-    actions.push({
-      label: "让 Coach 检查",
-      description: input.hasCodeSubmission
-        ? "把今日代码思路和概念理解交给 Coach 找漏洞。"
-        : "把自己的理解交给 Coach，尽早暴露概念混淆。",
-      href: encodedCoachHref(input.lessonId),
-      tone: "info",
-    });
-  }
+  actions.push({
+    label: input.thoughtReviewCount === 0 ? "让 Coach 检查" : "继续 Coach 检查",
+    description:
+      input.thoughtReviewCount > 0
+        ? `本课已有 ${input.thoughtReviewCount} 次思路评审，可以继续追问或复盘。`
+        : input.hasCodeSubmission
+          ? "把今日代码思路和概念理解交给 Coach 找漏洞。"
+          : "把自己的理解交给 Coach，尽早暴露概念混淆。",
+    href: encodedCoachHref(input.lessonId),
+    tone: "info",
+  });
 
   if (input.activeProject) {
     actions.push({
@@ -161,15 +163,13 @@ export function buildTodayCompletionNextActions(
         }
       : null;
 
-  if (!actions.length) {
-    if (projectPractice) {
-      actions.push({
-        label: "开始项目实践",
-        description: "选一个 3 到 6 小时能收尾的小项目，把今天的概念落到代码里。",
-        href: projectPractice.href,
-        tone: "neutral",
-      });
-    }
+  if (projectPractice && !input.activeProject) {
+    actions.push({
+      label: "开始项目实践",
+      description: "选一个 3 到 6 小时能收尾的小项目，把今天的概念落到代码里。",
+      href: projectPractice.href,
+      tone: "neutral",
+    });
     actions.push({
       label: "查看学习进度",
       description: "今日学习、复习和沉淀都已完成，回到进度页看长期趋势。",
@@ -184,7 +184,7 @@ export function buildTodayCompletionNextActions(
       : input.totalDueFlashcardCount > 0
         ? `今日已完成，本课暂无到期卡片；先清空全部 ${input.totalDueFlashcardCount} 张到期复习。`
         : input.noteCount > 0 && input.voiceNoteCount > 0 && input.thoughtReviewCount > 0
-          ? "今日已完成，复习、笔记、语音和 Coach 都已接上，可以查看进度或继续项目实践。"
+          ? "今日已完成，复习、笔记、语音和 Coach 都已接上；可以继续复盘或进入项目实践。"
           : "今日已完成，下一步把理解沉淀到复习、笔记、语音和 Coach。";
 
   return {

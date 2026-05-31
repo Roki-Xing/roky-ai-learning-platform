@@ -26,7 +26,10 @@ export function LearningCompletionCard(props: {
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-lg border bg-card p-4 shadow-sm", props.className)}>
+    <div
+      data-testid="learning-completion-card"
+      className={cn("rounded-lg border bg-card p-4 shadow-sm", props.className)}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -96,7 +99,7 @@ export function LearningCompletionCard(props: {
               </div>
             </div>
             <Button asChild size="sm" variant="secondary" className="shrink-0">
-              <Link href={action.href}>
+              <Link href={action.href} aria-label={action.label}>
                 进入
                 <ArrowRight className="size-3.5" />
               </Link>

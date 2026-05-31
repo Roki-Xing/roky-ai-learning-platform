@@ -4,6 +4,10 @@
 
 ### Added
 
+- **[Today Voice Coach Continuation Handoff]** 收口 `/today` 完成后到 Voice / Coach 的自然接续入口。
+  - `buildTodayCompletionNextActions()` 不再在已有语音记录或 Coach 评审后隐藏入口，而是保留“继续语音复盘 / 继续 Coach 检查”，让每日学习完成后可以反复补充理解和追问。
+  - `LearningCompletionCard` 新增稳定 `data-testid`，并为行动链接补充语义化 `aria-label`，方便 E2E 按真实入口验证完成态接续。
+  - `tests/e2e/today-interactions.spec.ts` 新增完成态导航覆盖：从 `/today` 进入 `/voice?lessonId=...&mode=today_lesson` 和 `/coach?lessonId=...&mode=today_lesson`，确认今日课程上下文被带入 Voice/Coach。
 - **[Coach Review Direct Handoff E2E]** 补齐 Coach 思路评审到主动回忆的直达链路。
   - `generateCardsFromThoughtReviewAction()` 生成 Coach 卡片后直接跳转 `/review?source=thought-review`，让“输入理解 → Coach 检查 → 生成卡片 → 主动回忆”成为连续流程。
   - `tests/e2e/coach-interactions.spec.ts` 新增完整交互：提交 Coach 思路、生成复习卡、进入思路评审聚焦复习队列并看到本次卡片。
@@ -50,6 +54,12 @@
 
 ### Verified
 
+- 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 7 项通过，覆盖完成态继续 Voice/Coach 与语义化入口。
+- 本地 GREEN：`npm run e2e -- tests/e2e/today-interactions.spec.ts` 2 项通过，完成 `/today` quiz/code 交互和完成态 Voice/Coach 接续导航。
+- 本地 GREEN：`npm run lint` 通过。
+- 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/voice-note.test.ts tests/unit/coach-context.test.ts` 12 项通过。
+- 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 本地 GREEN：`npm run build` 通过。
 - 本地 RED：`npm run e2e -- tests/e2e/coach-interactions.spec.ts` 失败于点击“生成卡片”后仍回到 `/coach?reviewId=...`，没有进入 `/review?source=thought-review`。
 - 本地 GREEN：`npm run e2e -- tests/e2e/coach-interactions.spec.ts` 2 项通过，完成 Coach 思路 → 生成卡片 → `/review?source=thought-review`。
 - 本地 GREEN：`npm test -- tests/unit/coach-workspace.test.ts tests/unit/coach-submit.test.ts tests/unit/review-filter.test.ts` 17 项通过。
