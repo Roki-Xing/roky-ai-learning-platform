@@ -32,6 +32,14 @@ type CurriculumContext = {
   signalSnapshot?: CurriculumSignalSnapshot | null;
 };
 
+export const DEFAULT_DAILY_PLAN_AI_TIMEOUT_MS = 20_000;
+
+export function dailyPlanAiTimeoutMs(value = process.env.DEEPSEEK_DAILY_TIMEOUT_MS) {
+  const parsed = Number.parseInt(String(value ?? ""), 10);
+  if (!Number.isFinite(parsed)) return DEFAULT_DAILY_PLAN_AI_TIMEOUT_MS;
+  return Math.min(60_000, Math.max(5_000, parsed));
+}
+
 function toIssueSummary(err: unknown) {
   if (!(err instanceof Error)) return String(err);
   return err.message;
@@ -378,6 +386,7 @@ async function tryGenerateWithDeepSeek(args: {
   const updateJob = async (data: Partial<Prisma.AiGenerationJobUpdateInput>) => {
     await prisma.aiGenerationJob.update({ where: { id: job.id }, data });
   };
+  const timeoutMs = dailyPlanAiTimeoutMs();
 
   const validate = (raw: unknown) => {
     const validated = GeneratedDailyPlanSchema.safeParse(raw);
@@ -397,6 +406,7 @@ async function tryGenerateWithDeepSeek(args: {
       // v4-pro may need more output tokens than v4-flash to finish a full JSON object
       // (otherwise JSON.parse will fail with truncated output).
       maxTokens: 6000,
+      timeoutMs,
     });
 
     let primaryObj: unknown;
@@ -417,6 +427,7 @@ async function tryGenerateWithDeepSeek(args: {
           errorSummary: `JSON.parse failed: ${toIssueSummary(e)}`,
         }),
         maxTokens: 6000,
+        timeoutMs,
       });
 
       const repairedObj = parseJsonOrThrow(repairRes.content);
@@ -458,6 +469,7 @@ async function tryGenerateWithDeepSeek(args: {
           errorSummary: toIssueSummary(e),
         }),
         maxTokens: 6000,
+        timeoutMs,
       });
 
       const repairedObj = parseJsonOrThrow(repairRes.content);

@@ -8,6 +8,10 @@
   - `buildTodayCompletionNextActions()` 不再在已有语音记录或 Coach 评审后隐藏入口，而是保留“继续语音复盘 / 继续 Coach 检查”，让每日学习完成后可以反复补充理解和追问。
   - `LearningCompletionCard` 新增稳定 `data-testid`，并为行动链接补充语义化 `aria-label`，方便 E2E 按真实入口验证完成态接续。
   - `tests/e2e/today-interactions.spec.ts` 新增完成态导航覆盖：从 `/today` 进入 `/voice?lessonId=...&mode=today_lesson` 和 `/coach?lessonId=...&mode=today_lesson`，确认今日课程上下文被带入 Voice/Coach。
+- **[Daily Generation Timeout Fallback]** 修复生产 `/today` 首次生成遇到慢模型时可能 504 的可用性问题。
+  - `generateDailyPlanTemplate()` 调 DeepSeek 时使用页面请求友好的短超时，默认 20 秒，可通过 `DEEPSEEK_DAILY_TIMEOUT_MS` 在 5-60 秒内调整。
+  - DeepSeek 超时、解析失败或结构校验失败仍记录到 `AiGenerationJob.error`，并立即回退本地 template，保证 `/today` 不因 `deepseek-v4-pro` 慢响应而不可访问。
+  - `tests/unit/daily-generation-prompt.test.ts` 新增超时边界测试，覆盖默认值、下限、上限和非法配置回退。
 - **[Coach Review Direct Handoff E2E]** 补齐 Coach 思路评审到主动回忆的直达链路。
   - `generateCardsFromThoughtReviewAction()` 生成 Coach 卡片后直接跳转 `/review?source=thought-review`，让“输入理解 → Coach 检查 → 生成卡片 → 主动回忆”成为连续流程。
   - `tests/e2e/coach-interactions.spec.ts` 新增完整交互：提交 Coach 思路、生成复习卡、进入思路评审聚焦复习队列并看到本次卡片。
@@ -59,6 +63,10 @@
 - 本地 GREEN：`npm run lint` 通过。
 - 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/voice-note.test.ts tests/unit/coach-context.test.ts` 12 项通过。
 - 本地 GREEN：`npm run e2e -- tests/e2e/smoke.spec.ts` 2 项通过。
+- 本地 GREEN：`npm run build` 通过。
+- 生产 WARN：部署 `43cb2f0` 后线上 smoke 发现 `/today` 返回 `504 Gateway Time-out`，定位为首次访问触发 DeepSeek Pro 生成可能超过 nginx/页面等待窗口。
+- 本地 GREEN：`npm test -- tests/unit/daily-generation-prompt.test.ts` 2 项通过，覆盖每日生成 AI 超时边界。
+- 本地 GREEN：`npm run lint` 通过。
 - 本地 GREEN：`npm run build` 通过。
 - 本地 RED：`npm run e2e -- tests/e2e/coach-interactions.spec.ts` 失败于点击“生成卡片”后仍回到 `/coach?reviewId=...`，没有进入 `/review?source=thought-review`。
 - 本地 GREEN：`npm run e2e -- tests/e2e/coach-interactions.spec.ts` 2 项通过，完成 Coach 思路 → 生成卡片 → `/review?source=thought-review`。

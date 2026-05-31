@@ -1,6 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildDailyPlanMessages } from "@/server/ai/generate-daily-plan";
+import {
+  DEFAULT_DAILY_PLAN_AI_TIMEOUT_MS,
+  buildDailyPlanMessages,
+  dailyPlanAiTimeoutMs,
+} from "@/server/ai/generate-daily-plan";
+
+test("dailyPlanAiTimeoutMs keeps page-triggered AI generation within a safe window", () => {
+  assert.equal(dailyPlanAiTimeoutMs(undefined), DEFAULT_DAILY_PLAN_AI_TIMEOUT_MS);
+  assert.equal(dailyPlanAiTimeoutMs("1000"), 5_000);
+  assert.equal(dailyPlanAiTimeoutMs("25000"), 25_000);
+  assert.equal(dailyPlanAiTimeoutMs("90000"), 60_000);
+  assert.equal(dailyPlanAiTimeoutMs("not-a-number"), DEFAULT_DAILY_PLAN_AI_TIMEOUT_MS);
+});
 
 test("buildDailyPlanMessages includes planner signal snapshot for generation context", () => {
   const messages = buildDailyPlanMessages({
