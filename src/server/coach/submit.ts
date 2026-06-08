@@ -27,6 +27,17 @@ type CoachHighSeverityIssue = ThoughtReviewResult["possibleIssues"][number] & {
   sourceIndex: number;
 };
 
+function thoughtReviewQueueSource(reviewJson: unknown) {
+  if (
+    typeof reviewJson === "object" &&
+    reviewJson !== null &&
+    (reviewJson as { source?: unknown }).source === "voice-note"
+  ) {
+    return "voice-note" as const;
+  }
+  return "thought-review" as const;
+}
+
 function highSeverityCoachIssues(review: ThoughtReviewResult): CoachHighSeverityIssue[] {
   return review.possibleIssues
     .map((issue, sourceIndex) => ({ ...issue, sourceIndex }))
@@ -226,7 +237,13 @@ export async function generateFlashcardsForThoughtReview(args: {
   if (!reviewRow) throw new Error("ThoughtReview not found");
 
   const review: ThoughtReviewResult = parseStoredThoughtReview(reviewRow.reviewJson);
-  const extraTags = args.extraTags ?? [];
+  const reviewSource = thoughtReviewQueueSource(reviewRow.reviewJson);
+  const extraTags = Array.from(
+    new Set([
+      ...(reviewSource === "voice-note" ? ["voice-note"] : []),
+      ...(args.extraTags ?? []),
+    ]),
+  );
   const cards = buildThoughtReviewFlashcards({
     reviewId: reviewRow.id,
     userId: args.userId,
@@ -267,6 +284,7 @@ export async function generateFlashcardsForThoughtReview(args: {
 
   return {
     reviewId: reviewRow.id,
+    reviewSource,
     cards,
     createdOrUpdatedCount: cards.length,
   };

@@ -98,9 +98,16 @@ npm run db:migrate:manual:code-submission
 
 登录入口：`/login`（邮箱魔法链接），回跳：`/auth/confirm`。
 
+如果当前服务器还没配置 Supabase，登录页会直接提示“当前服务器未启用邮箱 Magic Link”；此时应通过 Demo 模式或 Preview 链接体验，而不是继续输入邮箱。
+
 ## 部署（两台服务器建议）
 
 - 网关机（118.89.119.107）：Nginx 网关 + Next.js 应用容器
 - 应用机（118.25.15.72）：Postgres（docker compose）+（可选）worker/cron
 
 最终通过子域名访问（例如 `learn.roky.chat`）。HTTPS 证书需要包含该子域名（推荐 wildcard `*.roky.chat`，走 DNS-01）。
+
+部署和页面验收请参考：
+
+- `docs/deploy-checklist.md`
+- `docs/ui-review-checklist.md`

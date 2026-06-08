@@ -33,6 +33,9 @@ export type GenerationHealthMetrics = {
   repairCount: number;
   fallbackRate: number;
   repairRate: number;
+  averageQualityScore: number;
+  lowQualityJobCount: number;
+  qualityScoreCoverage: number;
   schemaVersionDistribution: Array<{ schemaVersion: string; count: number }>;
   modelDistribution: Array<{ model: string; count: number }>;
 };
@@ -605,6 +608,30 @@ function outputIndicatesRepair(output: unknown) {
   );
 }
 
+function inferGenerationQualityScore(args: { status: string; output: unknown }) {
+  const root = asRecord(args.output);
+  if (typeof root.qualityScore === "number" && Number.isFinite(root.qualityScore)) {
+    return clampPercent(root.qualityScore);
+  }
+
+  const lesson = asRecord(root.lesson);
+  if (typeof lesson.contentMarkdown !== "string") return null;
+
+  const metrics = {
+    contentLength: textLength(lesson.contentMarkdown),
+    guidedStepCount: asArray(lesson.guidedSteps).length,
+    quizCount: asArray(root.quiz).length,
+    codingExerciseQuality: codingQuality(root.codingExercise),
+    flashcardCount: asArray(root.flashcards).length,
+    schemaVersion: typeof root.schemaVersion === "string" ? root.schemaVersion : null,
+    source: args.status === "error" || args.status === "failed" ? "template" : "deepseek",
+    generationRetries: outputIndicatesRepair(root) ? 1 : 0,
+    fallbackUsed: args.status === "error" || args.status === "failed",
+  } satisfies ContentQualityMetrics;
+
+  return calculateQualityScore(metrics);
+}
+
 export function summarizeGenerationHealth(args: {
   plans: Array<{ source: string | null; schemaVersion: string | null }>;
   jobs: Array<{ status: string; model: string | null; output: unknown }>;
@@ -623,11 +650,20 @@ export function summarizeGenerationHealth(args: {
   let successJobCount = 0;
   let failedJobCount = 0;
   let repairCount = 0;
+  let qualityScoreTotal = 0;
+  let qualityScoreCoverage = 0;
+  let lowQualityJobCount = 0;
   for (const job of args.jobs) {
     if (job.status === "success") successJobCount++;
     if (job.status === "error" || job.status === "failed") failedJobCount++;
     if (job.model) increment(modelCounts, job.model);
     if (outputIndicatesRepair(job.output)) repairCount++;
+    const score = inferGenerationQualityScore(job);
+    if (score !== null) {
+      qualityScoreTotal += score;
+      qualityScoreCoverage += 1;
+      if (score < 70) lowQualityJobCount += 1;
+    }
   }
 
   const totalPlans = args.plans.length;
@@ -642,6 +678,11 @@ export function summarizeGenerationHealth(args: {
     repairCount,
     fallbackRate: totalPlans ? clampPercent((fallbackPlanCount / totalPlans) * 100) : 0,
     repairRate: jobCount ? clampPercent((repairCount / jobCount) * 100) : 0,
+    averageQualityScore: qualityScoreCoverage
+      ? clampPercent(qualityScoreTotal / qualityScoreCoverage)
+      : 0,
+    lowQualityJobCount,
+    qualityScoreCoverage,
     schemaVersionDistribution: sortedDistribution(schemaCounts).map(({ key, count }) => ({
       schemaVersion: key,
       count,

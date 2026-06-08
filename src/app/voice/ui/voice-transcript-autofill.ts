@@ -23,13 +23,13 @@ export function resolveVoiceTranscriptAutofill(input: {
     return {
       nextTranscript: current,
       shouldFocusTranscript: true,
-      notice: "已保留你手动输入的 Transcript，请对照转写结果检查是否需要补充。",
+      notice: "已保留你手动输入的转写文本，请对照转写结果检查是否需要补充。",
     };
   }
 
   return {
     nextTranscript: incoming,
     shouldFocusTranscript: true,
-    notice: "转写已填入，请检查 Transcript 后保存。",
+    notice: "转写已填入，请检查转写文本后保存。",
   };
 }

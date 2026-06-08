@@ -54,3 +54,44 @@ test("buildDailyPlanMessages includes planner signal snapshot for generation con
   assert.match(userMessage, /codeSubmissionCountLast7/);
   assert.match(userMessage, /hardReviewCountByDomain/);
 });
+
+test("buildDailyPlanMessages asks for markdown math syntax instead of html formulas", () => {
+  const messages = buildDailyPlanMessages({
+    localDate: "2026-05-24",
+    timeZone: "Asia/Shanghai",
+    topicSlug: "attention-softmax",
+    quizCount: 3,
+    flashcardCount: 3,
+  });
+
+  const userMessage = messages.find((m) => m.role === "user")?.content ?? "";
+
+  assert.match(userMessage, /markdown math syntax/i);
+  assert.match(userMessage, /\$...\$/);
+  assert.match(userMessage, /\$\$\.\.\.\$\$/);
+  assert.match(userMessage, /Do not use HTML for formulas/i);
+});
+
+test("buildDailyPlanMessages asks lesson markdown to include course callout blocks", () => {
+  const messages = buildDailyPlanMessages({
+    localDate: "2026-05-24",
+    timeZone: "Asia/Shanghai",
+    topicSlug: "attention-softmax",
+    quizCount: 3,
+    flashcardCount: 3,
+  });
+
+  const userMessage = messages.find((m) => m.role === "user")?.content ?? "";
+
+  assert.match(userMessage, /lesson\.contentMarkdown/);
+  assert.match(userMessage, /> 核心直觉/);
+  assert.match(userMessage, /> 常见误区/);
+  assert.match(userMessage, /> 重点/);
+  assert.match(userMessage, /> 例子卡/);
+  assert.match(userMessage, /> 代码\/伪代码/);
+  assert.match(userMessage, /data-learning-callout="code_sketch"/);
+  assert.match(userMessage, /> 图示/);
+  assert.match(userMessage, /> 互动实验/);
+  assert.match(userMessage, /> 自测卡/);
+  assert.match(userMessage, /blockquote/i);
+});

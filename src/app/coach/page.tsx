@@ -11,6 +11,12 @@ import {
   generateCardsFromThoughtReviewAction,
   submitThoughtReviewAction,
 } from "@/app/coach/actions";
+import {
+  formatCoachModeLabel,
+  formatHomeCodeFeedbackOverallLabel,
+  formatTodayPlanSourceLabel,
+} from "@/app/_lib/home-labels";
+import { saveVoiceNoteAsNoteAction } from "@/app/voice/actions";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningEmptyState } from "@/components/learning/learning-empty-state";
@@ -28,6 +34,7 @@ import {
   CoachRemediationQueue,
   CoachResultBlock,
   CoachSignalStrip,
+  CoachVoiceSourcePanel,
   coachIcons,
 } from "@/app/coach/ui/coach-workspace";
 
@@ -48,6 +55,8 @@ type ReviewJson = {
   suggestedNextLessons?: string[];
   flashcards?: Array<{ front?: string; back?: string; type?: string }>;
   finalAdvice?: string;
+  source?: string;
+  voiceNoteId?: string;
 };
 
 const MODES = [
@@ -59,6 +68,10 @@ const MODES = [
   ["industry_radar", "行业广度"],
   ["free_thought", "自由想法"],
 ] as const;
+
+const coachPageCtaClassName = "min-h-11 w-full sm:w-auto";
+const coachReviewHistoryLinkClassName = "min-h-11 rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50";
+const coachIncludeLessonLabelClassName = "flex min-h-11 items-center gap-2 rounded-md border bg-muted/20 px-3 py-2 text-sm";
 
 function normalizeCoachPageMode(value: string | undefined) {
   return MODES.some(([mode]) => mode === value) ? value ?? "today_lesson" : "today_lesson";
@@ -72,12 +85,18 @@ function list(value: unknown) {
   return Array.isArray(value) ? value.filter((x): x is string => typeof x === "string") : [];
 }
 
+function compactReviewText(value: string, max = 180) {
+  const text = value.replace(/\s+/g, " ").trim();
+  if (text.length <= max) return text;
+  return `${text.slice(0, max - 1)}...`;
+}
+
 type ContextItem = { title: string; subtitle?: string; tone?: "neutral" | "info" | "success" | "warning" | "danger" };
 
 export default async function CoachPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reviewId?: string; lessonId?: string; mode?: string }>;
+  searchParams: Promise<{ reviewId?: string; lessonId?: string; mode?: string; draft?: string }>;
 }) {
   const sp = await searchParams;
   const userId = await requireUserId();
@@ -90,6 +109,7 @@ export default async function CoachPage({
   const requestedLessonId = sp.lessonId?.trim() || null;
   const linkedLessonId = requestedLessonId ?? todayPlan?.lessonId ?? null;
   const defaultMode = normalizeCoachPageMode(sp.mode);
+  const prefilledDraft = (sp.draft ?? "").trim().slice(0, 1200);
 
   // This is a lightweight, UI-facing context snapshot (not the full prompt summary string).
   const coachContext = await buildCoachContext({
@@ -131,6 +151,22 @@ export default async function CoachPage({
         where: { id: { startsWith: `thought:${selected.id}:` }, userId },
       })
     : 0;
+  const voiceSourceId =
+    selected && review.source === "voice-note" && typeof review.voiceNoteId === "string"
+      ? review.voiceNoteId
+      : null;
+  const voiceSource = voiceSourceId
+    ? await prisma.voiceNote.findFirst({
+        where: { id: voiceSourceId, userId, thoughtReviewId: selected?.id },
+        select: {
+          id: true,
+          mode: true,
+          transcript: true,
+          editedTranscript: true,
+          noteId: true,
+        },
+      })
+    : null;
 
   const dueCardItems: ContextItem[] = coachContext.dueCardItems.map((c) => ({
     title: c.front,
@@ -144,7 +180,11 @@ export default async function CoachPage({
   }));
   const codeFeedbackItems: ContextItem[] = coachContext.codeFeedbackItems.map((f) => ({
     title: f.summary,
-    subtitle: [f.localDate, f.overall].filter(Boolean).join(" / ") || undefined,
+    subtitle:
+      [
+        f.localDate,
+        f.overall ? formatHomeCodeFeedbackOverallLabel(f.overall) ?? "待检查" : null,
+      ].filter(Boolean).join(" / ") || undefined,
     tone: f.overall === "good" || f.overall === "excellent" ? "success" : "info",
   }));
   const misconceptionItems: ContextItem[] = coachContext.misconceptionItems.map((m) => ({
@@ -169,7 +209,7 @@ export default async function CoachPage({
       <PageHeader
         title="思路评审"
         subtitle="写出你的理解，Coach 会结合最近课程、错题、代码反馈和到期卡片做结构化评审。"
-        badge="Coach"
+        badge="思路评审"
       />
 
       <div className="mb-4">
@@ -189,7 +229,7 @@ export default async function CoachPage({
         >
           <form action={submitThoughtReviewAction} className="grid gap-3" data-testid="coach-thought-form">
             <CoachModeRail modes={MODES} defaultMode={defaultMode} />
-            <label className="flex items-center gap-2 rounded-md border bg-muted/20 px-3 py-2 text-sm">
+            <label className={coachIncludeLessonLabelClassName}>
               <input type="checkbox" name="includeTodayLesson" defaultChecked className="size-4" />
               关联最近课程
             </label>
@@ -197,22 +237,28 @@ export default async function CoachPage({
             <div className="grid gap-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="text-sm font-medium">输入内容</div>
-                <LearningStatusBadge tone="info">required</LearningStatusBadge>
+                <LearningStatusBadge tone="info">必填</LearningStatusBadge>
               </div>
               <Textarea
                 name="rawText"
                 aria-label="输入内容"
                 className="min-h-72 resize-y text-sm leading-6"
                 placeholder="例如：我觉得 Self-Attention 就是把所有 token 平均一下；或者贴一段代码思路让 Coach 找问题。"
+                defaultValue={prefilledDraft}
                 required
               />
             </div>
+            {prefilledDraft ? (
+              <div className="rounded-md border bg-amber-50/70 px-3 py-2 text-xs text-amber-950">
+                已带入错题上下文。你可以直接提交给 Coach，或先补充自己的理解。
+              </div>
+            ) : null}
             {todayPlan ? (
               <div className="rounded-md border bg-indigo-50/50 px-3 py-2 text-xs text-indigo-900">
                 当前关联：{todayPlan.localDate} / {todayPlan.lesson.title}
               </div>
             ) : null}
-            <Button type="submit" className="w-full">提交给 Coach</Button>
+            <Button type="submit" className={coachPageCtaClassName}>提交给 Coach</Button>
           </form>
         </LearningSectionCard>
 
@@ -226,9 +272,9 @@ export default async function CoachPage({
                 <>
                   <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/20 px-3 py-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <LearningStatusBadge tone="neutral">{selected.mode}</LearningStatusBadge>
+                      <LearningStatusBadge tone="neutral">{formatCoachModeLabel(selected.mode)}</LearningStatusBadge>
                       <LearningStatusBadge tone={review.provider === "deepseek" ? "info" : "neutral"}>
-                        {review.provider ?? "template"}
+                        {formatTodayPlanSourceLabel(review.provider ?? "template")}
                       </LearningStatusBadge>
                       <LearningStatusBadge tone={possibleIssues.length ? "danger" : "success"}>
                         问题 {possibleIssues.length}
@@ -238,7 +284,7 @@ export default async function CoachPage({
                       </LearningStatusBadge>
                     </div>
                     {selected.lessonId ? (
-                      <Button asChild size="sm" variant="outline">
+                      <Button asChild size="sm" variant="outline" className={coachPageCtaClassName}>
                         <Link href={`/library?lessonId=${encodeURIComponent(selected.lessonId)}`}>
                           查看课程
                         </Link>
@@ -253,6 +299,16 @@ export default async function CoachPage({
                       { label: "建议卡片", value: flashcards.length, tone: "warning" },
                     ]}
                   />
+
+                  {voiceSource ? (
+                    <CoachVoiceSourcePanel
+                      voiceNoteId={voiceSource.id}
+                      mode={voiceSource.mode}
+                      transcriptPreview={compactReviewText(voiceSource.editedTranscript || voiceSource.transcript)}
+                      noteId={voiceSource.noteId}
+                      saveAsNoteAction={saveVoiceNoteAsNoteAction}
+                    />
+                  ) : null}
 
                   <div className="grid gap-3 lg:grid-cols-2">
                     <div className="lg:col-span-2">
@@ -302,6 +358,7 @@ export default async function CoachPage({
                     flashcards={flashcards}
                     action={generateCardsFromThoughtReviewAction}
                     relatedTerms={relatedTerms}
+                    reviewSource={voiceSourceId ? "voice-note" : "thought-review"}
                   />
                 </>
               ) : (
@@ -375,11 +432,11 @@ export default async function CoachPage({
                   <Link
                     key={r.id}
                     href={`/coach?reviewId=${encodeURIComponent(r.id)}`}
-                    className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50"
+                    className={coachReviewHistoryLinkClassName}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0 font-medium">{r.mainClaim ?? "未命名评审"}</div>
-                      <LearningStatusBadge tone="neutral">{r.mode}</LearningStatusBadge>
+                      <LearningStatusBadge tone="neutral">{formatCoachModeLabel(r.mode)}</LearningStatusBadge>
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       {r.createdAt.toISOString().slice(0, 16).replace("T", " ")}

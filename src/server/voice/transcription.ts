@@ -1,4 +1,6 @@
 import { normalizeVoiceMode } from "@/server/voice/voice-note";
+import { cleanupVoiceTranscript } from "@/server/voice/cleanup";
+import { buildVoiceVocabularyPrompt } from "@/server/voice/vocabulary";
 
 export const MAX_VOICE_AUDIO_BYTES = 20 * 1024 * 1024;
 
@@ -61,6 +63,17 @@ type OpenAITranscriptionResponse = {
   text?: string;
 };
 
+export function buildVoiceTranscriptionPrompt(mode: string) {
+  return [
+    `Roky Learn voice note mode=${normalizeVoiceMode(mode)}. Transcribe faithfully.`,
+    buildVoiceVocabularyPrompt(),
+  ].join(" ");
+}
+
+export function normalizeVoiceTranscript(transcript: string) {
+  return cleanupVoiceTranscript(transcript);
+}
+
 /**
  * Transcribes an uploaded voice-note audio file using a server-side provider.
  *
@@ -104,7 +117,7 @@ export async function transcribeVoiceAudio(args: {
   form.set("file", args.file!, validation.safeName);
   form.set(
     "prompt",
-    `Roky Learn voice note mode=${normalizeVoiceMode(args.mode)}. Transcribe faithfully.`,
+    buildVoiceTranscriptionPrompt(args.mode),
   );
 
   const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
@@ -125,7 +138,7 @@ export async function transcribeVoiceAudio(args: {
   }
 
   const data = JSON.parse(text) as OpenAITranscriptionResponse;
-  const transcript = (data.text ?? "").trim();
+  const transcript = normalizeVoiceTranscript(data.text ?? "");
   if (!transcript) {
     return {
       status: "manual_required",

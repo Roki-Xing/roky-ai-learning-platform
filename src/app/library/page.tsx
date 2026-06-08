@@ -19,6 +19,15 @@ import {
 import { buildLibraryLessonNextActions } from "@/server/library/next-actions";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import { LearningMarkdown } from "@/components/learning/learning-markdown";
+import {
+  formatCoachModeLabel,
+  formatCodeSubmissionStatusLabel,
+  formatHomeCodeFeedbackOverallLabel,
+  formatHomeDailyPlanStatusLabel,
+  formatKnowledgeEntityTypeLabel,
+  formatQuizQuestionTypeLabel,
+  formatTodayPlanSourceLabel,
+} from "@/app/_lib/home-labels";
 
 type LessonExamples = {
   guidedSteps?: string[] | Array<{ title?: string; content?: string }>;
@@ -46,6 +55,52 @@ type LessonConnections = {
     selfCheckQuestion?: string;
   } | null;
 };
+
+const libraryCtaClassName = "min-h-11 w-full sm:w-auto";
+const libraryFilterInputClassName = "min-h-11 rounded-md border bg-background px-3 text-sm";
+const libraryPlanLinkClassName = "min-h-11 rounded-md border px-3 py-2 text-sm transition-colors";
+
+/**
+ * Formats the DailyPlan domain badge shown in lesson details.
+ *
+ * Args:
+ *   domain: The stored DailyPlan domain value.
+ *
+ * Returns:
+ *   A learner-facing domain label.
+ */
+function formatLibraryPlanDomainLabel(domain?: string | null) {
+  const normalized = domain?.trim();
+  return normalized ? normalized : "未标记领域";
+}
+
+/**
+ * Formats the DailyPlan topic badge shown in lesson details.
+ *
+ * Args:
+ *   topic: The stored DailyPlan topic value.
+ *
+ * Returns:
+ *   A learner-facing topic label.
+ */
+function formatLibraryPlanTopicLabel(topic?: string | null) {
+  const normalized = topic?.trim();
+  return normalized ? normalized : "未标记主题";
+}
+
+/**
+ * Formats the DailyPlan schema version as learner-facing content metadata.
+ *
+ * Args:
+ *   schemaVersion: The stored DailyPlan schema version.
+ *
+ * Returns:
+ *   A learner-facing content version label.
+ */
+function formatLibraryPlanSchemaVersionLabel(schemaVersion?: string | null) {
+  const normalized = schemaVersion?.trim();
+  return normalized && normalized !== "unknown" ? `内容版本：${normalized}` : "内容版本：未标记";
+}
 
 export default async function LibraryPage({
   searchParams,
@@ -194,10 +249,10 @@ export default async function LibraryPage({
               {selectedLessonId ? (
                 <input type="hidden" name="lessonId" value={selectedLessonId} />
               ) : null}
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary">{filters.showTest ? "显示 test" : "隐藏 test"}</Badge>
-                <Badge variant="secondary">{filters.showArchived ? "显示 archived" : "隐藏 archived"}</Badge>
-                <Button asChild size="sm" variant="outline">
+              <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+                <Badge variant="secondary">{filters.showTest ? "显示测试计划" : "隐藏测试计划"}</Badge>
+                <Badge variant="secondary">{filters.showArchived ? "显示归档计划" : "隐藏归档计划"}</Badge>
+                <Button asChild size="sm" variant="outline" className={libraryCtaClassName}>
                   <Link
                     href={buildLibraryPlanHref({
                       lessonId: selectedLessonId,
@@ -207,10 +262,10 @@ export default async function LibraryPage({
                       },
                     })}
                   >
-                    切换 test
+                    切换测试计划
                   </Link>
                 </Button>
-                <Button asChild size="sm" variant="outline">
+                <Button asChild size="sm" variant="outline" className={libraryCtaClassName}>
                   <Link
                     href={buildLibraryPlanHref({
                       lessonId: selectedLessonId,
@@ -220,52 +275,52 @@ export default async function LibraryPage({
                       },
                     })}
                   >
-                    切换 archived
+                    切换归档计划
                   </Link>
                 </Button>
-                <Button asChild size="sm" variant="ghost">
+                <Button asChild size="sm" variant="ghost" className={libraryCtaClassName}>
                   <Link href="/library">清空筛选</Link>
                 </Button>
               </div>
               <div className="grid gap-2 md:grid-cols-2">
                 <label className="grid gap-1">
-                  <span className="text-muted-foreground">source</span>
+                  <span className="text-muted-foreground">来源</span>
                   <input
                     name="source"
                     defaultValue={filters.source ?? ""}
-                    className="h-8 rounded-md border bg-background px-2 text-sm"
-                    placeholder="deepseek / fallback / admin"
+                    className={libraryFilterInputClassName}
+                    placeholder="AI 生成 deepseek / 模板兜底 template / 后台重建 admin"
                   />
                 </label>
                 <label className="grid gap-1">
-                  <span className="text-muted-foreground">schemaVersion</span>
+                  <span className="text-muted-foreground">内容版本</span>
                   <input
                     name="schemaVersion"
                     defaultValue={filters.schemaVersion ?? ""}
-                    className="h-8 rounded-md border bg-background px-2 text-sm"
+                    className={libraryFilterInputClassName}
                     placeholder="2.3"
                   />
                 </label>
                 <label className="grid gap-1">
-                  <span className="text-muted-foreground">status</span>
+                  <span className="text-muted-foreground">状态</span>
                   <input
                     name="status"
                     defaultValue={filters.status ?? ""}
-                    className="h-8 rounded-md border bg-background px-2 text-sm"
-                    placeholder="planned / completed"
+                    className={libraryFilterInputClassName}
+                    placeholder="待完成 planned / 已完成 completed"
                   />
                 </label>
                 <label className="grid gap-1">
-                  <span className="text-muted-foreground">localDate</span>
+                  <span className="text-muted-foreground">日期</span>
                   <input
                     name="localDate"
                     defaultValue={filters.localDate ?? ""}
-                    className="h-8 rounded-md border bg-background px-2 text-sm"
+                    className={libraryFilterInputClassName}
                     placeholder="YYYY-MM-DD"
                   />
                 </label>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -284,17 +339,23 @@ export default async function LibraryPage({
                   />
                   <span>显示归档计划</span>
                 </label>
-                <Button size="sm" type="submit" variant="secondary">
+                <Button size="sm" type="submit" variant="secondary" className={libraryCtaClassName}>
                   应用筛选
                 </Button>
               </div>
             </form>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              {filters.source ? <Badge variant="outline">source: {filters.source}</Badge> : null}
-              {filters.schemaVersion ? <Badge variant="outline">schema: {filters.schemaVersion}</Badge> : null}
-              {filters.status ? <Badge variant="outline">status: {filters.status}</Badge> : null}
-              {filters.localDate ? <Badge variant="outline">date: {filters.localDate}</Badge> : null}
-              <Button asChild size="sm" variant="outline">
+            <div className="grid gap-2 text-xs sm:flex sm:flex-wrap sm:items-center">
+              {filters.source ? (
+                <Badge variant="outline">来源：{formatTodayPlanSourceLabel(filters.source)}</Badge>
+              ) : null}
+              {filters.schemaVersion ? (
+                <Badge variant="outline">内容版本：{filters.schemaVersion}</Badge>
+              ) : null}
+              {filters.status ? (
+                <Badge variant="outline">状态：{formatHomeDailyPlanStatusLabel(filters.status)}</Badge>
+              ) : null}
+              {filters.localDate ? <Badge variant="outline">日期：{filters.localDate}</Badge> : null}
+              <Button asChild size="sm" variant="outline" className={libraryCtaClassName}>
                 <Link
                   href={buildLibraryPlanHref({
                     lessonId: selectedLessonId,
@@ -304,10 +365,10 @@ export default async function LibraryPage({
                     },
                   })}
                 >
-                  切换 test
+                  切换测试计划
                 </Link>
               </Button>
-              <Button asChild size="sm" variant="outline">
+              <Button asChild size="sm" variant="outline" className={libraryCtaClassName}>
                 <Link
                   href={buildLibraryPlanHref({
                     lessonId: selectedLessonId,
@@ -317,7 +378,7 @@ export default async function LibraryPage({
                     },
                   })}
                 >
-                  切换 archived
+                  切换归档计划
                 </Link>
               </Button>
             </div>
@@ -333,7 +394,7 @@ export default async function LibraryPage({
                         filters,
                       })}
                       className={[
-                        "rounded-md border px-3 py-2 text-sm transition-colors",
+                        libraryPlanLinkClassName,
                         active ? "bg-muted" : "hover:bg-muted/50",
                       ].join(" ")}
                     >
@@ -341,15 +402,15 @@ export default async function LibraryPage({
                         <div className="min-w-0">
                           <div className="truncate font-medium">{p.lesson.title}</div>
                           <div className="mt-1 text-xs text-muted-foreground">
-                            {p.localDate} / {p.source ?? "unknown"} / schema {p.schemaVersion ?? "-"}
+                            {p.localDate} / {formatTodayPlanSourceLabel(p.source)} / {formatLibraryPlanSchemaVersionLabel(p.schemaVersion)}
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1">
                           <Badge variant={p.status === "completed" ? "secondary" : "outline"}>
-                            {p.status}
+                            {formatHomeDailyPlanStatusLabel(p.status)}
                           </Badge>
-                          {p.isTest ? <Badge variant="outline">test</Badge> : null}
-                          {p.archivedAt ? <Badge variant="outline">archived</Badge> : null}
+                          {p.isTest ? <Badge variant="outline">测试计划</Badge> : null}
+                          {p.archivedAt ? <Badge variant="outline">已归档</Badge> : null}
                         </div>
                       </div>
                     </Link>
@@ -376,35 +437,36 @@ export default async function LibraryPage({
                     <div className="text-sm font-medium">{lesson.title}</div>
                     <div className="text-xs text-muted-foreground">
                       {planForLesson
-                        ? `${planForLesson.localDate} / ${planForLesson.status} / ${planForLesson.source ?? "unknown"} / schema ${planForLesson.schemaVersion ?? "-"}`
+                        ? `${planForLesson.localDate} / ${formatHomeDailyPlanStatusLabel(planForLesson.status)} / ${formatTodayPlanSourceLabel(planForLesson.source)} / ${formatLibraryPlanSchemaVersionLabel(planForLesson.schemaVersion)}`
                         : "未关联到 DailyPlan"}
                     </div>
                     {planForLesson ? (
                       <div className="flex flex-wrap gap-1">
-                        <Badge variant="secondary">{planForLesson.selectedDomain ?? "unknown"}</Badge>
-                        <Badge variant="outline">{planForLesson.selectedTopic ?? "unknown"}</Badge>
-                        {planForLesson.isTest ? <Badge variant="outline">test</Badge> : null}
-                        {planForLesson.archivedAt ? <Badge variant="outline">archived</Badge> : null}
+                        <Badge variant="secondary">{formatLibraryPlanDomainLabel(planForLesson.selectedDomain)}</Badge>
+                        <Badge variant="outline">{formatLibraryPlanTopicLabel(planForLesson.selectedTopic)}</Badge>
+                        {planForLesson.isTest ? <Badge variant="outline">测试计划</Badge> : null}
+                        {planForLesson.archivedAt ? <Badge variant="outline">已归档</Badge> : null}
                       </div>
                     ) : null}
                   </div>
 
                   {lessonNextActions ? (
                     <div className="rounded-md border bg-muted/20 p-3">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="grid gap-3 sm:flex sm:items-start sm:justify-between">
                         <div className="min-w-0">
                           <div className="text-sm font-medium">{lessonNextActions.title}</div>
                           <div className="mt-1 text-sm text-muted-foreground">
                             {lessonNextActions.summary}
                           </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
                           {lessonNextActions.actions.map((action, index) => (
                             <Button
                               key={`${action.href}:${action.label}`}
                               asChild
                               size="sm"
                               variant={index === 0 ? "default" : "outline"}
+                              className={libraryCtaClassName}
                             >
                               <Link href={action.href}>{action.label}</Link>
                             </Button>
@@ -501,7 +563,7 @@ export default async function LibraryPage({
                           <div className="rounded-md border p-3">
                             <div className="text-sm font-medium">广度卡</div>
                             <div className="mt-2 text-xs text-muted-foreground">
-                              类型：{breadth.kind}
+                              类型：{formatKnowledgeEntityTypeLabel(breadth.kind)}
                             </div>
                             <div className="mt-1 text-sm">{breadth.title}</div>
                             <div className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">
@@ -534,7 +596,7 @@ export default async function LibraryPage({
                             Q{idx + 1}. {q.question}
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">
-                            类型：{q.type}
+                            类型：{formatQuizQuestionTypeLabel(q.type)}
                           </div>
                         </div>
                       ))}
@@ -554,7 +616,7 @@ export default async function LibraryPage({
                               {c.back}
                             </div>
                             <div className="mt-2 text-xs text-muted-foreground">
-                              due: {c.dueAt.toISOString().slice(0, 10)} / reviews:{" "}
+                              到期：{c.dueAt.toISOString().slice(0, 10)} / 复习次数：
                               {c.reviewCount}
                             </div>
                           </div>
@@ -583,7 +645,7 @@ export default async function LibraryPage({
                               <div className="text-sm font-medium">
                                 {r.mainClaim ?? "未命名评审"}
                               </div>
-                              <Badge variant="outline">{r.mode}</Badge>
+                              <Badge variant="outline">{formatCoachModeLabel(r.mode)}</Badge>
                             </div>
                             <div className="mt-2 text-xs text-muted-foreground">
                               {r.createdAt.toISOString().slice(0, 16).replace("T", " ")}
@@ -599,11 +661,11 @@ export default async function LibraryPage({
                   </div>
 
                   <div className="rounded-md border p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="grid gap-2 sm:flex sm:items-center sm:justify-between">
                       <div className="text-sm font-medium">
                         关联笔记（{lessonNotes.length}）
                       </div>
-                      <Button asChild size="sm" variant="outline">
+                      <Button asChild size="sm" variant="outline" className={libraryCtaClassName}>
                         <Link href={`/notes?lessonId=${encodeURIComponent(lesson.id)}`}>
                           写笔记
                         </Link>
@@ -646,7 +708,7 @@ export default async function LibraryPage({
                                 <div className="text-sm font-medium">
                                   {submission.localDate} / {submission.language}
                                 </div>
-                                <Badge variant="outline">{submission.status}</Badge>
+                                <Badge variant="outline">{formatCodeSubmissionStatusLabel(submission.status)}</Badge>
                               </div>
                               {submission.aiFeedback ? (
                                 <div className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap">
@@ -655,8 +717,8 @@ export default async function LibraryPage({
                               ) : null}
                               {feedback ? (
                                 <div className="mt-3 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground whitespace-pre-wrap">
-                                  反馈：{feedback.provider}
-                                  {feedback.overall ? ` / ${feedback.overall}` : ""}
+                                  反馈来源：{formatTodayPlanSourceLabel(feedback.provider)}
+                                  {feedback.overall ? ` / ${formatHomeCodeFeedbackOverallLabel(feedback.overall) ?? "待检查"}` : ""}
                                   {"\n"}
                                   {feedback.summary}
                                   {feedback.issues.length

@@ -1,5 +1,9 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { enterLearningApp, previewToken } from "@/../tests/e2e/helpers";
+
+async function openFocusStage(page: Page, title: string) {
+  await page.getByRole("button", { name: new RegExp(`切换到${title}`) }).click();
+}
 
 test("today learning flow submits quiz answer and saves code draft @interaction", async ({ page }) => {
   test.skip(Boolean(previewToken), "Preview Mode is read-only; mutation flow runs only in local Demo mode.");
@@ -7,6 +11,7 @@ test("today learning flow submits quiz answer and saves code draft @interaction"
   await enterLearningApp(page, "/today");
   await expect(page.getByRole("heading", { name: "今日学习" })).toBeVisible();
 
+  await openFocusStage(page, "小测验");
   const quiz = page.getByTestId("today-quiz").first();
   await expect(quiz).toBeVisible();
 
@@ -20,6 +25,7 @@ test("today learning flow submits quiz answer and saves code draft @interaction"
   await expect(firstQuestion.getByText(/已提交：/)).toBeVisible();
   await expect(firstQuestion.getByText("提交后显示解析")).not.toBeVisible();
 
+  await openFocusStage(page, "代码练习");
   const code = page.getByTestId("today-code-exercise").first();
   await expect(code).toBeVisible();
   const marker = `# e2e saved code ${Date.now()}`;
@@ -37,6 +43,7 @@ test("today completion next actions carry lesson context into voice and coach @i
 
   await enterLearningApp(page, "/today");
   await expect(page.getByRole("heading", { name: "今日学习" })).toBeVisible();
+  await openFocusStage(page, "反思与完成");
 
   let completion = page.getByTestId("learning-completion-card").filter({ hasText: "今日已完成" }).first();
   if (!(await completion.isVisible().catch(() => false))) {
@@ -58,6 +65,7 @@ test("today completion next actions carry lesson context into voice and coach @i
 
   await enterLearningApp(page, "/today");
   await expect(page.getByRole("heading", { name: "今日学习" })).toBeVisible();
+  await openFocusStage(page, "反思与完成");
   const refreshedCompletion = page.getByTestId("learning-completion-card").filter({
     hasText: "今日已完成",
   }).first();

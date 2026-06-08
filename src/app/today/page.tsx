@@ -28,13 +28,32 @@ import { LearningTimeline } from "@/components/learning/learning-timeline";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { LearningCTAGroup } from "@/components/learning/learning-cta-group";
 import { LearningCompletionCard } from "@/components/learning/learning-completion-card";
+import { CurrentMissionCard } from "@/components/learning/current-mission-card";
+import { CollapsibleContentSection } from "@/components/learning/collapsible-content-section";
 import {
   LearningFocusPlayer,
   type LearningFocusPlayerOverviewItem,
   type LearningFocusPlayerStage,
 } from "@/components/learning/learning-focus-player";
 import { LearningMarkdown } from "@/components/learning/learning-markdown";
+import { TodayRemediationBanner } from "@/components/learning/today-remediation-banner";
 import { buildTodayCompletionNextActions } from "@/server/learning/today-completion-actions";
+import { getCurrentMissionData } from "@/server/learning/current-mission";
+import {
+  getKnowledgeStageStatus,
+  getQuizStageStatus,
+} from "@/server/learning/today-stage-status";
+import {
+  buildTodayRemediationIntent,
+  type TodayRemediationSearchParams,
+} from "@/server/learning/today-remediation-intent";
+import {
+  formatGlossaryCategoryLabel,
+  formatHomeDailyPlanStatusLabel,
+  formatKnowledgeEntityTypeLabel,
+  formatRadarConfidenceLabel,
+  formatTodayPlanSourceLabel,
+} from "@/app/_lib/home-labels";
 import type {
   LearningTimelineItem,
   LearningTimelineItemStatus,
@@ -62,8 +81,16 @@ type LessonConnections = {
   } | null;
 };
 
-export default async function TodayPage() {
+type TodayPageProps = {
+  searchParams?: Promise<TodayRemediationSearchParams>;
+};
+
+const todayFocusCtaClassName = "min-h-11 w-full sm:w-auto";
+
+export default async function TodayPage({ searchParams }: TodayPageProps = {}) {
+  const remediationIntent = buildTodayRemediationIntent(searchParams ? await searchParams : {});
   const userId = await requireUserId();
+  const currentMission = await getCurrentMissionData(userId);
   const plan = await getOrCreateTodayPlan({ userId });
   const now = new Date();
 
@@ -138,6 +165,8 @@ export default async function TodayPage() {
       attempt: latestAttemptByQuestionId.get(q.id) ?? null,
     };
   });
+  const attemptedQuizQuestions = quizQuestions.filter((q) => q.attempt);
+  const quizCorrectCount = attemptedQuizQuestions.filter((q) => q.attempt?.isCorrect).length;
 
   const examples = (plan.lesson.examples ?? null) as unknown as LessonExamples | null;
   const connections = (plan.lesson.connections ?? null) as unknown as LessonConnections | null;
@@ -205,6 +234,20 @@ export default async function TodayPage() {
     : null;
   const activeProjectMilestone =
     activeProject?.milestones.find((milestone) => milestone.status !== "completed") ?? null;
+  const quizStatus = getQuizStageStatus({
+    totalCount: quizQuestions.length,
+    attemptedCount: attemptedQuizQuestions.length,
+  });
+  const knowledgeStatus = getKnowledgeStageStatus({
+    hasGlossaryConnection: Boolean(glossary),
+    hasBreadthConnection: Boolean(breadth),
+    hasGlossaryDetail: Boolean(glossaryDetail),
+    hasBreadthDetail: Boolean(breadthDetail),
+  });
+  const todayPlanStatusLabel = formatHomeDailyPlanStatusLabel(plan.status);
+  const todayPlanSourceLabel = formatTodayPlanSourceLabel(plan.source ?? plan.lesson.createdBy);
+  const breadthTypeLabel = formatKnowledgeEntityTypeLabel(breadthDetail?.type ?? breadth?.kind);
+  const breadthConfidenceLabel = formatRadarConfidenceLabel(breadthDetail?.confidence);
 
   const decisionExplanation = explainCurriculumDecision({
     domain: decisionLog?.domain ?? plan.selectedDomain,
@@ -321,14 +364,14 @@ export default async function TodayPage() {
       id: "quiz",
       label: "小测验",
       href: "#today-quiz",
-      status: quizQuestions.some((q) => q.attempt) ? "done" : quizQuestions.length ? "todo" : "todo",
-      hint: quizQuestions.length ? `${quizQuestions.filter((q) => q.attempt).length}/${quizQuestions.length}` : "暂无",
+      status: quizStatus,
+      hint: quizQuestions.length ? `${attemptedQuizQuestions.length}/${quizQuestions.length}` : "暂无",
     },
     {
       id: "cards",
       label: "术语/广度",
       href: "#today-knowledge",
-      status: glossary || breadth ? "todo" : "todo",
+      status: knowledgeStatus,
       hint: glossary?.term ?? breadth?.title ?? "",
     },
     {
@@ -340,12 +383,12 @@ export default async function TodayPage() {
     },
   ];
   const focusOverview: LearningFocusPlayerOverviewItem[] = [
-    { label: "状态", value: plan.status, helper: plan.status === "completed" ? "今天已沉淀" : "等待完成" },
+    { label: "状态", value: todayPlanStatusLabel, helper: plan.status === "completed" ? "今天已沉淀" : "等待完成" },
     { label: "日期", value: plan.localDate },
     { label: "复习卡片", value: flashcardCount, helper: `${lessonDueFlashcardCount} 张本课到期` },
     { label: "全部到期", value: totalDueFlashcardCount, helper: reviewSummary.helperText },
-    { label: "来源", value: plan.source ?? plan.lesson.createdBy },
-    { label: "schema", value: plan.schemaVersion ?? "-" },
+    { label: "来源", value: todayPlanSourceLabel },
+    { label: "内容版本", value: plan.schemaVersion ?? "未标记" },
   ];
   const completionNextActions = buildTodayCompletionNextActions({
     planStatus: plan.status,
@@ -356,6 +399,11 @@ export default async function TodayPage() {
     voiceNoteCount,
     thoughtReviewCount,
     hasCodeSubmission: Boolean(codeSubmission),
+    hasCodingExercise: Boolean(codingExercise),
+    flashcardCount,
+    quizTotalCount: quizQuestions.length,
+    quizAttemptedCount: attemptedQuizQuestions.length,
+    quizCorrectCount,
     activeProject: activeProject
       ? {
           id: activeProject.id,
@@ -370,8 +418,13 @@ export default async function TodayPage() {
     {
       id: "goal",
       title: "今日目标",
-      eyebrow: "Step 1",
+      eyebrow: "第 1 步",
       description: `先明确今天要掌握什么：${plan.lesson.title}`,
+      guidance: {
+        task: "看清今日主题、状态和可用入口。",
+        reason: "先确认学习目标，后面的主课、练习和复习才不会散。",
+        completion: "能说出今天要掌握的主题，并知道可以去完整视图或复习入口。",
+      },
       status: "done",
       body: (
         <div className="rounded-lg border bg-muted/20 p-4">
@@ -385,16 +438,16 @@ export default async function TodayPage() {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <LearningStatusBadge tone={plan.status === "completed" ? "success" : "info"}>
-                {plan.status}
+                {todayPlanStatusLabel}
               </LearningStatusBadge>
               <LearningStatusBadge tone="neutral">{plan.localDate}</LearningStatusBadge>
             </div>
           </div>
-          <LearningCTAGroup className="mt-4">
-            <Button asChild size="sm">
+          <LearningCTAGroup className="mt-4 grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+            <Button asChild size="sm" className={todayFocusCtaClassName}>
               <a href="#full-view">完整视图</a>
             </Button>
-            <Button asChild size="sm" variant="secondary">
+            <Button asChild size="sm" variant="secondary" className={todayFocusCtaClassName}>
               <a href="/review">复习入口</a>
             </Button>
           </LearningCTAGroup>
@@ -404,8 +457,13 @@ export default async function TodayPage() {
     {
       id: "lesson",
       title: "主课通读",
-      eyebrow: "Step 2",
+      eyebrow: "第 2 步",
       description: "用 Markdown 结构读完正文，重点看标题、列表、代码块和例子。",
+      guidance: {
+        task: "读完正文，标出核心直觉、公式、代码片段和不懂的一句话。",
+        reason: "先建立概念骨架，再进入引导步骤和练习，避免直接做题变成猜答案。",
+        completion: "能用自己的话复述本课核心概念，并找出一个还需要验证的点。",
+      },
       status: "active",
       body: (
         <div className="rounded-lg border bg-card p-4">
@@ -416,8 +474,13 @@ export default async function TodayPage() {
     {
       id: "guided",
       title: "引导步骤",
-      eyebrow: "Step 3",
+      eyebrow: "第 3 步",
       description: guidedSteps.length ? `逐步完成 ${guidedSteps.length} 个引导问题。` : "今天没有引导步骤。",
+      guidance: {
+        task: guidedSteps.length ? "逐题写下自己的推理，不要只看答案。" : "确认本课没有引导步骤，直接进入下一阶段。",
+        reason: "引导问题把被动阅读转成主动回忆，是生成长期记忆的关键步骤。",
+        completion: guidedSteps.length ? "每个引导问题都有自己的回答或明确卡住点。" : "已跳过引导步骤并进入代码或测验。",
+      },
       status: guidedStatus,
       body: guidedSteps.length ? (
         <div className="rounded-lg border bg-card p-4">
@@ -436,8 +499,13 @@ export default async function TodayPage() {
     {
       id: "code",
       title: "代码练习",
-      eyebrow: "Step 4",
+      eyebrow: "第 4 步",
       description: codingExercise ? "先保存实现思路，必要时请求 AI 反馈；服务端不会执行你的代码。" : "今天没有代码练习。",
+      guidance: {
+        task: codingExercise ? "写出函数主体、伪代码或最小实现，并保存一次提交。" : "确认本课没有代码练习，继续测验或知识卡。",
+        reason: "把数学直觉转成代码，能暴露真正没有理解的变量、边界和流程。",
+        completion: codingExercise ? "保存提交，至少有可解释的函数主体或伪代码。" : "已确认代码阶段无需动作。",
+      },
       status: codingExercise ? (codeSubmission ? "done" : "todo") : "todo",
       body: codingExercise ? (
         <div className="rounded-lg border bg-card p-4">
@@ -459,9 +527,14 @@ export default async function TodayPage() {
     {
       id: "quiz",
       title: "小测验",
-      eyebrow: "Step 5",
+      eyebrow: "第 5 步",
       description: quizQuestions.length ? "提交答案后看解析，把错误点交给复习系统。" : "今天没有测验题。",
-      status: quizQuestions.some((q) => q.attempt) ? "done" : "todo",
+      guidance: {
+        task: quizQuestions.length ? "完成小测验，错题要看解析而不是只看分数。" : "确认本课没有测验题，继续知识卡或反思。",
+        reason: "测验负责检查刚读过的概念是否能被主动调用。",
+        completion: quizQuestions.length ? "每道题都已提交，并知道至少一个正确或错误原因。" : "已确认测验阶段无需动作。",
+      },
+      status: quizStatus,
       body: (
         <div className="rounded-lg border bg-card p-4">
           {quizQuestions.length ? (
@@ -475,16 +548,23 @@ export default async function TodayPage() {
     {
       id: "knowledge",
       title: "术语与广度",
-      eyebrow: "Step 6",
+      eyebrow: "第 6 步",
       description: "把今日术语、人物、公司或 Benchmark 连接到长期知识库。",
-      status: glossary || breadth ? "todo" : "done",
+      guidance: {
+        task: "阅读今日术语和广度卡，把陌生名词连接到知识库。",
+        reason: "AI 学习需要长期积累术语、人物、公司和 Benchmark 的关系。",
+        completion: "能说出今日术语或广度卡为什么和主课有关。",
+      },
+      status: knowledgeStatus,
       body: (
         <div className="grid gap-4 lg:grid-cols-2">
           {glossary ? (
             <div className="rounded-lg border bg-card p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="text-sm font-medium">今日术语</div>
-                {glossaryDetail ? <Badge variant="outline">{glossaryDetail.category}</Badge> : null}
+                {glossaryDetail ? (
+                  <Badge variant="outline">{formatGlossaryCategoryLabel(glossaryDetail.category)}</Badge>
+                ) : null}
               </div>
               <div className="mt-2 text-sm">{glossary.term}</div>
               <div className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
@@ -501,10 +581,10 @@ export default async function TodayPage() {
             <div className="rounded-lg border bg-card p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="text-sm font-medium">今日广度小卡</div>
-                {breadthDetail ? <Badge variant="outline">{breadthDetail.confidence}</Badge> : null}
+                {breadthDetail ? <Badge variant="outline">{breadthConfidenceLabel}</Badge> : null}
               </div>
               <div className="mt-2 text-xs text-muted-foreground">
-                类型：{breadthDetail?.type ?? breadth.kind}
+                类型：{breadthTypeLabel}
               </div>
               <div className="mt-1 text-sm">{breadth.title}</div>
               <div className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
@@ -528,8 +608,13 @@ export default async function TodayPage() {
     {
       id: "reflection",
       title: "反思与完成",
-      eyebrow: "Step 7",
+      eyebrow: "第 7 步",
       description: plan.status === "completed" ? "今日学习已完成，下一步进入复习或笔记。" : "写一句自己的总结，然后生成复习卡片。",
+      guidance: {
+        task: plan.status === "completed" ? "选择复习、笔记、Coach 或项目实践中的下一步。" : "写一句自己的总结，并提交完成今日学习。",
+        reason: "反思把今天的内容变成可复习卡片，下一步 CTA 负责保持学习连续性。",
+        completion: plan.status === "completed" ? "已选择一个后续动作继续推进。" : "完成提交并生成今日复习卡片。",
+      },
       status: plan.status === "completed" ? "done" : "todo",
       body: (
         <div className="grid gap-3">
@@ -545,12 +630,12 @@ export default async function TodayPage() {
                 placeholder="今天我学到了..."
                 defaultValue={plan.reflection ?? ""}
               />
-              <div className="flex flex-wrap items-center gap-2">
-                <Button type="submit" disabled={plan.status === "completed"}>
+              <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+                <Button type="submit" disabled={plan.status === "completed"} className={todayFocusCtaClassName}>
                   {plan.status === "completed" ? "已完成" : "标记完成并生成卡片"}
                 </Button>
                 <div className="text-xs text-muted-foreground">
-                  当前状态：{plan.status} / 卡片：{flashcardCount}
+                  当前状态：{todayPlanStatusLabel} / 卡片：{flashcardCount}
                 </div>
               </div>
             </form>
@@ -565,9 +650,16 @@ export default async function TodayPage() {
     <AppShell
       activePath="/today"
       title="今日学习"
+      missionBanner={
+        <CurrentMissionCard
+          mission={currentMission.mission}
+          signals={currentMission.signals}
+          title="当前任务"
+        />
+      }
       actions={
         <form action={generateTodayAction}>
-          <Button size="sm" type="submit">
+          <Button size="sm" type="submit" className={todayFocusCtaClassName}>
             生成今日内容
           </Button>
         </form>
@@ -579,15 +671,19 @@ export default async function TodayPage() {
         badge="今日"
       />
 
+      {remediationIntent ? (
+        <TodayRemediationBanner intent={remediationIntent} className="mb-4" />
+      ) : null}
+
       <LearningFocusPlayer
         stages={focusStages}
         overview={focusOverview}
         actions={
           <>
-            <Button asChild size="sm" variant="secondary">
-              <a href="#full-view">查看完整视图</a>
+            <Button asChild size="sm" variant="secondary" className={todayFocusCtaClassName}>
+              <a href="#full-view">查看完整课程内容</a>
             </Button>
-            <Button asChild size="sm" variant="outline">
+            <Button asChild size="sm" variant="outline" className={todayFocusCtaClassName}>
               <a href="#today-reflection">完成沉淀</a>
             </Button>
           </>
@@ -595,14 +691,19 @@ export default async function TodayPage() {
         className="mb-4"
       />
 
-      <div id="full-view" className="grid gap-4 lg:grid-cols-[260px_1fr_340px]">
-        <div className="hidden lg:block">
-          <div className="sticky top-16">
-            <LearningTimeline title="今日流程" items={timelineItems} />
+      <CollapsibleContentSection
+        id="full-view"
+        title="查看完整课程内容"
+        description="专注模式下方保留完整课程页面，按需展开。"
+      >
+        <div className="grid gap-4 lg:grid-cols-[260px_1fr_340px]">
+          <div className="hidden lg:block">
+            <div className="sticky top-16">
+              <LearningTimeline title="今日流程" items={timelineItems} />
+            </div>
           </div>
-        </div>
 
-        <div className="grid gap-4">
+          <div className="grid gap-4">
           <div id="today-hero" className="rounded-lg border bg-card p-4 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
@@ -611,7 +712,7 @@ export default async function TodayPage() {
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <LearningStatusBadge tone={plan.status === "completed" ? "success" : "info"}>
-                  {plan.status}
+                  {todayPlanStatusLabel}
                 </LearningStatusBadge>
                 <LearningStatusBadge tone="neutral">{plan.localDate}</LearningStatusBadge>
               </div>
@@ -619,14 +720,14 @@ export default async function TodayPage() {
             <div className="mt-3 text-sm text-muted-foreground">
               你现在要做的事很简单：按步骤走完，最后写一句自己的总结。
             </div>
-            <LearningCTAGroup className="mt-3">
-              <Button asChild size="sm">
+            <LearningCTAGroup className="mt-3 grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+              <Button asChild size="sm" className={todayFocusCtaClassName}>
                 <a href="#today-guided">继续步骤</a>
               </Button>
-              <Button asChild size="sm" variant="secondary">
+              <Button asChild size="sm" variant="secondary" className={todayFocusCtaClassName}>
                 <a href="#today-quiz">去做小测验</a>
               </Button>
-              <Button asChild size="sm" variant="outline">
+              <Button asChild size="sm" variant="outline" className={todayFocusCtaClassName}>
                 <a href="#today-reflection">完成并生成卡片</a>
               </Button>
             </LearningCTAGroup>
@@ -680,7 +781,7 @@ export default async function TodayPage() {
                     <div className="flex items-center justify-between gap-3">
                       <div className="text-sm font-medium">今日术语</div>
                       {glossaryDetail ? (
-                        <Badge variant="outline">{glossaryDetail.category}</Badge>
+                        <Badge variant="outline">{formatGlossaryCategoryLabel(glossaryDetail.category)}</Badge>
                       ) : null}
                     </div>
                     <div className="mt-2 text-sm">{glossary.term}</div>
@@ -695,8 +796,8 @@ export default async function TodayPage() {
                         自测：{glossary.selfCheckQuestion}
                       </div>
                     ) : null}
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button asChild size="sm" variant="secondary">
+                    <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
+                      <Button asChild size="sm" variant="secondary" className={todayFocusCtaClassName}>
                         <Link
                           href={
                             glossaryDetail
@@ -715,11 +816,11 @@ export default async function TodayPage() {
                     <div className="flex items-center justify-between gap-3">
                       <div className="text-sm font-medium">今日广度小卡</div>
                       {breadthDetail ? (
-                        <Badge variant="outline">{breadthDetail.confidence}</Badge>
+                        <Badge variant="outline">{breadthConfidenceLabel}</Badge>
                       ) : null}
                     </div>
                     <div className="mt-2 text-xs text-muted-foreground">
-                      类型：{breadthDetail?.type ?? breadth.kind}
+                      类型：{breadthTypeLabel}
                     </div>
                     <div className="mt-1 text-sm">{breadth.title}</div>
                     <div className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">
@@ -735,8 +836,8 @@ export default async function TodayPage() {
                         自测：{breadth.selfCheckQuestion}
                       </div>
                     ) : null}
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button asChild size="sm" variant="secondary">
+                    <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
+                      <Button asChild size="sm" variant="secondary" className={todayFocusCtaClassName}>
                         <Link
                           href={
                             breadthDetail
@@ -778,26 +879,31 @@ export default async function TodayPage() {
                     placeholder="今天我学到了..."
                     defaultValue={plan.reflection ?? ""}
                   />
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button type="submit" disabled={plan.status === "completed"}>
+                  <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+                    <Button type="submit" disabled={plan.status === "completed"} className={todayFocusCtaClassName}>
                       {plan.status === "completed" ? "已完成" : "标记完成并生成卡片"}
                     </Button>
                     <div className="text-xs text-muted-foreground">
-                      当前状态：{plan.status} / 卡片：{flashcardCount}
+                      当前状态：{todayPlanStatusLabel} / 卡片：{flashcardCount}
                     </div>
                   </div>
                 </form>
               </div>
               <LearningCompletionCard completion={completionNextActions} />
             </div>
-        </div>
+          </div>
 
-        <div className="grid gap-4">
-          <Card className="rounded-lg shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">今日复习入口</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-3 text-sm">
+          <div className="grid gap-4">
+            <CurrentMissionCard
+              mission={currentMission.mission}
+              signals={currentMission.signals}
+              title="当前任务"
+            />
+            <Card className="rounded-lg shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">今日复习入口</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-3 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">状态</span>
                 <Badge variant={reviewSummary.isCompleted ? "secondary" : "outline"}>
@@ -828,25 +934,30 @@ export default async function TodayPage() {
                 {reviewSummary.helperText}
               </div>
               {reviewSummary.isCompleted ? (
-                <Button asChild size="sm" variant="secondary">
+                <Button asChild size="sm" variant="secondary" className={todayFocusCtaClassName}>
                   <Link href="/review">{reviewSummary.ctaLabel}</Link>
                 </Button>
               ) : (
-                <Button size="sm" variant="secondary" disabled>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled
+                  className={todayFocusCtaClassName}
+                >
                   {reviewSummary.ctaLabel}
                 </Button>
               )}
-            </CardContent>
-          </Card>
-          <Card className="rounded-lg shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">今日概览</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-2 text-sm">
+              </CardContent>
+            </Card>
+            <Card className="rounded-lg shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">今日概览</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-2 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">状态</span>
                 <Badge variant={plan.status === "completed" ? "secondary" : "outline"}>
-                  {plan.status}
+                  {todayPlanStatusLabel}
                 </Badge>
               </div>
               <div className="flex items-center justify-between gap-3">
@@ -859,19 +970,19 @@ export default async function TodayPage() {
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">来源</span>
-                <span>{plan.source ?? plan.lesson.createdBy}</span>
+                <span>{todayPlanSourceLabel}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">schema</span>
-                <span className="font-mono">{plan.schemaVersion ?? "-"}</span>
+                <span className="text-muted-foreground">内容版本</span>
+                <span className="font-mono">{plan.schemaVersion ?? "未标记"}</span>
               </div>
-            </CardContent>
-          </Card>
-          <Card className="rounded-lg shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">为什么今天学这个</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-3 text-sm">
+              </CardContent>
+            </Card>
+            <Card className="rounded-lg shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">为什么今天学这个</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-3 text-sm">
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary">{decisionExplanation.selectedDomain}</Badge>
                 <Badge variant="outline">{decisionExplanation.selectedTopic}</Badge>
@@ -936,10 +1047,11 @@ export default async function TodayPage() {
                   ))}
                 </div>
               ) : null}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
+      </CollapsibleContentSection>
     </AppShell>
   );
 }

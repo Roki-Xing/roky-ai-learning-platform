@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { prisma } from "@/server/db";
 import {
   DEFAULT_PROJECT_TEMPLATES,
+  buildProjectPortfolioItems,
   buildProjectCompletionFlashcards,
   buildProjectCompletionSummary,
   calculateProjectProgress,
@@ -115,6 +116,57 @@ test("buildProjectCompletionFlashcards creates stable standalone project review 
   assert.equal(cards[0]?.type, "project");
   assert.deepEqual(cards[0]?.tags, ["project", "data_structures"]);
   assert.match(cards[1]?.front ?? "", /里程碑/);
+});
+
+test("buildProjectPortfolioItems exposes completed project artifacts for portfolio view", () => {
+  const items = buildProjectPortfolioItems([
+    {
+      id: "project-1",
+      title: "Markdown 笔记搜索器",
+      type: "data_structures",
+      status: "completed",
+      summary: "完成了扫描、索引和搜索排序。",
+      relatedTopics: ["inverted-index", "file-io"],
+      milestones: [
+        {
+          title: "扫描 Markdown",
+          status: "completed",
+          code: "def scan_markdown(root):\n    return []",
+          reflection: "需要跳过隐藏目录。",
+        },
+        {
+          title: "倒排索引",
+          status: "completed",
+          note: "term -> docs 的映射要去重。",
+        },
+      ],
+    },
+    {
+      id: "project-2",
+      title: "未完成项目",
+      type: "rag",
+      status: "active",
+      summary: null,
+      relatedTopics: ["rag"],
+      milestones: [{ title: "文档切块", status: "active", code: null, reflection: null }],
+    },
+  ], { "project-1": 3 });
+
+  assert.equal(items.length, 1);
+  assert.equal(items[0]?.title, "Markdown 笔记搜索器");
+  assert.equal(items[0]?.typeLabel, "数据结构项目");
+  assert.equal(items[0]?.completedMilestones, 2);
+  assert.equal(items[0]?.codeSnippetCount, 1);
+  assert.equal(items[0]?.reflectionCount, 2);
+  assert.equal(items[0]?.cardCount, 3);
+  assert.equal(items[0]?.reviewHref, "/review?source=project&projectId=project-1");
+  assert.match(items[0]?.featuredCodeSnippet ?? "", /def scan_markdown/);
+  assert.deepEqual(items[0]?.relatedTopics, ["inverted-index", "file-io"]);
+  assert.match(items[0]?.portfolioMarkdown ?? "", /# Markdown 笔记搜索器/);
+  assert.match(items[0]?.portfolioMarkdown ?? "", /## 项目总结/);
+  assert.match(items[0]?.portfolioMarkdown ?? "", /- 相关知识：倒排索引, 文件读写/);
+  assert.doesNotMatch(items[0]?.portfolioMarkdown ?? "", /- 相关知识：inverted-index, file-io/);
+  assert.match(items[0]?.portfolioMarkdown ?? "", /```python\n/);
 });
 
 async function createCompletedProjectFixture() {

@@ -1,3 +1,9 @@
+export {
+  VOICE_REFLECTION_TEMPLATES,
+  buildVoiceReflectionTemplates,
+  buildVoiceReflectionTemplate,
+} from "@/server/voice/reflection-template";
+
 const VOICE_MODES = new Set([
   "free_thought",
   "today_lesson",

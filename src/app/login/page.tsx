@@ -1,12 +1,17 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isSupabaseAuthConfigured } from "@/lib/supabase/config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LoginForm } from "./ui/login-form";
+import { PasswordLoginForm } from "./ui/password-login-form";
 import { isDemoUserAllowed } from "@/server/auth/demo";
+import { isPasswordLoginEnabled } from "@/server/auth/password";
 import { startDemoSessionAction } from "@/app/login/actions";
 import { Badge } from "@/components/ui/badge";
 import { BookOpenCheck, BrainCircuit, Code2, Mic2, Network } from "lucide-react";
+
+const loginCtaClassName = "min-h-11 w-full sm:w-auto";
 
 export default async function LoginPage({
   searchParams,
@@ -17,12 +22,25 @@ export default async function LoginPage({
   const nextRaw = sp.next ?? "/today";
   const next = nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "/today";
 
-  const supabase = await createClient();
+  const emailLoginEnabled = isSupabaseAuthConfigured();
+  const passwordLoginEnabled = isPasswordLoginEnabled();
+  const supabase = emailLoginEnabled ? await createClient() : null;
   if (supabase) {
     const { data } = await supabase.auth.getUser();
     if (data.user) redirect(next);
   }
   const demoAllowed = isDemoUserAllowed();
+  const demoEntry = demoAllowed ? (
+    <form action={startDemoSessionAction} className="grid gap-2 border-t pt-4">
+      <input type="hidden" name="next" value={next} />
+      <Button type="submit" variant="secondary" className={loginCtaClassName}>
+        进入 Demo 模式
+      </Button>
+      <div className="text-xs text-muted-foreground">
+        Demo 模式使用 <span className="font-mono">demo-user</span>，仅适合开发、验收或临时演示。
+      </div>
+    </form>
+  ) : null;
 
   const features = [
     { icon: BookOpenCheck, title: "每日学习闭环", text: "主课、引导步骤、测验、反思和复习卡片连在一起。" },
@@ -30,6 +48,14 @@ export default async function LoginPage({
     { icon: Code2, title: "代码与项目实践", text: "保存代码草稿、请求反馈，再沉淀成长期复习卡。" },
     { icon: Mic2, title: "语音笔记", text: "把口语想法转写成笔记、Coach 输入和复习材料。" },
   ] as const;
+
+  const statusMessage = passwordLoginEnabled
+    ? "当前服务器已启用访问密码登录。输入共享密码即可进入，不需要邮箱。"
+    : !emailLoginEnabled
+      ? demoAllowed
+        ? "当前服务器还没启用邮箱 Magic Link。要直接体验，请点击下方“进入 Demo 模式”；要开启真实登录，可以改为配置访问密码或 Supabase。"
+        : "当前服务器还没启用邮箱 Magic Link，也没有开放 Demo 模式。要使用此站点，需要先配置访问密码或 Supabase。"
+      : null;
 
   return (
     <div className="flex min-h-screen w-full bg-muted/20 px-4 py-8 md:items-center md:py-12">
@@ -80,22 +106,34 @@ export default async function LoginPage({
               <CardTitle className="text-base">登录 Roky Learn</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4">
-              <LoginForm next={next} />
-              {demoAllowed ? (
-                <form action={startDemoSessionAction} className="grid gap-2 border-t pt-4">
-                  <input type="hidden" name="next" value={next} />
-                  <Button type="submit" variant="secondary">
-                    进入 Demo 模式
-                  </Button>
-                  <div className="text-xs text-muted-foreground">
-                    Demo 模式使用 <span className="font-mono">demo-user</span>，仅适合开发或临时演示。
-                  </div>
-                </form>
+              {passwordLoginEnabled ? (
+                <div className="grid gap-3">
+                  <div className="text-sm font-medium text-foreground">访问密码</div>
+                  <PasswordLoginForm next={next} />
+                </div>
               ) : null}
+              {emailLoginEnabled ? (
+                <div className={passwordLoginEnabled ? "grid gap-3 border-t pt-4" : "grid gap-3"}>
+                  <div className="text-sm font-medium text-foreground">邮箱 Magic Link</div>
+                  <LoginForm next={next} />
+                </div>
+              ) : null}
+              {statusMessage ? (
+                <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-3 text-sm leading-6 text-amber-950">
+                  {statusMessage}
+                </div>
+              ) : null}
+              {demoEntry}
             </CardContent>
           </Card>
           <div className="rounded-lg border bg-background/70 p-3 text-xs leading-5 text-muted-foreground">
-            本页使用 Supabase Auth（邮箱魔法链接）。Preview 入口和 Demo 入口不会展示任何 API Key。
+            {passwordLoginEnabled
+              ? "当前站点支持访问密码登录。密码验证只在服务端进行，并会换成 httpOnly 会话 cookie。"
+              : emailLoginEnabled
+              ? "本页使用 Supabase Auth（邮箱魔法链接）。Preview 入口和 Demo 入口不会展示任何 API Key。"
+              : demoAllowed
+                ? "当前服务器未启用邮箱登录；如果你只是想先用起来，直接点击“进入 Demo 模式”。"
+                : "当前服务器未启用邮箱登录，也没有开放 Demo 模式。"}
           </div>
         </div>
       </div>

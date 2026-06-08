@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { submitQuizAttemptAction } from "@/server/quiz/actions";
 
+const todayQuizOptionLabelClassName = "flex min-h-11 cursor-pointer items-center gap-2 rounded-md border px-3 py-2 hover:bg-muted/40";
+
 export type TodayQuizQuestion = {
   id: string;
   type: string;
@@ -50,6 +52,19 @@ function formatUserAnswer(userAnswer: unknown, options: string[] | null) {
   return JSON.stringify(userAnswer);
 }
 
+function quizQuestionTypeLabel(type: string) {
+  switch (type) {
+    case "single_choice":
+      return "单选题";
+    case "multi_choice":
+      return "多选题";
+    case "true_false":
+      return "判断题";
+    default:
+      return "小测验";
+  }
+}
+
 export function TodayQuiz(props: { questions: TodayQuizQuestion[] }) {
   const { questions } = props;
 
@@ -65,7 +80,7 @@ export function TodayQuiz(props: { questions: TodayQuizQuestion[] }) {
                   Q{idx + 1}. {q.question}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  类型：{q.type}
+                  类型：{quizQuestionTypeLabel(q.type)}
                   {attempt ? (
                     <>
                       {" "}
@@ -91,7 +106,7 @@ export function TodayQuiz(props: { questions: TodayQuizQuestion[] }) {
 
               {q.type === "true_false" ? (
                 <div className="grid gap-2 text-sm">
-                  <label className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 hover:bg-muted/40">
+                  <label className={todayQuizOptionLabelClassName}>
                     <input
                       type="radio"
                       name="userAnswer"
@@ -101,7 +116,7 @@ export function TodayQuiz(props: { questions: TodayQuizQuestion[] }) {
                     />
                     <span>对</span>
                   </label>
-                  <label className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 hover:bg-muted/40">
+                  <label className={todayQuizOptionLabelClassName}>
                     <input
                       type="radio"
                       name="userAnswer"
@@ -117,7 +132,7 @@ export function TodayQuiz(props: { questions: TodayQuizQuestion[] }) {
                   {(q.options ?? []).map((opt, i) => (
                     <label
                       key={`${q.id}:${i}`}
-                      className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 hover:bg-muted/40"
+                      className={todayQuizOptionLabelClassName}
                     >
                       <input
                         type="checkbox"
@@ -135,7 +150,7 @@ export function TodayQuiz(props: { questions: TodayQuizQuestion[] }) {
                   {(q.options ?? []).map((opt, i) => (
                     <label
                       key={`${q.id}:${i}`}
-                      className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 hover:bg-muted/40"
+                      className={todayQuizOptionLabelClassName}
                     >
                       <input
                         type="radio"
@@ -151,8 +166,8 @@ export function TodayQuiz(props: { questions: TodayQuizQuestion[] }) {
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-2">
-                <Button type="submit" size="sm">
+              <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+                <Button type="submit" size="sm" className="min-h-11 w-full sm:w-auto">
                   提交答案
                 </Button>
                 {attempt ? (

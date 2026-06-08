@@ -2,9 +2,16 @@ import Link from "next/link";
 import { APP_ROUTE_GROUPS } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { isPreviewMode } from "@/server/auth/preview";
+import { MobileBottomNav } from "@/components/mobile/mobile-bottom-nav";
 
 function NavLinks(props: {
   activePath: string;
@@ -47,11 +54,13 @@ export async function AppShell({
   activePath,
   title,
   actions,
+  missionBanner,
   children,
 }: {
   activePath: string;
   title: string;
   actions?: React.ReactNode;
+  missionBanner?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const previewMode = await isPreviewMode();
@@ -66,7 +75,7 @@ export async function AppShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between gap-3 border-b bg-background px-4">
+        <header className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b bg-background px-4 py-2 sm:h-14 sm:flex-nowrap sm:py-0">
           <div className="flex min-w-0 items-center gap-2">
             <div className="md:hidden">
               <Sheet>
@@ -78,7 +87,10 @@ export async function AppShell({
                 </SheetTrigger>
                 <SheetContent side="left" className="w-80 p-0">
                   <div className="flex h-14 items-center gap-2 border-b px-4">
-                    <div className="text-sm font-semibold">Roky Learn</div>
+                    <SheetTitle className="text-sm font-semibold">Roky Learn</SheetTitle>
+                    <SheetDescription className="sr-only">
+                      移动端主菜单，包含所有学习页面入口。
+                    </SheetDescription>
                   </div>
                   <NavLinks activePath={activePath} />
                 </SheetContent>
@@ -89,15 +101,21 @@ export async function AppShell({
               <div className="truncate text-base font-semibold">{title}</div>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">{actions}</div>
+          <div className="grid w-full gap-2 sm:flex sm:w-auto sm:shrink-0 sm:items-center">{actions}</div>
         </header>
         {previewMode ? (
           <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-900">
             Preview Mode：当前使用 demo-user 只读数据，所有保存、生成、提交和管理操作都会被拒绝。
           </div>
         ) : null}
+        {missionBanner ? (
+          <div className="border-b bg-muted/10 px-4 py-3">
+            {missionBanner}
+          </div>
+        ) : null}
 
-        <main className="min-w-0 flex-1 p-4 md:p-6">{children}</main>
+        <main className="min-w-0 flex-1 p-4 pb-24 md:p-6">{children}</main>
+        <MobileBottomNav activePath={activePath} />
       </div>
     </div>
   );

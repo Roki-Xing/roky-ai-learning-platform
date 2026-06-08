@@ -8,6 +8,12 @@ import { LearningStatusBadge } from "@/components/learning/learning-status-badge
 import { LearningStepCard } from "@/components/learning/learning-step-card";
 import { VoiceCapture } from "@/app/voice/ui/voice-capture";
 import { resolveVoiceTranscriptAutofill } from "@/app/voice/ui/voice-transcript-autofill";
+import { buildVoiceReflectionTemplates } from "@/server/voice/reflection-template";
+
+const voiceFormCtaClassName = "min-h-11 w-full sm:w-auto";
+const voiceModeSelectClassName = "min-h-11 rounded-md border bg-background px-3 text-sm outline-none";
+const voiceReflectionTemplateButtonClassName =
+  "min-h-11 rounded-md border bg-background px-3 py-2 text-left transition-colors hover:bg-muted/50";
 
 export function VoiceWorkspaceForm(props: {
   modes: Array<readonly [string, string]>;
@@ -33,6 +39,8 @@ export function VoiceWorkspaceForm(props: {
   const canSave = useMemo(() => {
     return Boolean((editedTranscript || transcript).trim());
   }, [editedTranscript, transcript]);
+  const reflectionTemplates = buildVoiceReflectionTemplates();
+  const defaultReflectionTemplate = reflectionTemplates[0]?.prompt ?? "";
 
   return (
     <LearningSectionCard
@@ -52,20 +60,20 @@ export function VoiceWorkspaceForm(props: {
           <LearningStepCard
             index={2}
             title="转写并整理"
-            description="自动转写可用时直接填入 transcript；否则手动粘贴。"
+            description="自动转写可用时直接填入转写文本；否则手动粘贴。"
             status={transcript.trim() ? "done" : "todo"}
           />
           <LearningStepCard
             index={3}
             title="保存后进入分析"
-            description="保存 Voice Note 后可以送 Coach、存 Note、生成卡片。"
+            description="保存语音笔记后可以送 Coach、存 Note、生成卡片。"
             status={canSave ? "active" : "todo"}
           />
         </div>
 
         <form action={props.saveAction} className="grid gap-3" data-testid="voice-note-form">
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <LearningStatusBadge tone="info">Voice Note</LearningStatusBadge>
+            <LearningStatusBadge tone="info">语音笔记</LearningStatusBadge>
             {recentPlan ? (
               <LearningStatusBadge tone="neutral">
                 关联：{recentPlan.localDate} / {recentPlan.title}
@@ -79,9 +87,10 @@ export function VoiceWorkspaceForm(props: {
             <div className="text-sm font-medium">模式</div>
             <select
               name="mode"
+              aria-label="语音笔记模式"
               value={mode}
               onChange={(e) => setMode(e.target.value)}
-              className="h-9 rounded-md border bg-background px-3 text-sm outline-none"
+              className={voiceModeSelectClassName}
             >
               {modes.map(([value, label]) => (
                 <option key={value} value={value}>
@@ -89,6 +98,61 @@ export function VoiceWorkspaceForm(props: {
                 </option>
               ))}
             </select>
+            <div className="rounded-md border bg-muted/20 px-3 py-3 text-xs leading-6 text-muted-foreground">
+              <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
+                <div className="font-medium text-foreground">60 秒反思模板</div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className={voiceFormCtaClassName}
+                  onClick={() => {
+                    setTranscript((prev) => {
+                      const nextTranscript = prev.includes(defaultReflectionTemplate)
+                        ? prev
+                        : prev.trim()
+                          ? `${prev.trim()}\n\n${defaultReflectionTemplate}`
+                          : defaultReflectionTemplate;
+                      setTranscriptNotice("已插入 60 秒反思模板，先按这四句说，再检查术语和关键句。");
+                      window.requestAnimationFrame(() => {
+                        transcriptRef.current?.focus();
+                      });
+                      return nextTranscript;
+                    });
+                  }}
+                >
+                  开始 60 秒反思
+                </Button>
+              </div>
+              <div className="mt-2 grid gap-2">
+                {reflectionTemplates.map((template) => (
+                  <button
+                    key={template.id}
+                    type="button"
+                    className={voiceReflectionTemplateButtonClassName}
+                    onClick={() => {
+                      setTranscript((prev) => {
+                        const nextTranscript = prev.includes(template.prompt)
+                          ? prev
+                          : prev.trim()
+                            ? `${prev.trim()}\n\n${template.prompt}`
+                            : template.prompt;
+                        setTranscriptNotice(`已插入“${template.label}”模板。`);
+                        window.requestAnimationFrame(() => {
+                          transcriptRef.current?.focus();
+                        });
+                        return nextTranscript;
+                      });
+                    }}
+                  >
+                    <div className="font-medium text-foreground">{template.label}</div>
+                    <div className="mt-1 line-clamp-2 whitespace-pre-wrap text-muted-foreground">
+                      {template.prompt}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {linkedLessonId ? <input type="hidden" name="lessonId" value={linkedLessonId} /> : null}
@@ -113,12 +177,13 @@ export function VoiceWorkspaceForm(props: {
           />
 
           <div className="grid gap-2">
-            <div className="flex items-center justify-between gap-2">
-              <div className="text-sm font-medium">Transcript</div>
+            <div className="grid gap-2 sm:flex sm:items-center sm:justify-between">
+              <div className="text-sm font-medium">转写文本</div>
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
+                className={voiceFormCtaClassName}
                 onClick={() => {
                   setTranscript("");
                   setTranscriptNotice("");
@@ -139,7 +204,7 @@ export function VoiceWorkspaceForm(props: {
             <Textarea
               ref={transcriptRef}
               name="transcript"
-              aria-label="Transcript"
+              aria-label="语音转写文本"
               className="min-h-44"
               placeholder="录音后点“自动转写”，或者直接写下你刚才说的理解、疑问、代码思路..."
               value={transcript}
@@ -162,7 +227,7 @@ export function VoiceWorkspaceForm(props: {
             />
           </LearningSectionCard>
 
-          <Button type="submit" disabled={!canSave}>
+          <Button type="submit" disabled={!canSave} className={voiceFormCtaClassName}>
             保存并进入分析
           </Button>
         </form>

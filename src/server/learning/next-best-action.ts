@@ -62,7 +62,7 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       title: focus ? `让 Coach 澄清：${focus}` : "让 Coach 处理未解决误区",
       reason: focus
         ? `当前最需要澄清的是：${focus}。你还有 ${input.openMisconceptionCount} 个未解决误区，先交给 Coach 复盘。`
-        : `你还有 ${input.openMisconceptionCount} 个 open misconception，先把模糊点说清楚。`,
+        : `你还有 ${input.openMisconceptionCount} 个未解决误区，先把模糊点说清楚。`,
       href: "/coach",
       ctaLabel: "打开 Coach",
       tone: "danger",
@@ -115,10 +115,10 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
   }
 
   return {
-    title: "开始一个小项目",
-    reason: "今日学习、复习和沉淀都已完成，现在适合把今天学到的内容落到代码里，避免只停留在阅读和卡片。",
-    href: "/projects",
-    ctaLabel: "开始项目实践",
+    title: "做一个轻量广度探索",
+    reason: "今日学习、复习、笔记和语音复盘都已完成，现在适合去 Glossary / Radar 轻量探索一个新人物、工具或 Benchmark。",
+    href: "/radar",
+    ctaLabel: "探索 Radar",
     tone: "success",
   };
 }

@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { signInWithEmailLink } from "../actions";
 
+const emailLoginCtaClassName = "min-h-11 w-full sm:w-auto";
+const emailLoginInputClassName = "min-h-11";
+
 export function LoginForm({ next }: { next: string }) {
   const [email, setEmail] = useState("");
   const [pending, startTransition] = useTransition();
@@ -31,14 +34,14 @@ export function LoginForm({ next }: { next: string }) {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           autoComplete="email"
+          className={emailLoginInputClassName}
           required
         />
       </div>
-      <Button type="submit" disabled={pending || !email}>
+      <Button type="submit" disabled={pending || !email} className={emailLoginCtaClassName}>
         发送登录链接
       </Button>
       {message ? <div className="text-sm text-muted-foreground">{message}</div> : null}
     </form>
   );
 }
-

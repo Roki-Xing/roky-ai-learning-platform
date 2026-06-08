@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   aggregateKnowledgeMapStats,
+  buildVisibleKnowledgeMapTopics,
   buildKnowledgeMapInsights,
   createEmptyKnowledgeMapStat,
   calculateKnowledgeMapMasteryScore,
@@ -217,4 +219,161 @@ test("buildKnowledgeMapInsights surfaces weak, review-heavy, code-light, and nex
   assert.equal(insights.nextFocus?.slug, "python-coding");
   assert.match(insights.nextFocus?.reason ?? "", /活跃错题|复习欠账|代码练习/);
   assert.equal(insights.summaryCards.find((card) => card.key === "weak")?.value, "Python 编程");
+});
+
+test("buildVisibleKnowledgeMapTopics caps first-screen topic rendering and reports hidden topics", () => {
+  const topics = Array.from({ length: 24 }, (_, index) => ({
+    id: `topic-${index}`,
+    slug: `topic-${index}`,
+    title: `Topic ${index}`,
+    summary: `Summary ${index}`,
+    depthLevel: index % 3,
+  }));
+
+  const result = buildVisibleKnowledgeMapTopics(topics, 8);
+
+  assert.equal(result.visibleTopics.length, 8);
+  assert.equal(result.hiddenCount, 16);
+  assert.equal(result.totalCount, 24);
+  assert.equal(result.visibleTopics.at(-1)?.slug, "topic-7");
+});
+
+test("buildVisibleKnowledgeMapTopics keeps an active item inside the rendered window", () => {
+  const topics = Array.from({ length: 24 }, (_, index) => ({
+    id: `topic-${index}`,
+    slug: `topic-${index}`,
+    title: `Topic ${index}`,
+    summary: `Summary ${index}`,
+    depthLevel: index % 3,
+  }));
+
+  const result = buildVisibleKnowledgeMapTopics(topics, 8, "topic-18");
+
+  assert.equal(result.visibleTopics.length, 8);
+  assert.equal(result.hiddenCount, 16);
+  assert.ok(result.visibleTopics.some((topic) => topic.slug === "topic-18"));
+  assert.equal(result.visibleTopics.at(0)?.slug, "topic-11");
+});
+
+test("map domain cards expose specific progress bar labels", () => {
+  const source = readFileSync("src/app/map/page.tsx", "utf8");
+
+  assert.match(source, /领域掌握进度：/);
+});
+
+test("map domain detail localizes review log labels", () => {
+  const source = readFileSync("src/app/map/page.tsx", "utf8");
+
+  assert.match(source, /复习记录：\{stat\.reviewLogCount\}/);
+  assert.match(source, /掌握分 = 完成课程 \* 10 \+ 复习记录 \* 2 \+ 正确测验 \* 3/);
+  assert.doesNotMatch(source, /ReviewLog：\{stat\.reviewLogCount\}/);
+  assert.doesNotMatch(source, /掌握分 = 完成课程 \* 10 \+ ReviewLog \* 2/);
+});
+
+test("map summary insight CTAs stay mobile friendly", () => {
+  const source = readFileSync("src/app/map/page.tsx", "utf8");
+
+  assert.match(source, /const mapSummaryCtaClassName = "min-h-11 w-full sm:w-auto";/);
+
+  const viewDomainIndex = source.indexOf("查看领域");
+  assert.notEqual(viewDomainIndex, -1);
+  const viewDomainButton = source.slice(Math.max(0, viewDomainIndex - 220), viewDomainIndex + 80);
+  assert.match(viewDomainButton, /className=\{mapSummaryCtaClassName\}/);
+
+  const emptySignalIndex = source.indexOf("暂无信号");
+  assert.notEqual(emptySignalIndex, -1);
+  const emptySignalButton = source.slice(Math.max(0, emptySignalIndex - 220), emptySignalIndex + 80);
+  assert.match(emptySignalButton, /className=\{mapSummaryCtaClassName\}/);
+});
+
+test("map domain list links stay mobile friendly", () => {
+  const source = readFileSync("src/app/map/page.tsx", "utf8");
+
+  assert.match(
+    source,
+    /const mapDomainLinkClassName = "min-h-11 rounded-md border px-3 py-2 text-sm transition-colors";/,
+  );
+
+  const domainListIndex = source.indexOf("领域列表");
+  assert.notEqual(domainListIndex, -1);
+  const domainListBlock = source.slice(domainListIndex, domainListIndex + 900);
+  assert.match(domainListBlock, /mapDomainLinkClassName,\s*active \? "bg-muted" : "hover:bg-muted\/50"/);
+  assert.doesNotMatch(
+    domainListBlock,
+    /"rounded-md border px-3 py-2 text-sm transition-colors",\s*active \?/,
+  );
+});
+
+test("map next lesson CTA stays mobile friendly", () => {
+  const source = readFileSync("src/app/map/page.tsx", "utf8");
+
+  assert.match(source, /const mapPageCtaClassName = "min-h-11 w-full sm:w-auto";/);
+
+  const nextLessonIndex = source.indexOf("生成下一节");
+  assert.notEqual(nextLessonIndex, -1);
+  const nextLessonButton = source.slice(Math.max(0, nextLessonIndex - 220), nextLessonIndex + 80);
+  assert.match(nextLessonButton, /className=\{mapPageCtaClassName\}/);
+});
+
+test("map next focus link stays mobile friendly", () => {
+  const source = readFileSync("src/app/map/page.tsx", "utf8");
+
+  assert.match(
+    source,
+    /const mapNextFocusLinkClassName = "inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-2";/,
+  );
+
+  const nextFocusIndex = source.indexOf("优先补：");
+  assert.notEqual(nextFocusIndex, -1);
+  const nextFocusBlock = source.slice(nextFocusIndex, nextFocusIndex + 520);
+  assert.match(nextFocusBlock, /className=\{mapNextFocusLinkClassName\}/);
+  assert.doesNotMatch(
+    nextFocusBlock,
+    /className="font-medium text-primary underline underline-offset-2"/,
+  );
+});
+
+test("map related lesson links stay mobile friendly", () => {
+  const source = readFileSync("src/app/map/page.tsx", "utf8");
+
+  assert.match(
+    source,
+    /const mapRelatedLessonLinkClassName = "min-h-11 rounded-md border px-3 py-2 transition-colors hover:bg-muted\/50";/,
+  );
+
+  const relatedCoursesIndex = source.indexOf("相关课程");
+  assert.notEqual(relatedCoursesIndex, -1);
+  const relatedCoursesBlock = source.slice(
+    Math.max(0, relatedCoursesIndex - 120),
+    relatedCoursesIndex + 650,
+  );
+  assert.match(relatedCoursesBlock, /className=\{mapRelatedLessonLinkClassName\}/);
+  assert.doesNotMatch(
+    source,
+    /className="rounded-md border px-3 py-2 transition-colors hover:bg-muted\/50"/,
+  );
+});
+
+test("map page routes visible status source and type labels through display helpers", async () => {
+  const labels = await import("@/app/_lib/home-labels");
+  assert.equal(typeof labels.formatFlashcardTypeLabel, "function");
+  assert.equal(typeof labels.formatMapMisconceptionStatusLabel, "function");
+  assert.equal(labels.formatKnowledgeEntityTypeLabel("open_source_project"), "开源项目");
+  assert.equal(labels.formatFlashcardTypeLabel("code_bug"), "代码反馈卡");
+  assert.equal(labels.formatFlashcardTypeLabel("quiz_error"), "错题卡");
+  assert.equal(labels.formatMapMisconceptionStatusLabel("open"), "未解决");
+  assert.equal(labels.formatMapMisconceptionStatusLabel("resolved"), "已解决");
+
+  const source = readFileSync("src/app/map/page.tsx", "utf8");
+  assert.match(source, /formatKnowledgeEntityTypeLabel\(group\.type\)/);
+  assert.match(source, /formatHomeDailyPlanStatusLabel\(plan\.status\)/);
+  assert.match(source, /formatTodayPlanSourceLabel\(plan\.source\)/);
+  assert.match(source, /formatFlashcardTypeLabel\(card\.type\)/);
+  assert.match(source, /formatMapMisconceptionStatusLabel\(item\.status\)/);
+  assert.doesNotMatch(source, /\{group\.type\} \{group\._count\._all\}/);
+  assert.doesNotMatch(source, /\{plan\.localDate\} \/ \{plan\.status\} \/ \{plan\.source \?\? "unknown"\}/);
+  assert.doesNotMatch(source, /\{card\.type\}/);
+  assert.doesNotMatch(source, /\{item\.status\} x\{item\.occurrenceCount\}/);
+  assert.doesNotMatch(source, /score \{stat\.masteryScore\}/);
+  assert.doesNotMatch(source, /masteryScore =/);
 });

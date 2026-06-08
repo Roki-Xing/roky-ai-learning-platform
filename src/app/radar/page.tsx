@@ -11,10 +11,18 @@ import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import {
   buildKnowledgeLink,
   knowledgeEntityVerificationBadge,
+  normalizeSlug,
 } from "@/server/knowledge/base";
 import { DEFAULT_KNOWLEDGE_PATHS, buildKnowledgePathProgress } from "@/server/knowledge/paths";
+import { buildRadarRelationGroups } from "@/server/knowledge/radar-relations";
 import { generateRadarFlashcardAction } from "@/app/radar/actions";
 import { KnowledgePathExplorer } from "@/components/learning/knowledge-path-explorer";
+import {
+  formatGlossaryCategoryLabel,
+  formatKnowledgeEntityTypeLabel,
+  formatRadarConfidenceLabel,
+  formatRadarVerificationLabel,
+} from "@/app/_lib/home-labels";
 
 type SourceRef = { title?: string; url?: string };
 type TimelineItem = { year?: string; event?: string };
@@ -24,6 +32,14 @@ const radarCardSelect = {
   dueAt: true,
   reviewCount: true,
 } as const;
+
+const radarCtaClassName = "min-h-11 w-full sm:w-auto";
+const radarSearchInputClassName = "min-h-11";
+const radarResultLinkClassName = "min-h-11 rounded-md border px-3 py-2 text-sm transition-colors";
+const radarTypeFilterLinkClassName =
+  "inline-flex min-h-11 items-center rounded-md border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/50";
+const radarRelationLinkClassName = "min-h-11 rounded-md border bg-card p-2 text-sm transition-colors hover:bg-muted/50";
+const radarSourceLinkClassName = "inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline";
 
 function strings(value: unknown) {
   return Array.isArray(value) ? value.filter((x): x is string => typeof x === "string") : [];
@@ -64,6 +80,11 @@ function collectViewedRadarSlugs(plans: Array<{ lesson: { connections: unknown }
     }
   }
   return slugs;
+}
+
+function formatRadarRelationBadgeLabel(item: { key: string; badge: string }) {
+  if (item.key.startsWith("term:")) return formatGlossaryCategoryLabel(item.badge);
+  return formatKnowledgeEntityTypeLabel(item.badge);
 }
 
 export default async function RadarPage({
@@ -143,17 +164,57 @@ export default async function RadarPage({
     : null;
 
   const selectedRelatedSlugs = selectedEntity ? strings(selectedEntity.relatedTerms) : [];
-  const relatedGlossaryTerms = selectedRelatedSlugs.length
-    ? await prisma.glossaryTerm.findMany({
-        where: { slug: { in: selectedRelatedSlugs.map((x) => x.trim().toLowerCase()) } },
-        select: { slug: true, fullName: true, abbreviation: true, category: true },
-        take: 8,
+  const selectedWorks = selectedEntity ? strings(selectedEntity.representativeWorks) : [];
+  const relatedLookupSlugs = [...new Set([...selectedRelatedSlugs, ...selectedWorks].map(normalizeSlug).filter(Boolean))];
+  const [relatedGlossaryTerms, relatedEntities] = selectedEntity
+    ? await Promise.all([
+        relatedLookupSlugs.length
+          ? prisma.glossaryTerm.findMany({
+              where: { slug: { in: relatedLookupSlugs } },
+              select: { slug: true, fullName: true, abbreviation: true, category: true, oneLine: true },
+              take: 12,
+            })
+          : Promise.resolve([]),
+        relatedLookupSlugs.length
+          ? prisma.knowledgeEntity.findMany({
+              where: {
+                OR: [
+                  { slug: { in: relatedLookupSlugs } },
+                  { relatedTerms: { array_contains: [selectedEntity.name] } },
+                  { relatedTerms: { array_contains: selectedRelatedSlugs } },
+                  { representativeWorks: { array_contains: selectedWorks } },
+                ],
+                NOT: { slug: selectedEntity.slug },
+              },
+              select: {
+                slug: true,
+                type: true,
+                name: true,
+                oneLine: true,
+                representativeWorks: true,
+                relatedTerms: true,
+              },
+              take: 16,
+            })
+          : Promise.resolve([]),
+      ])
+    : [[], []];
+  const relationGroups = selectedEntity
+    ? buildRadarRelationGroups({
+        selectedEntity: {
+          slug: selectedEntity.slug,
+          type: selectedEntity.type,
+          name: selectedEntity.name,
+          representativeWorks: selectedEntity.representativeWorks,
+          relatedTerms: selectedEntity.relatedTerms,
+        },
+        glossaryTerms: relatedGlossaryTerms,
+        entities: relatedEntities,
       })
     : [];
 
   const recommendedPaths = DEFAULT_KNOWLEDGE_PATHS
     .filter((p) => p.kind === "radar")
-    .slice(0, 2)
     .map((path) =>
       buildKnowledgePathProgress({
         path,
@@ -170,7 +231,7 @@ export default async function RadarPage({
       activePath="/radar"
       title="AI Radar"
       actions={
-        <Button asChild size="sm" variant="secondary">
+        <Button asChild size="sm" variant="secondary" className={radarCtaClassName}>
           <Link href="/review">去复习</Link>
         </Button>
       }
@@ -193,27 +254,41 @@ export default async function RadarPage({
             />
 
             <form className="grid gap-2">
-              <Input name="q" placeholder="搜索 OpenAI / SWE-bench / Cursor" defaultValue={q} />
+              <Input
+                name="q"
+                placeholder="搜索 OpenAI / SWE-bench / Cursor"
+                defaultValue={q}
+                className={radarSearchInputClassName}
+              />
               {selectedType ? <input type="hidden" name="type" value={selectedType} /> : null}
-              <Button type="submit" size="sm">搜索</Button>
+              <Button type="submit" size="sm" className={radarCtaClassName}>搜索</Button>
             </form>
 
             <div className="flex flex-wrap gap-2">
-              <Badge asChild variant={selectedType ? "outline" : "secondary"}>
-                <Link href={q ? `/radar?q=${encodeURIComponent(q)}` : "/radar"}>全部</Link>
-              </Badge>
+              <Link
+                href={q ? `/radar?q=${encodeURIComponent(q)}` : "/radar"}
+                className={[
+                  radarTypeFilterLinkClassName,
+                  selectedType ? "bg-background" : "border-secondary bg-secondary text-secondary-foreground",
+                ].join(" ")}
+              >
+                全部
+              </Link>
               {typeGroups.map((group) => {
                 const params = new URLSearchParams({ type: group.type, ...(q ? { q } : {}) });
                 return (
-                  <Badge
+                  <Link
                     key={group.type}
-                    asChild
-                    variant={selectedType === group.type ? "secondary" : "outline"}
+                    href={`/radar?${params.toString()}`}
+                    className={[
+                      radarTypeFilterLinkClassName,
+                      selectedType === group.type
+                        ? "border-secondary bg-secondary text-secondary-foreground"
+                        : "bg-background",
+                    ].join(" ")}
                   >
-                    <Link href={`/radar?${params.toString()}`}>
-                      {group.type} {group._count._all}
-                    </Link>
-                  </Badge>
+                    {formatKnowledgeEntityTypeLabel(group.type)} {group._count._all}
+                  </Link>
                 );
               })}
             </div>
@@ -232,7 +307,7 @@ export default async function RadarPage({
                       key={entity.id}
                       href={`/radar?${params.toString()}`}
                       className={[
-                        "rounded-md border px-3 py-2 text-sm transition-colors",
+                        radarResultLinkClassName,
                         active ? "bg-muted" : "hover:bg-muted/50",
                       ].join(" ")}
                     >
@@ -243,7 +318,7 @@ export default async function RadarPage({
                             {entity.oneLine}
                           </div>
                         </div>
-                        <Badge variant="outline">{entity.type}</Badge>
+                        <Badge variant="outline">{formatKnowledgeEntityTypeLabel(entity.type)}</Badge>
                       </div>
                     </Link>
                   );
@@ -270,16 +345,16 @@ export default async function RadarPage({
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary">{selectedEntity.type}</Badge>
-                    <Badge variant="outline">confidence {selectedEntity.confidence}</Badge>
+                    <Badge variant="secondary">{formatKnowledgeEntityTypeLabel(selectedEntity.type)}</Badge>
+                    <Badge variant="outline">{formatRadarConfidenceLabel(selectedEntity.confidence)}</Badge>
                     {verificationBadge ? (
                       <Badge variant={verificationBadge === "verified" ? "secondary" : "outline"}>
-                        {verificationBadge}
+                        {formatRadarVerificationLabel(verificationBadge)}
                       </Badge>
                     ) : null}
                     {selectedEntity.lastVerifiedAt ? (
                       <Badge variant="outline">
-                        verified {selectedEntity.lastVerifiedAt.toISOString().slice(0, 10)}
+                        核验日期 {selectedEntity.lastVerifiedAt.toISOString().slice(0, 10)}
                       </Badge>
                     ) : null}
                     {selectedHasCard ? <Badge variant="secondary">已生成卡片</Badge> : null}
@@ -334,29 +409,56 @@ export default async function RadarPage({
                 </div>
 
                 <div className="rounded-md border p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="grid gap-2 sm:flex sm:items-center sm:justify-between">
                     <div>
-                      <div className="text-sm font-medium">关系卡</div>
+                      <div className="text-sm font-medium">关系卡片链</div>
                       <div className="mt-1 text-xs text-muted-foreground">
-                        从实体跳到相关术语，再回到课程与复习。
+                        从实体跳到相关实体、术语、论文和 Benchmark，再回到课程与复习。
                       </div>
                     </div>
-                    <Button asChild size="sm" variant="secondary">
+                    <Button asChild size="sm" variant="secondary" className={radarCtaClassName}>
                       <Link href="/review">去复习</Link>
                     </Button>
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {relatedGlossaryTerms.length ? (
-                      relatedGlossaryTerms.map((term) => (
-                        <Badge key={term.slug} asChild variant="outline">
-                          <Link href={`/glossary?term=${encodeURIComponent(term.slug)}`}>
-                            {term.abbreviation ?? term.fullName}
-                          </Link>
-                        </Badge>
-                      ))
-                    ) : (
-                      <div className="text-sm text-muted-foreground">暂无可用关系术语。</div>
-                    )}
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    {relationGroups.map((group) => (
+                      <div key={group.title} className="rounded-md border bg-muted/10 p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="text-sm font-medium">{group.title}</div>
+                            <div className="mt-1 text-xs leading-5 text-muted-foreground">
+                              {group.description}
+                            </div>
+                          </div>
+                          <Badge variant="outline">{group.items.length}</Badge>
+                        </div>
+                        <div className="mt-3 grid gap-2">
+                          {group.items.length ? (
+                            group.items.map((item) => (
+                              <Link
+                                key={item.key}
+                                href={item.href}
+                                className={radarRelationLinkClassName}
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <div className="truncate font-medium">{item.title}</div>
+                                    <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                                      {item.subtitle}
+                                    </div>
+                                  </div>
+                                  <Badge variant="outline">{formatRadarRelationBadgeLabel(item)}</Badge>
+                                </div>
+                              </Link>
+                            ))
+                          ) : (
+                            <div className="rounded-md border border-dashed p-2 text-xs text-muted-foreground">
+                              暂无可用关系卡片。
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -368,7 +470,7 @@ export default async function RadarPage({
                         <a
                           key={`${ref.url}:${index}`}
                           href={ref.url}
-                          className="text-primary underline-offset-4 hover:underline"
+                          className={radarSourceLinkClassName}
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -377,18 +479,18 @@ export default async function RadarPage({
                       ) : null,
                     ) : (
                       <div className="text-sm text-muted-foreground">
-                        needs_verification：该实体暂无可核验来源。
+                        待核验：该实体暂无可核验来源。
                       </div>
                     )}
                   </div>
                 </div>
 
-                <form action={generateRadarFlashcardAction} className="flex flex-wrap gap-2">
+                <form action={generateRadarFlashcardAction} className="grid gap-2 sm:flex sm:flex-wrap">
                   <input type="hidden" name="slug" value={selectedEntity.slug} />
-                  <Button type="submit" disabled={selectedHasCard}>
+                  <Button type="submit" disabled={selectedHasCard} className={radarCtaClassName}>
                     {selectedHasCard ? "复习卡片已存在" : "生成复习卡片"}
                   </Button>
-                  <Button asChild variant="secondary">
+                  <Button asChild variant="secondary" className={radarCtaClassName}>
                     <Link href={buildKnowledgeLink({ kind: "radar", slug: selectedEntity.slug })}>
                       复制详情入口
                     </Link>

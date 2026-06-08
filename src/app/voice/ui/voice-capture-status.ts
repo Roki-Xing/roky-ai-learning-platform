@@ -36,7 +36,7 @@ export function buildVoiceCaptureStatusPanel(input: {
   if (input.status === "file-too-large") {
     return {
       title: "音频文件过大",
-      description: "请换一个 20MB 以内的音频文件，或者直接把 transcript 粘贴到下方。",
+      description: "请换一个 20MB 以内的音频文件，或者直接把转写文本粘贴到下方。",
       timerLabel,
       tone: "danger",
       badgeLabel: "文件过大",
@@ -46,7 +46,7 @@ export function buildVoiceCaptureStatusPanel(input: {
   if (input.status === "transcribing") {
     return {
       title: "正在转写",
-      description: "转写完成后会自动填入 Transcript；如果 provider 不可用，可以继续手动整理。",
+      description: "转写完成后会自动填入转写文本；如果 provider 不可用，可以继续手动整理。",
       timerLabel,
       tone: "info",
       badgeLabel: "转写中",
@@ -65,8 +65,8 @@ export function buildVoiceCaptureStatusPanel(input: {
 
   if (input.lastResultStatus === "success" && input.hasTranscript) {
     return {
-      title: "转写已填入 Transcript",
-      description: "先检查错字、术语和代码变量名，再保存 Voice Note 进入 Coach、笔记和复习卡片。",
+      title: "转写已填入转写文本",
+      description: "先检查错字、术语和代码变量名，再保存语音笔记进入 Coach、笔记和复习卡片。",
       timerLabel,
       tone: "success",
       badgeLabel: "已转写",
@@ -75,8 +75,8 @@ export function buildVoiceCaptureStatusPanel(input: {
 
   if (input.status === "recorded") {
     return {
-      title: "录音已保存到本页",
-      description: "可以先回放确认，再点击自动转写；转写不可用时直接手动补 Transcript。",
+      title: "录音已完成，准备转写",
+      description: "停止后会自动转写并填入转写文本；如果 provider 不可用，可以继续手动补转写文本。",
       timerLabel,
       tone: "info",
       badgeLabel: "已录音",
@@ -87,11 +87,11 @@ export function buildVoiceCaptureStatusPanel(input: {
     return {
       title: "音频已选择",
       description: input.lastResultStatus === "manual_required"
-        ? "当前需要手动粘贴 transcript；粘贴后仍然可以保存并送 Coach 检查。"
-        : "点击自动转写到 Transcript，或者直接在下方写出自己的理解。",
+        ? "当前需要手动粘贴转写文本；粘贴后仍然可以保存并送 Coach 检查。"
+        : "点击自动转写到转写文本，或者直接在下方写出自己的理解。",
       timerLabel,
       tone: input.lastResultStatus === "manual_required" ? "warning" : "info",
-      badgeLabel: input.lastResultStatus === "manual_required" ? "需手动" : "已选择音频",
+      badgeLabel: input.lastResultStatus === "manual_required" ? "需手动整理" : "已选择音频",
     };
   }
 

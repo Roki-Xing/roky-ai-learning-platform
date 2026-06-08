@@ -10,6 +10,7 @@ import {
   sendVoiceNoteToCoach,
 } from "@/server/voice/submit";
 import { transcribeVoiceAudio } from "@/server/voice/transcription";
+import { buildVoiceCoachReviewHref } from "@/server/voice/handoff";
 import { assertWritableRequest } from "@/server/auth/preview";
 
 function audioFileFromForm(formData: FormData) {
@@ -61,13 +62,13 @@ export async function sendVoiceNoteToCoachAction(formData: FormData) {
   const voiceNoteId = String(formData.get("voiceNoteId") ?? "").trim();
   if (!voiceNoteId) throw new Error("Missing voiceNoteId");
 
-  await sendVoiceNoteToCoach({ userId, voiceNoteId });
+  const result = await sendVoiceNoteToCoach({ userId, voiceNoteId });
 
   revalidatePath("/voice");
   revalidatePath("/coach");
   revalidatePath("/progress");
   revalidatePath("/library");
-  redirect(`/voice?voiceNoteId=${encodeURIComponent(voiceNoteId)}`);
+  redirect(buildVoiceCoachReviewHref({ reviewId: result.reviewId, voiceNoteId: result.voiceNoteId }));
 }
 
 export async function saveVoiceNoteAsNoteAction(formData: FormData) {

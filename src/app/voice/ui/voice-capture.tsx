@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { FileText, Mic, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
@@ -19,6 +20,31 @@ type TranscribeResult = {
   model: string | null;
 };
 
+function formatVoiceTranscriptionResultStatusLabel(status: TranscribeResult["status"]) {
+  if (status === "success") return "转写成功";
+  return "需手动整理";
+}
+
+function formatVoiceTranscriptionProviderLabel(provider: TranscribeResult["provider"]) {
+  if (provider === "openai") return "自动转写";
+  return "手动整理";
+}
+
+function formatVoiceTranscriptionResultNote(result: TranscribeResult) {
+  if (result.ok) return "已填入转写文本，请检查术语和代码变量名。";
+  if (!result.reason) return "当前需要手动粘贴转写文本。";
+  if (result.reason.includes("missing audio file")) {
+    return "请先选择音频文件，或者直接把理解写进转写文本。";
+  }
+  if (result.reason.includes("too large")) {
+    return "音频文件过大，请换一个 20MB 以内的文件。";
+  }
+  if (result.reason.includes("unsupported audio type")) {
+    return "这个音频格式暂不支持，请换一个常见音频格式。";
+  }
+  return "当前需要手动粘贴转写文本。";
+}
+
 export function VoiceCapture(props: {
   onTranscript: (value: string) => void;
   getMode: () => string;
@@ -28,6 +54,7 @@ export function VoiceCapture(props: {
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const isUnmountingRef = useRef(false);
 
   const [status, setStatus] = useState<VoiceCaptureStatus>("idle");
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -40,7 +67,10 @@ export function VoiceCapture(props: {
 
   useEffect(() => {
     return () => {
-      recorderRef.current?.stop();
+      isUnmountingRef.current = true;
+      if (recorderRef.current && recorderRef.current.state !== "inactive") {
+        recorderRef.current.stop();
+      }
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);
@@ -65,12 +95,17 @@ export function VoiceCapture(props: {
       if (event.data.size > 0) chunksRef.current.push(event.data);
     };
     recorder.onstop = () => {
+      stream.getTracks().forEach((track) => track.stop());
+      if (isUnmountingRef.current) return;
+
       const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
       setAudioUrl(URL.createObjectURL(blob));
       const name = `browser-recording-${new Date().toISOString()}.webm`;
       setAudioName(name);
+      let recordedFile: File | null = null;
       try {
         const file = new File([blob], name, { type: blob.type || "audio/webm" });
+        recordedFile = file;
         const dt = new DataTransfer();
         dt.items.add(file);
         if (fileInputRef.current) {
@@ -79,8 +114,10 @@ export function VoiceCapture(props: {
       } catch {
         // If the browser blocks setting file inputs programmatically, users can still upload manually.
       }
-      stream.getTracks().forEach((track) => track.stop());
       setStatus("recorded");
+      if (recordedFile) {
+        transcribeAudioFile(recordedFile);
+      }
     };
     recorder.start();
     setStatus("recording");
@@ -94,8 +131,7 @@ export function VoiceCapture(props: {
     return fileInputRef.current?.files?.[0] ?? null;
   }
 
-  function triggerTranscribe() {
-    const file = selectedFile();
+  function transcribeAudioFile(file: File | null) {
     if (!file) {
       setLastResult({
         ok: false,
@@ -108,6 +144,7 @@ export function VoiceCapture(props: {
       });
       return;
     }
+
     if (file.size > 20 * 1024 * 1024) {
       setStatus("file-too-large");
       return;
@@ -132,7 +169,7 @@ export function VoiceCapture(props: {
           status: "manual_required",
           provider: "manual",
           transcript: "",
-          audioName: audioName || null,
+          audioName: file.name || audioName || null,
           reason: err instanceof Error ? err.message : "transcription failed",
           model: null,
         });
@@ -140,6 +177,10 @@ export function VoiceCapture(props: {
         setStatus("file-selected");
       }
     });
+  }
+
+  function triggerTranscribe() {
+    transcribeAudioFile(selectedFile());
   }
 
   const statusPanel = useMemo(() => {
@@ -165,22 +206,24 @@ export function VoiceCapture(props: {
             <div className="mt-1 text-xs leading-5 text-muted-foreground">{statusPanel.description}</div>
           </div>
           <div className="rounded-md border bg-background px-3 py-2 text-right">
-            <div className="text-[0.68rem] font-medium uppercase tracking-wide text-muted-foreground">recording</div>
+            <div className="text-[0.68rem] font-medium tracking-wide text-muted-foreground">录音计时</div>
             <div className="font-mono text-lg tabular-nums">{statusPanel.timerLabel}</div>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="grid gap-2 sm:flex sm:items-center sm:justify-between">
+        <div className="grid gap-2 sm:flex sm:items-center">
           <Button
             type="button"
             size="sm"
             variant="secondary"
             onClick={startRecording}
             disabled={status === "recording" || isPending}
+            className="min-h-12 w-full sm:w-auto"
           >
-            开始录音
+            <Mic className="size-4" />
+            一键录音
           </Button>
           <Button
             type="button"
@@ -188,19 +231,27 @@ export function VoiceCapture(props: {
             variant="outline"
             onClick={stopRecording}
             disabled={status !== "recording" || isPending}
+            className="min-h-12 w-full sm:w-auto"
           >
-            停止录音
+            <Square className="size-4" />
+            停止并转写
           </Button>
         </div>
-        <div className="text-xs text-muted-foreground">先说出理解，再决定是否转写或手动整理。</div>
+        <div className="text-xs text-muted-foreground">
+          停止后自动转写并填入转写文本；上传音频仍可手动触发转写。
+        </div>
       </div>
 
       <div className="grid gap-2">
-        <div className="text-sm font-medium">上传音频（临时发送到服务端转写）</div>
+        <label htmlFor="voice-audio-file" className="text-sm font-medium">
+          上传音频（临时发送到服务端转写）
+        </label>
         <Input
+          id="voice-audio-file"
           ref={(node) => {
             fileInputRef.current = node;
           }}
+          className="min-h-11"
           name="audioFile"
           type="file"
           accept="audio/*"
@@ -225,14 +276,16 @@ export function VoiceCapture(props: {
         </audio>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
         <Button
           type="button"
           size="sm"
           onClick={triggerTranscribe}
           disabled={!canTranscribe || isPending}
+          className="min-h-11 w-full sm:w-auto"
         >
-          自动转写到 Transcript
+          <FileText className="size-4" />
+          自动转写到转写文本
         </Button>
         <div className="text-xs text-muted-foreground">
           需要服务端配置转写 Provider；未配置时会提示手动粘贴。
@@ -242,15 +295,12 @@ export function VoiceCapture(props: {
       {lastResult ? (
         <div className="rounded-lg border bg-muted/20 p-3 text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              provider: {lastResult.provider}
-              {lastResult.model ? ` / model: ${lastResult.model}` : ""}
-            </div>
+            <div>转写方式：{formatVoiceTranscriptionProviderLabel(lastResult.provider)}</div>
             <LearningStatusBadge tone={lastResult.ok ? "success" : "warning"}>
-              {lastResult.status}
+              {formatVoiceTranscriptionResultStatusLabel(lastResult.status)}
             </LearningStatusBadge>
           </div>
-          {lastResult.reason ? <div className="mt-2">reason: {lastResult.reason}</div> : null}
+          <div className="mt-2">提示：{formatVoiceTranscriptionResultNote(lastResult)}</div>
         </div>
       ) : null}
     </div>

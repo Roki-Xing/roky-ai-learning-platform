@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
+import { CurrentMissionCard } from "@/components/learning/current-mission-card";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import {
   DEFAULT_PROJECT_TEMPLATES,
   PROJECT_TYPE_LABELS,
+  buildProjectPortfolioItems,
   calculateProjectProgress,
   normalizeProjectType,
   type ProjectType,
@@ -20,6 +22,7 @@ import {
 } from "@/server/projects/code-feedback-summary";
 import { getProjectReviewCardSummary } from "@/server/projects/review-cards";
 import { localDateInTimeZone } from "@/server/time/day";
+import { getCurrentMissionData } from "@/server/learning/current-mission";
 import {
   completeMilestoneAction,
   completeProjectAction,
@@ -31,14 +34,22 @@ import { LearningStatusBadge } from "@/components/learning/learning-status-badge
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningCTAGroup } from "@/components/learning/learning-cta-group";
 import {
+  formatCodeFeedbackIssueSeverityLabel,
+  formatCodeFeedbackIssueTypeLabel,
+  formatHomeCodeFeedbackOverallLabel,
+} from "@/app/_lib/home-labels";
+import {
   MissionCompletionCriteria,
   ProjectListPanel,
   ProjectMilestonePath,
   ProjectMissionBrief,
   ProjectMissionHero,
+  ProjectPortfolioPanel,
   ProjectReviewQueuePanel,
   ProjectTemplateList,
   ProjectTypeFilter,
+  formatProjectTemplateDifficultyLabel,
+  missionStatusText,
   type ProjectListView,
   type ProjectMilestonePathItem,
   type ProjectMissionView,
@@ -54,6 +65,8 @@ function projectTypeHref(type?: string) {
   return type ? `/projects?type=${encodeURIComponent(type)}` : "/projects";
 }
 
+const projectMilestoneInputClassName = "min-h-11";
+
 export default async function ProjectsPage({
   searchParams,
 }: {
@@ -62,6 +75,7 @@ export default async function ProjectsPage({
   const sp = await searchParams;
   const userId = await requireUserId();
   const profile = await getOrCreateUserProfile({ userId });
+  const currentMission = await getCurrentMissionData(userId);
   const currentLocalDate = localDateInTimeZone({
     date: new Date(),
     timeZone: profile.timeZone ?? "Asia/Shanghai",
@@ -78,6 +92,20 @@ export default async function ProjectsPage({
     orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
     take: 100,
   });
+  const projectCardCounts = await prisma.flashcard
+    .findMany({
+      where: { userId, type: "project", id: { startsWith: "project:" } },
+      select: { id: true },
+    })
+    .then((cards) => {
+      const counts: Record<string, number> = {};
+      for (const card of cards) {
+        const [, projectId] = card.id.split(":");
+        if (!projectId) continue;
+        counts[projectId] = (counts[projectId] ?? 0) + 1;
+      }
+      return counts;
+    });
 
   const selectedProject =
     projects.find((project) => project.id === sp.projectId) ??
@@ -129,7 +157,7 @@ export default async function ProjectsPage({
       slug: template.slug,
       title: template.title,
       description: template.description,
-      difficulty: template.difficulty,
+      difficulty: formatProjectTemplateDifficultyLabel(template.difficulty),
       typeLabel: PROJECT_TYPE_LABELS[template.type],
       estimatedHours: template.estimatedHours,
       milestoneCount: template.milestones.length,
@@ -182,13 +210,25 @@ export default async function ProjectsPage({
         feedbackSummary: milestoneFeedback?.feedback.summary ?? null,
       };
     }) ?? [];
+  const portfolioItems = buildProjectPortfolioItems(projects, projectCardCounts);
 
   return (
     <AppShell
       activePath="/projects"
       title="项目实践"
+      missionBanner={
+        <CurrentMissionCard
+          mission={currentMission.mission}
+          signals={currentMission.signals}
+        />
+      }
       actions={
-        <Button asChild size="sm" variant="secondary">
+        <Button
+          asChild
+          size="sm"
+          variant="secondary"
+          className="min-h-11 w-full sm:w-auto"
+        >
           <Link href="/progress">看进度</Link>
         </Button>
       }
@@ -196,7 +236,7 @@ export default async function ProjectsPage({
       <PageHeader
         title="项目实践"
         subtitle="把每日学习推进到可保存的 Python、算法、RAG、Agent 与复现小项目"
-        badge="Mission"
+        badge="项目实践"
       />
 
       <div className="mt-4">
@@ -234,10 +274,10 @@ export default async function ProjectsPage({
                     <LearningStatusBadge
                       tone={activeMilestone.status === "completed" ? "success" : "warning"}
                     >
-                      {activeMilestone.status}
+                      {missionStatusText(activeMilestone.status)}
                     </LearningStatusBadge>
                   ) : (
-                    <LearningStatusBadge tone="success">all done</LearningStatusBadge>
+                    <LearningStatusBadge tone="success">全部完成</LearningStatusBadge>
                   )
                 }
               >
@@ -259,15 +299,27 @@ export default async function ProjectsPage({
                     <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px]">
                       <label className="grid gap-2">
                         <span className="text-sm font-medium">关联 lessonId（可选）</span>
-                        <Input name="lessonId" defaultValue={activeMilestone.lessonId ?? ""} />
+                        <Input
+                          name="lessonId"
+                          className={projectMilestoneInputClassName}
+                          defaultValue={activeMilestone.lessonId ?? ""}
+                        />
                       </label>
                       <label className="grid gap-2">
                         <span className="text-sm font-medium">关联 noteId（可选）</span>
-                        <Input name="noteId" defaultValue={activeMilestone.noteId ?? ""} />
+                        <Input
+                          name="noteId"
+                          className={projectMilestoneInputClassName}
+                          defaultValue={activeMilestone.noteId ?? ""}
+                        />
                       </label>
                       <label className="grid gap-2">
                         <span className="text-sm font-medium">代码语言</span>
-                        <Input name="language" defaultValue="python" />
+                        <Input
+                          name="language"
+                          className={projectMilestoneInputClassName}
+                          defaultValue="python"
+                        />
                       </label>
                     </div>
 
@@ -301,19 +353,31 @@ export default async function ProjectsPage({
                       </label>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <LearningCTAGroup>
-                        <Button type="submit">完成里程碑</Button>
-                        <Button formAction={saveMilestoneDraftAction} type="submit" variant="secondary">
+                    <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+                      <LearningCTAGroup className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+                        <Button type="submit" className="min-h-11 w-full sm:w-auto">
+                          完成里程碑
+                        </Button>
+                        <Button
+                          formAction={saveMilestoneDraftAction}
+                          type="submit"
+                          variant="secondary"
+                          className="min-h-11 w-full sm:w-auto"
+                        >
                           保存草稿
                         </Button>
-                        <Button formAction={reviewMilestoneCodeAction} type="submit" variant="outline">
+                        <Button
+                          formAction={reviewMilestoneCodeAction}
+                          type="submit"
+                          variant="outline"
+                          className="min-h-11 w-full sm:w-auto"
+                        >
                           保存并评审代码
                         </Button>
                       </LearningCTAGroup>
                       {activeMilestone.codeSubmissionId ? (
                         <LearningStatusBadge tone="info">
-                          feedback {activeMilestone.codeSubmissionId.slice(0, 8)}
+                          代码反馈 {activeMilestone.codeSubmissionId.slice(0, 8)}
                         </LearningStatusBadge>
                       ) : null}
                     </div>
@@ -323,7 +387,7 @@ export default async function ProjectsPage({
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="font-medium">代码反馈</div>
                           <LearningStatusBadge tone="info">
-                            {activeMilestoneFeedback.feedback.overall ?? "reviewed"}
+                            {formatHomeCodeFeedbackOverallLabel(activeMilestoneFeedback.feedback.overall) ?? "已评审"}
                           </LearningStatusBadge>
                         </div>
                         <div className="mt-2 text-muted-foreground">
@@ -333,7 +397,8 @@ export default async function ProjectsPage({
                           <ul className="mt-2 grid gap-1 text-xs text-muted-foreground">
                             {activeMilestoneFeedback.feedback.issues.slice(0, 3).map((issue) => (
                               <li key={`${issue.type}-${issue.message}`}>
-                                {issue.severity} / {issue.type}: {issue.message}
+                                {formatCodeFeedbackIssueSeverityLabel(issue.severity)} /{" "}
+                                {formatCodeFeedbackIssueTypeLabel(issue.type)}：{issue.message}
                               </li>
                             ))}
                           </ul>
@@ -372,7 +437,7 @@ export default async function ProjectsPage({
                       <div className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
                         {selectedProject.summary}
                       </div>
-                      <Button asChild size="sm">
+                      <Button asChild size="sm" className="min-h-11 w-full sm:w-auto">
                         <Link href={selectedReviewCards?.reviewHref ?? "/review"}>复习项目卡片</Link>
                       </Button>
                     </div>
@@ -382,12 +447,13 @@ export default async function ProjectsPage({
                       <div className="text-sm text-muted-foreground">
                         已完成 {selectedProgress.completed} / {selectedProgress.total} 个里程碑。
                       </div>
-                      <Button
-                        type="submit"
-                        size="sm"
-                        disabled={!selectedProgress.isComplete}
-                        variant={selectedProgress.isComplete ? "default" : "secondary"}
-                      >
+                          <Button
+                            type="submit"
+                            size="sm"
+                            disabled={!selectedProgress.isComplete}
+                            variant={selectedProgress.isComplete ? "default" : "secondary"}
+                            className="min-h-11 w-full sm:w-auto"
+                          >
                         生成项目总结
                       </Button>
                     </form>
@@ -407,6 +473,25 @@ export default async function ProjectsPage({
             </div>
           </LearningSectionCard>
         )}
+      </div>
+
+      <div className="mt-4">
+        <LearningSectionCard
+          title="项目作品集"
+          description="已完成项目会沉淀为总结、代码片段、相关知识和复习卡片。"
+          action={
+            <Button
+              asChild
+              size="sm"
+              variant="secondary"
+              className="min-h-11 w-full sm:w-auto"
+            >
+              <Link href="/projects/portfolio">打开作品集</Link>
+            </Button>
+          }
+        >
+          <ProjectPortfolioPanel items={portfolioItems} />
+        </LearningSectionCard>
       </div>
     </AppShell>
   );

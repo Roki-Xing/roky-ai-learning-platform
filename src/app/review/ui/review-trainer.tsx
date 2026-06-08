@@ -1,14 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { LearningProgressBar } from "@/components/learning/learning-progress-bar";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
+import { LearningCelebrationCue } from "@/components/learning/learning-celebration-cue";
 import { LearningEmptyState } from "@/components/learning/learning-empty-state";
 import { rateFlashcardAction } from "@/server/review/actions";
 import {
   buildReviewSessionSummary,
   type ReviewSessionCounts,
+  type ReviewSessionRatedCard,
 } from "@/server/review/session-summary";
 
 export type ReviewCardDto = {
@@ -16,6 +18,9 @@ export type ReviewCardDto = {
   front: string;
   back: string;
   type: string | null;
+  tags?: string[];
+  lessonTitle?: string | null;
+  topicTitle?: string | null;
 };
 
 export type ReviewEmptyState = {
@@ -26,6 +31,56 @@ export type ReviewEmptyState = {
 
 type Rating = "forgot" | "hard" | "good" | "easy";
 
+const ratingOptions: Array<{
+  rating: Rating;
+  label: string;
+  interval: string;
+  className: string;
+}> = [
+  {
+    rating: "forgot",
+    label: "忘了",
+    interval: "+1d",
+    className: "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100",
+  },
+  {
+    rating: "hard",
+    label: "模糊",
+    interval: "+3d",
+    className: "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100",
+  },
+  {
+    rating: "good",
+    label: "记得",
+    interval: "+7d",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+  },
+  {
+    rating: "easy",
+    label: "很熟",
+    interval: "+14d",
+    className: "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100",
+  },
+];
+
+const reviewCardTypeLabels: Record<string, string> = {
+  algorithm: "算法卡",
+  benchmark: "Radar 卡",
+  code: "代码思路卡",
+  code_bug: "代码反馈卡",
+  concept: "概念卡",
+  misconception: "误区卡",
+  mistake: "错题卡",
+  project: "项目卡",
+  quiz_error: "错题卡",
+  term: "术语卡",
+};
+
+function formatReviewCardTypeLabel(type: string | null) {
+  if (!type) return null;
+  return reviewCardTypeLabels[type] ?? "复习卡";
+}
+
 function clamp01(x: number) {
   if (!Number.isFinite(x)) return 0;
   if (x <= 0) return 0;
@@ -33,11 +88,54 @@ function clamp01(x: number) {
   return x;
 }
 
+function subscribeToHydration(callback: () => void) {
+  const frame = window.requestAnimationFrame(callback);
+  return () => window.cancelAnimationFrame(frame);
+}
+
+function getHydratedSnapshot() {
+  return true;
+}
+
+function getServerHydrationSnapshot() {
+  return false;
+}
+
+export function ReviewRatingControls(props: {
+  disabled: boolean;
+  onRating: (rating: Rating) => void;
+}) {
+  return (
+    <div role="group" aria-label="复习评分" className="grid gap-2 sm:grid-cols-4">
+      {ratingOptions.map((option) => (
+        <Button
+          key={option.rating}
+          type="button"
+          variant="secondary"
+          className={`min-h-12 justify-start text-left sm:justify-center sm:text-center ${option.className}`}
+          onClick={() => props.onRating(option.rating)}
+          disabled={props.disabled}
+        >
+          <span className="grid min-w-0 gap-0.5">
+            <span className="font-medium leading-tight">{option.label}</span>
+            <span className="text-xs leading-tight opacity-80">{option.interval}</span>
+          </span>
+        </Button>
+      ))}
+    </div>
+  );
+}
+
 function ReviewCardStage(props: {
   card: ReviewCardDto;
   onRated: (rating: Rating) => void;
 }) {
   const { card, onRated } = props;
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getHydratedSnapshot,
+    getServerHydrationSnapshot,
+  );
   const [revealed, setRevealed] = useState(false);
   const [lastRating, setLastRating] = useState<Rating | null>(null);
 
@@ -79,7 +177,7 @@ function ReviewCardStage(props: {
   }, [revealed, submitRating]);
 
   return (
-    <>
+    <div className="mx-auto grid w-full max-w-2xl gap-3">
       <div className="rounded-lg border bg-card p-5 shadow-sm">
         <div className="text-base font-semibold leading-snug">{card.front}</div>
         {revealed ? (
@@ -92,56 +190,27 @@ function ReviewCardStage(props: {
       </div>
 
       {!revealed ? (
-        <Button type="button" variant="secondary" onClick={() => setRevealed(true)}>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={!isHydrated}
+          className="min-h-12 w-full sm:w-auto"
+          onClick={() => setRevealed(true)}
+        >
           显示答案
         </Button>
       ) : (
         <form
           id="review-rate-form"
           action={rateFlashcardAction}
-          className="flex flex-wrap items-center gap-2"
+          className="grid gap-2"
         >
           <input type="hidden" name="flashcardId" value={card.id} />
           <input type="hidden" name="rating" value="" />
-          <Button
-            type="button"
-            variant="secondary"
-            className="border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
-            onClick={() => submitRating("forgot")}
-            disabled={Boolean(lastRating)}
-          >
-            1 忘了（+1d）
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            className="border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
-            onClick={() => submitRating("hard")}
-            disabled={Boolean(lastRating)}
-          >
-            2 模糊（+3d）
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            className="border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-            onClick={() => submitRating("good")}
-            disabled={Boolean(lastRating)}
-          >
-            3 记得（+7d）
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            className="border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
-            onClick={() => submitRating("easy")}
-            disabled={Boolean(lastRating)}
-          >
-            4 很熟（+14d）
-          </Button>
+          <ReviewRatingControls disabled={Boolean(lastRating)} onRating={submitRating} />
         </form>
       )}
-    </>
+    </div>
   );
 }
 
@@ -163,14 +232,32 @@ export function ReviewTrainer(props: {
     good: initialSessionCounts?.good ?? 0,
     easy: initialSessionCounts?.easy ?? 0,
   });
+  const [ratedCards, setRatedCards] = useState<ReviewSessionRatedCard[]>([]);
 
   const handleRated = useCallback(
     (rating: Rating) => {
       setLastRating(rating);
       setSessionCounts((prev) => ({ ...prev, [rating]: (prev[rating] ?? 0) + 1 }));
       setSessionTotal((prev) => Math.max(prev, queueSize));
+      if (card) {
+        setRatedCards((prev) => {
+          const next = prev.filter((entry) => entry.id !== card.id);
+          return [
+            ...next,
+            {
+              id: card.id,
+              front: card.front,
+              rating,
+              type: card.type,
+              tags: card.tags ?? [],
+              lessonTitle: card.lessonTitle ?? null,
+              topicTitle: card.topicTitle ?? null,
+            },
+          ];
+        });
+      }
     },
-    [queueSize],
+    [card, queueSize],
   );
 
   const progress = useMemo(() => {
@@ -186,9 +273,10 @@ export function ReviewTrainer(props: {
   }, [queueSize, sessionTotal]);
 
   const sessionReviewed = Object.values(sessionCounts).reduce((a, b) => a + b, 0);
-  const sessionSummary = buildReviewSessionSummary(sessionCounts);
+  const sessionSummary = buildReviewSessionSummary(sessionCounts, ratedCards);
   const sessionHasStarted = sessionTotal > 0 || sessionReviewed > 0;
   const sessionComplete = sessionHasStarted && queueSize === 0;
+  const cardTypeLabel = formatReviewCardTypeLabel(card?.type ?? null);
 
   return (
     <div className="mt-3 grid gap-3">
@@ -197,20 +285,29 @@ export function ReviewTrainer(props: {
           <div className="flex items-center gap-2">
             <div>队列：{queueSize} 张</div>
             {indexLabel ? <div>进度：{indexLabel}</div> : null}
-            {card?.type ? <LearningStatusBadge tone="neutral">{card.type}</LearningStatusBadge> : null}
+            {cardTypeLabel ? (
+              <LearningStatusBadge tone="neutral">{cardTypeLabel}</LearningStatusBadge>
+            ) : null}
             {lastRating ? (
               <LearningStatusBadge tone="info">已提交：{lastRating}</LearningStatusBadge>
             ) : null}
           </div>
-          <div className="text-xs text-muted-foreground">Space 显示答案；1-4 评分</div>
+          <div className="hidden text-xs text-muted-foreground sm:block">
+            电脑快捷键：Space 显示答案；1-4 评分
+          </div>
         </div>
-        <LearningProgressBar value={progress} />
+        <LearningProgressBar value={progress} label="复习队列进度" />
       </div>
 
       {card ? (
         <ReviewCardStage key={card.id} card={card} onRated={handleRated} />
       ) : sessionComplete ? (
         <div className="rounded-lg border bg-card p-5 shadow-sm">
+          <LearningCelebrationCue
+            kind="review_cleared"
+            metric={`${sessionSummary.reviewedCount} 张 / 留存 ${sessionSummary.retentionRate}%`}
+            className="mb-4"
+          />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-base font-semibold">{sessionSummary.title}</div>
             <LearningStatusBadge tone={sessionSummary.tone}>
@@ -220,34 +317,62 @@ export function ReviewTrainer(props: {
           <div className="mt-2 text-sm text-muted-foreground">
             {sessionSummary.description}
           </div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          <div className="mt-4 grid gap-2 sm:grid-cols-5">
             <div className="rounded-md border bg-muted/20 px-3 py-2">
               <div className="text-xs text-muted-foreground">本轮复习</div>
               <div className="mt-1 text-xl font-semibold tabular-nums">
                 {sessionSummary.reviewedCount}
               </div>
             </div>
-            <div className="rounded-md border bg-emerald-50 px-3 py-2 text-emerald-800">
-              <div className="text-xs">稳定记住</div>
+            <div className="rounded-md border bg-rose-50 px-3 py-2 text-rose-700">
+              <div className="text-xs">忘了</div>
               <div className="mt-1 text-xl font-semibold tabular-nums">
-                {sessionSummary.retainedCount}
+                {sessionSummary.ratingBreakdown.forgot}
               </div>
             </div>
             <div className="rounded-md border bg-amber-50 px-3 py-2 text-amber-900">
-              <div className="text-xs">需要补弱</div>
+              <div className="text-xs">模糊</div>
               <div className="mt-1 text-xl font-semibold tabular-nums">
-                {sessionSummary.weakCount}
+                {sessionSummary.ratingBreakdown.hard}
+              </div>
+            </div>
+            <div className="rounded-md border bg-emerald-50 px-3 py-2 text-emerald-800">
+              <div className="text-xs">记得</div>
+              <div className="mt-1 text-xl font-semibold tabular-nums">
+                {sessionSummary.ratingBreakdown.good}
+              </div>
+            </div>
+            <div className="rounded-md border bg-indigo-50 px-3 py-2 text-indigo-800">
+              <div className="text-xs">很熟</div>
+              <div className="mt-1 text-xl font-semibold tabular-nums">
+                {sessionSummary.ratingBreakdown.easy}
               </div>
             </div>
           </div>
-          <div className="mt-3 grid gap-1 text-sm text-muted-foreground sm:grid-cols-4">
-            <div>忘了：{sessionCounts.forgot}</div>
-            <div>模糊：{sessionCounts.hard}</div>
-            <div>记得：{sessionCounts.good}</div>
-            <div>很熟：{sessionCounts.easy}</div>
-          </div>
+          {sessionSummary.weakAreas.length ? (
+            <div className="mt-4 rounded-lg border bg-amber-50/50 p-3">
+              <div className="text-sm font-medium">主要薄弱</div>
+              <div className="mt-3 grid gap-2">
+                {sessionSummary.weakAreas.map((area) => (
+                  <div key={area.label} className="rounded-md border bg-background px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-sm font-medium">{area.label}</div>
+                      <div className="text-xs text-muted-foreground">
+                        忘了 {area.forgotCount} / 模糊 {area.hardCount}
+                      </div>
+                    </div>
+                    {area.exampleCards.length ? (
+                      <div className="mt-2 text-xs leading-5 text-muted-foreground">
+                        相关卡片：{area.exampleCards.join(" / ")}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <div className="mt-4 rounded-lg border bg-muted/20 p-3">
-            <div className="text-sm font-medium">复习后行动计划</div>
+            <div className="text-sm font-medium">建议</div>
             <div className="mt-3 grid gap-2">
               {sessionSummary.actionPlan.map((item, index) => (
                 <div key={item.title} className="flex gap-3 rounded-md border bg-background px-3 py-2">
@@ -261,12 +386,36 @@ export function ReviewTrainer(props: {
                 </div>
               ))}
             </div>
+            {sessionSummary.remediationLessonLabel ? (
+              <div className="mt-3 rounded-md border border-dashed bg-background px-3 py-2 text-xs text-muted-foreground">
+                建议明天补弱短课：{sessionSummary.remediationLessonLabel}
+              </div>
+            ) : null}
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button asChild size="sm" variant="secondary">
+          {sessionSummary.remediationActions.length ? (
+            <div className="mt-4 rounded-lg border bg-rose-50/40 p-3">
+              <div className="text-sm font-medium">补弱动作</div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                {sessionSummary.remediationActions.map((action) => (
+                  <a
+                    key={action.label}
+                    href={action.href}
+                    className="grid min-h-24 gap-2 rounded-md border bg-background px-3 py-2 text-sm transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="font-medium">{action.label}</span>
+                    <span className="text-xs leading-5 text-muted-foreground">
+                      {action.description}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">
+            <Button asChild size="sm" variant="secondary" className="min-h-11 w-full sm:w-auto">
               <a href={sessionSummary.primaryAction.href}>{sessionSummary.primaryAction.label}</a>
             </Button>
-            <Button asChild size="sm" variant="outline">
+            <Button asChild size="sm" variant="outline" className="min-h-11 w-full sm:w-auto">
               <a href={sessionSummary.secondaryAction.href}>
                 {sessionSummary.secondaryAction.label}
               </a>

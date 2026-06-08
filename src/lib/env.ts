@@ -19,6 +19,7 @@ export const env = createEnv({
     OPENAI_API_KEY: z.string().min(1).optional(),
     OPENAI_TRANSCRIBE_MODEL: z.string().min(1).optional(),
     ALLOW_DEMO_USER: z.string().optional(),
+    LOGIN_PASSWORD: z.string().min(4).optional(),
     PREVIEW_TOKEN: z.string().min(16).optional(),
   },
   client: {

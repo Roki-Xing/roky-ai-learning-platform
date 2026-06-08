@@ -33,6 +33,12 @@ function statusRingClass(status: LearningTimelineItemStatus) {
   }
 }
 
+function statusLabel(status: LearningTimelineItemStatus) {
+  if (status === "done") return "完成";
+  if (status === "active") return "进行中";
+  return "待办";
+}
+
 export function LearningTimeline(props: { title?: string; items: LearningTimelineItem[] }) {
   return (
     <div className="rounded-lg border bg-card p-3 shadow-sm">
@@ -56,6 +62,9 @@ export function LearningTimeline(props: { title?: string; items: LearningTimelin
                 )}
               >
                 <StatusIcon status={item.status} />
+                <span className="sr-only">
+                  第 {idx + 1} 步，{statusLabel(item.status)}
+                </span>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
@@ -77,4 +86,3 @@ export function LearningTimeline(props: { title?: string; items: LearningTimelin
     </div>
   );
 }
-

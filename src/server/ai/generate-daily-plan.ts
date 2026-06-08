@@ -4,6 +4,7 @@ import {
   GeneratedDailyPlanSchema,
   type GeneratedDailyPlan,
 } from "@/server/ai/schemas";
+import { buildPersistedDailyGenerationOutput } from "@/server/ai/daily-generation-quality";
 import type { CurriculumSignalSnapshot } from "@/server/curriculum/types";
 import type { Prisma } from "@prisma/client";
 
@@ -33,6 +34,7 @@ type CurriculumContext = {
 };
 
 export const DEFAULT_DAILY_PLAN_AI_TIMEOUT_MS = 20_000;
+export const DAILY_PLAN_PROMPT_VERSION = "daily-plan-v2.10-code-sketch-course-blocks";
 
 export function dailyPlanAiTimeoutMs(value = process.env.DEEPSEEK_DAILY_TIMEOUT_MS) {
   const parsed = Number.parseInt(String(value ?? ""), 10);
@@ -140,7 +142,8 @@ export function buildDailyPlanMessages(args: {
     lesson: {
       title: "Example Lesson Title",
       summary: "One-paragraph summary.",
-      contentMarkdown: "# Title\n\nShort lesson content in markdown.",
+      contentMarkdown:
+        "# Title\n\n> 核心直觉：Explain the central intuition in one concrete sentence.\n\n> 常见误区：Name one misconception to avoid.\n\n> 重点：Name the one idea the learner must remember.\n\n> 例子卡：Give one compact concrete example or analogy.\n\n> 代码/伪代码：Show the minimal algorithm shape.\n\n> 图示：Describe a simple visual layout or mental diagram the learner can sketch.\n\n> 互动实验：Ask the learner to vary one input or parameter and predict what changes.\n\n> 自测卡：Ask one short retrieval question the learner can answer without notes.\n\nUse inline math like $a^T b$ and block math like:\n\n$$\n\\operatorname{softmax}(x_i)=\\frac{e^{x_i}}{\\sum_j e^{x_j}}\n$$",
       objectives: ["Objective 1"],
       keyTerms: ["Term 1"],
       guidedSteps: [
@@ -243,6 +246,7 @@ export function buildDailyPlanMessages(args: {
     `- localDate: ${args.localDate}`,
     `- timeZone: ${args.timeZone}`,
     `- topicSlug: ${args.topicSlug}`,
+    `- promptVersion: ${DAILY_PLAN_PROMPT_VERSION}`,
     `- schemaVersion: ${DAILY_PLAN_SCHEMA_VERSION}`,
     args.curriculum
       ? [
@@ -285,6 +289,17 @@ export function buildDailyPlanMessages(args: {
     `- for multi_choice: options[] required, answer is number[] indices`,
     `- for true_false: answer is boolean`,
     `- lesson.contentMarkdown must be readable and concise (<= 120 lines)`,
+    "- lesson.contentMarkdown should include markdown blockquote course callouts rendered by LearningMarkdown:",
+    "  > 核心直觉：one concrete intuition",
+    "  > 常见误区：one common misconception",
+    "  > 重点：one idea the learner must remember",
+    "  > 例子卡：one compact concrete example or analogy",
+    "  > 代码/伪代码：minimal code or pseudocode sketch, rendered as data-learning-callout=\"code_sketch\"",
+    "  > 图示：one simple visual layout or mental diagram the learner can sketch",
+    "  > 互动实验：one small parameter/input change the learner can try or predict",
+    "  > 自测卡：one retrieval question the learner can answer without notes",
+    "- when using formulas in lesson.contentMarkdown or guidedSteps, use markdown math syntax: inline $...$ and block $$...$$",
+    "- use standard LaTeX math commands inside formulas. Do not use HTML for formulas",
     `- include 5-7 guidedSteps, each is an object with fields: type/title/content/question?/expectedAnswer?/hints[]`,
     `- target a ${dailyMinutes}-minute learning session`,
     `- keep all text in ${outputLanguage} except code blocks`,
@@ -371,6 +386,7 @@ async function tryGenerateWithDeepSeek(args: {
     flashcardCount: 3,
     userProfile: args.userProfile ?? null,
     curriculum: args.curriculum ?? null,
+    promptVersion: DAILY_PLAN_PROMPT_VERSION,
     schemaVersion: DAILY_PLAN_SCHEMA_VERSION,
   };
 
@@ -387,6 +403,7 @@ async function tryGenerateWithDeepSeek(args: {
     await prisma.aiGenerationJob.update({ where: { id: job.id }, data });
   };
   const timeoutMs = dailyPlanAiTimeoutMs();
+  const recentStudies = args.curriculum?.signalSnapshot?.recentStudies ?? [];
 
   const validate = (raw: unknown) => {
     const validated = GeneratedDailyPlanSchema.safeParse(raw);
@@ -436,8 +453,15 @@ async function tryGenerateWithDeepSeek(args: {
       await updateJob({
         status: "success",
         output: {
-          ...repaired,
-          meta: { repaired: true, repairReason: "json_parse" },
+          ...buildPersistedDailyGenerationOutput({
+            tpl: repaired,
+            source: "deepseek",
+            topicSlug: args.topicSlug,
+            recentStudies,
+            generationRetries: 1,
+            repairReason: "json_parse",
+          }),
+          rawPrimary: primaryRes.content.slice(0, 8_000),
         } as Prisma.InputJsonValue,
         model: repairRes.model,
         tokenUsage: (repairRes.usage ?? null) as Prisma.InputJsonValue,
@@ -450,7 +474,12 @@ async function tryGenerateWithDeepSeek(args: {
       const validated = validate(primaryObj);
       await updateJob({
         status: "success",
-        output: validated as Prisma.InputJsonValue,
+        output: buildPersistedDailyGenerationOutput({
+          tpl: validated,
+          source: "deepseek",
+          topicSlug: args.topicSlug,
+          recentStudies,
+        }) as Prisma.InputJsonValue,
         model: primaryRes.model,
         tokenUsage: (primaryRes.usage ?? null) as Prisma.InputJsonValue,
       });
@@ -478,8 +507,15 @@ async function tryGenerateWithDeepSeek(args: {
       await updateJob({
         status: "success",
         output: {
-          ...repaired,
-          meta: { repaired: true, repairReason: "schema_validation" },
+          ...buildPersistedDailyGenerationOutput({
+            tpl: repaired,
+            source: "deepseek",
+            topicSlug: args.topicSlug,
+            recentStudies,
+            generationRetries: 1,
+            repairReason: "schema_validation",
+          }),
+          rawPrimary: primaryRes.content.slice(0, 8_000),
         } as Prisma.InputJsonValue,
         model: repairRes.model,
         tokenUsage: (repairRes.usage ?? null) as Prisma.InputJsonValue,
@@ -488,10 +524,23 @@ async function tryGenerateWithDeepSeek(args: {
       return { source: "deepseek" as const, tpl: repaired, jobId: job.id };
     }
   } catch (e) {
-    await updateJob({ status: "error", error: toIssueSummary(e) });
+    const fallbackTpl = pickDailyTemplate({ topicSlug: args.topicSlug });
+    await updateJob({
+      status: "error",
+      error: toIssueSummary(e),
+      output: buildPersistedDailyGenerationOutput({
+        tpl: fallbackTpl,
+        source: "template",
+        topicSlug: args.topicSlug,
+        recentStudies,
+        generationRetries: 1,
+        repairReason: "fallback_error",
+        meta: { fallback: true, repairAttempted: true, error: toIssueSummary(e) },
+      }) as Prisma.InputJsonValue,
+    });
     return {
       source: "template" as const,
-      tpl: pickDailyTemplate({ topicSlug: args.topicSlug }),
+      tpl: fallbackTpl,
       jobId: job.id,
     };
   }

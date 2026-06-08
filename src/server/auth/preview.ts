@@ -34,8 +34,12 @@ export async function isPreviewMode() {
   return isPreviewSessionTokenValid(cookieStore.get(PREVIEW_SESSION_COOKIE)?.value ?? null);
 }
 
-export async function assertWritableRequest() {
-  if (await isPreviewMode()) {
+export function assertPreviewWritableAllowed(previewMode: boolean) {
+  if (previewMode) {
     throw new Error("Preview Mode is read-only");
   }
+}
+
+export async function assertWritableRequest() {
+  assertPreviewWritableAllowed(await isPreviewMode());
 }

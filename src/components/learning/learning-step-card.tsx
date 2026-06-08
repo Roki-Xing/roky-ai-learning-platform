@@ -11,6 +11,12 @@ function statusTone(status: LearningStepCardStatus): LearningStatusTone {
   return "neutral";
 }
 
+function statusLabel(status: LearningStepCardStatus) {
+  if (status === "done") return "完成";
+  if (status === "active") return "进行中";
+  return "待办";
+}
+
 function StatusIcon(props: { status: LearningStepCardStatus }) {
   if (props.status === "done") return <Check className="size-4" />;
   if (props.status === "active") return <CircleDot className="size-4" />;
@@ -26,6 +32,7 @@ export function LearningStepCard(props: {
   className?: string;
 }) {
   const status = props.status ?? "todo";
+  const label = statusLabel(status);
 
   return (
     <div
@@ -44,16 +51,16 @@ export function LearningStepCard(props: {
               ? "border-indigo-200 bg-indigo-50 text-indigo-700"
               : "border-border bg-muted/30 text-muted-foreground",
         )}
-        aria-label={`step ${props.index}`}
       >
         <StatusIcon status={status} />
+        <span className="sr-only">
+          第 {props.index} 步，{label}
+        </span>
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <div className="font-medium">{props.title}</div>
-          <LearningStatusBadge tone={statusTone(status)}>
-            {status === "done" ? "完成" : status === "active" ? "进行中" : "待办"}
-          </LearningStatusBadge>
+          <LearningStatusBadge tone={statusTone(status)}>{label}</LearningStatusBadge>
         </div>
         {props.description ? (
           <div className="mt-1 text-sm text-muted-foreground">{props.description}</div>

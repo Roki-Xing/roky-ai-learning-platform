@@ -57,7 +57,9 @@ test("voice flow saves a manual transcript and shows the learning pipeline @inte
     await expect(form).toBeVisible();
     await expect(form.locator('select[name="mode"]')).toHaveValue("free_thought");
 
-    await form.getByLabel("Transcript").fill(`我用语音解释 Self-Attention 的 Q/K/V。${marker}`);
+    await form
+      .getByLabel("语音转写文本")
+      .fill(`我用语音解释 Self-Attention 的 Q/K/V。${marker}`);
     await form.getByLabel("整理版").fill(`整理版：Q/K/V 是同一输入的三种投影。${marker}`);
 
     await Promise.all([
@@ -70,7 +72,7 @@ test("voice flow saves a manual transcript and shows the learning pipeline @inte
     voiceNoteId = new URL(page.url()).searchParams.get("voiceNoteId");
     expect(voiceNoteId).toBeTruthy();
 
-    await expect(page.getByText("当前 Voice Note")).toBeVisible();
+    await expect(page.getByText("当前语音笔记")).toBeVisible();
     await expect(page.getByText("已捕获")).toBeVisible();
     await expect(page.getByText(marker).first()).toBeVisible();
     await expect(page.getByText("语音学习流水线")).toBeVisible();
@@ -94,7 +96,7 @@ test("voice flow sends transcript to coach, creates cards, and opens focused rev
 
     const form = page.getByTestId("voice-note-form");
     await expect(form).toBeVisible();
-    await form.getByLabel("Transcript").fill(
+    await form.getByLabel("语音转写文本").fill(
       `我觉得 attention 就是把所有 token 平均一下。${marker}`,
     );
 
@@ -109,32 +111,34 @@ test("voice flow sends transcript to coach, creates cards, and opens focused rev
     expect(voiceNoteId).toBeTruthy();
 
     await Promise.all([
-      page.waitForURL((url) => url.pathname === "/voice" && url.searchParams.get("voiceNoteId") === voiceNoteId, {
-        timeout: 20_000,
-      }),
+      page.waitForURL(
+        (url) =>
+          url.pathname === "/coach" &&
+          url.searchParams.has("reviewId") &&
+          url.searchParams.get("source") === "voice-note" &&
+          url.searchParams.get("voiceNoteId") === voiceNoteId,
+        { timeout: 20_000 },
+      ),
       page.getByRole("button", { name: "送 Coach 检查" }).click(),
     ]);
-    await expect(page.getByRole("button", { name: "已送 Coach" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "查看 Coach" })).toBeVisible();
 
-    await Promise.all([
-      page.waitForURL((url) => url.pathname === "/voice" && url.searchParams.get("voiceNoteId") === voiceNoteId, {
-        timeout: 20_000,
-      }),
-      page.getByRole("button", { name: "生成复习卡片" }).click(),
-    ]);
+    const reviewId = new URL(page.url()).searchParams.get("reviewId");
+    expect(reviewId).toBeTruthy();
 
-    await expect(page.getByText("语音卡片已进入复习队列")).toBeVisible();
-    const reviewLink = page.getByRole("link", { name: /复习这 \d+ 张语音卡片/ });
-    await expect(reviewLink).toBeVisible();
+    await expect(page.getByText("来自语音笔记")).toBeVisible();
+    await expect(page.getByText("语音理解已进入 Coach review")).toBeVisible();
+    await expect(page.getByText(marker).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "查看语音笔记" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "保存为 Note" })).toBeVisible();
 
     await Promise.all([
       page.waitForURL((url) => url.pathname === "/review" && url.searchParams.get("source") === "voice-note", {
         timeout: 20_000,
       }),
-      reviewLink.click(),
+      page.getByRole("button", { name: "生成卡片" }).click(),
     ]);
 
+    await expect(page.getByText("语音笔记复习")).toBeVisible();
     await expect(page.getByRole("heading", { name: /复习/ })).toBeVisible();
     await expect(page.getByText("语音笔记复习")).toBeVisible();
     await expect(page.getByText(marker).first()).toBeVisible();

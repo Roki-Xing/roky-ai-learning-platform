@@ -12,6 +12,11 @@ export type LearningFocusPlayerStage = {
   title: string;
   eyebrow?: string;
   description: string;
+  guidance?: {
+    task: string;
+    reason: string;
+    completion: string;
+  };
   status: "todo" | "active" | "done";
   body: React.ReactNode;
 };
@@ -62,7 +67,7 @@ export function LearningFocusPlayer(props: {
     >
       <div className="grid min-h-[560px] lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex min-w-0 flex-col">
-          <div className="border-b p-4 md:p-5">
+          <div className="sticky top-0 z-10 border-b bg-card/95 p-4 backdrop-blur md:p-5 lg:static lg:bg-transparent lg:backdrop-blur-none">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -82,13 +87,35 @@ export function LearningFocusPlayer(props: {
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
                   {current.description}
                 </p>
+                {current.guidance ? (
+                  <dl className="mt-4 grid max-w-4xl gap-2 md:grid-cols-3">
+                    <div className="rounded-md bg-muted/40 px-3 py-2">
+                      <dt className="text-xs font-medium text-foreground">你现在要做什么</dt>
+                      <dd className="mt-1 text-xs leading-5 text-muted-foreground">
+                        {current.guidance.task}
+                      </dd>
+                    </div>
+                    <div className="rounded-md bg-muted/40 px-3 py-2">
+                      <dt className="text-xs font-medium text-foreground">为什么做这个</dt>
+                      <dd className="mt-1 text-xs leading-5 text-muted-foreground">
+                        {current.guidance.reason}
+                      </dd>
+                    </div>
+                    <div className="rounded-md bg-muted/40 px-3 py-2">
+                      <dt className="text-xs font-medium text-foreground">完成标准</dt>
+                      <dd className="mt-1 text-xs leading-5 text-muted-foreground">
+                        {current.guidance.completion}
+                      </dd>
+                    </div>
+                  </dl>
+                ) : null}
               </div>
               <div className="w-full max-w-[220px] text-xs text-muted-foreground">
                 <div className="flex items-center justify-between gap-2">
                   <span>{index + 1} / {props.stages.length}</span>
                   <span>{Math.round(progress * 100)}%</span>
                 </div>
-                <LearningProgressBar value={progress} className="mt-2" />
+                <LearningProgressBar value={progress} label="今日学习进度" className="mt-2" />
               </div>
             </div>
           </div>
@@ -97,11 +124,12 @@ export function LearningFocusPlayer(props: {
             <div className="mx-auto w-full max-w-4xl">{current.body}</div>
           </div>
 
-          <div className="border-t p-4 md:p-5">
+          <div className="sticky bottom-16 z-20 border-t bg-card/95 p-4 backdrop-blur md:p-5 lg:static lg:bg-transparent lg:backdrop-blur-none">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <Button
                 type="button"
                 variant="outline"
+                className="min-h-11 flex-1 sm:flex-none"
                 disabled={index === 0}
                 onClick={() => setIndex((prev) => Math.max(0, prev - 1))}
               >
@@ -113,7 +141,7 @@ export function LearningFocusPlayer(props: {
                   <button
                     key={stage.id}
                     type="button"
-                    aria-label={`切换到${stage.title}`}
+                    aria-label={`切换到${stage.title}（${labelForStatus(stage.status)}）`}
                     aria-current={stageIndex === index ? "step" : undefined}
                     onClick={() => setIndex(stageIndex)}
                     className={cn(
@@ -129,6 +157,7 @@ export function LearningFocusPlayer(props: {
               </div>
               <Button
                 type="button"
+                className="min-h-11 flex-1 sm:flex-none"
                 disabled={index >= props.stages.length - 1}
                 onClick={() => setIndex((prev) => Math.min(props.stages.length - 1, prev + 1))}
               >
@@ -203,7 +232,7 @@ export function LearningFocusPlayer(props: {
                 <div className="mt-2 text-xs text-muted-foreground">
                   需要快速跳转或连续编辑时，可回到下方完整页面。
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">{props.actions}</div>
+                <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">{props.actions}</div>
               </div>
             ) : null}
           </div>

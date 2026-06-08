@@ -25,9 +25,9 @@ export function buildVoicePipelineNextAction(input: VoicePipelineNextActionInput
   if (!input.hasSelected) {
     return {
       kind: "capture",
-      label: "先保存 Voice Note",
-      description: "先录音、上传或粘贴 transcript，保存后再把这段理解送进学习流水线。",
-      primaryButtonLabel: "保存 Voice Note",
+      label: "先保存语音笔记",
+      description: "先录音、上传或粘贴转写文本，保存后再把这段理解送进学习流水线。",
+      primaryButtonLabel: "保存语音笔记",
       href: null,
       tone: "warning",
     };

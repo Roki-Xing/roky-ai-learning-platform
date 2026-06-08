@@ -1,8 +1,13 @@
 import { AppShell } from "@/components/app-shell";
+import { BadgeShelf } from "@/components/learning/badge-shelf";
+import { CurrentMissionCard } from "@/components/learning/current-mission-card";
+import { LearningHabitGoalCard } from "@/components/learning/learning-habit-goal-card";
+import { XpLevelCard } from "@/components/learning/xp-level-card";
 import { Sprint9AnalyticsPanels, type QualityRow } from "@/app/progress/analytics-panels";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { readPersistedDailyGenerationQuality } from "@/server/ai/daily-generation-quality";
 import {
   buildCalendarDays,
   buildProgressWeakDomainSummary,
@@ -25,10 +30,30 @@ import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import { calculateProjectProgress, normalizeProjectType, PROJECT_TYPE_LABELS } from "@/server/projects/base";
 import { buildReviewableFlashcardWhere } from "@/server/review/filter";
 import { localDateInTimeZone } from "@/server/time/day";
+import { getCurrentMissionData } from "@/server/learning/current-mission";
+import { buildLearningBadges } from "@/server/learning/badges";
+import {
+  buildLearningHabitGoal,
+  countCompletedDaysInLocalWeek,
+} from "@/server/learning/habit-goal";
+import { calculateLearningXp } from "@/server/learning/xp";
+import {
+  formatCoachModeLabel,
+  formatHomeCodeFeedbackOverallLabel,
+  formatTodayPlanSourceLabel,
+} from "@/app/_lib/home-labels";
+import { missionStatusText } from "@/app/projects/ui/project-mission-workspace";
+
+const progressRecentSignalLinkClassName = "min-h-11 rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50";
+
+function formatProgressWeakTopicDomainLabel(domainName: string | null | undefined) {
+  return domainName?.trim() ? domainName : "未标记领域";
+}
 
 export default async function ProgressPage() {
   const userId = await requireUserId();
   const profile = await getOrCreateUserProfile({ userId });
+  const currentMission = await getCurrentMissionData(userId);
 
   const now = new Date();
   const timeZone = profile.timeZone ?? "Asia/Shanghai";
@@ -48,6 +73,7 @@ export default async function ProgressPage() {
     codeSubmissionsCount,
     codeFeedbackCount,
     thoughtReviewsCount,
+    voiceNotesCount,
     notesCount,
     completedDates,
     domainPlans,
@@ -87,6 +113,7 @@ export default async function ProgressPage() {
     prisma.codeSubmission.count({ where: { userId } }).catch(() => 0),
     prisma.codeFeedback.count({ where: { userId } }).catch(() => 0),
     prisma.thoughtReview.count({ where: { userId } }),
+    prisma.voiceNote.count({ where: { userId } }),
     prisma.note.count({ where: { userId } }),
     prisma.dailyPlan.findMany({
       where: { ...activeOfficialPlanWhere, status: "completed" },
@@ -119,6 +146,7 @@ export default async function ProgressPage() {
         localDate: true,
         status: true,
         lessonId: true,
+        generationJobId: true,
         lesson: {
           select: {
             title: true,
@@ -467,20 +495,37 @@ export default async function ProgressPage() {
   const flashcardCountByLesson = new Map(
     flashcardGroups.map((g) => [g.lessonId, g._count._all]),
   );
+  const qualityJobIds = qualityPlans
+    .map((plan) => plan.generationJobId)
+    .filter((jobId): jobId is string => typeof jobId === "string" && jobId.length > 0);
+  const qualityJobOutputs = qualityJobIds.length
+    ? await prisma.aiGenerationJob.findMany({
+        where: { id: { in: qualityJobIds } },
+        select: { id: true, output: true },
+      })
+    : [];
+  const persistedQualityByJobId = new Map(
+    qualityJobOutputs.map((job) => [job.id, readPersistedDailyGenerationQuality(job.output)]),
+  );
   const qualityRows: QualityRow[] = qualityPlans.map((plan) => {
-    const metrics = calculateContentQuality({
+    const fallbackMetrics = calculateContentQuality({
       lesson: plan.lesson,
       quizCount: plan.lesson._count.quizzes,
       flashcardCount: flashcardCountByLesson.get(plan.lessonId) ?? 0,
       generationRetries: 0,
     });
+    const persisted = plan.generationJobId
+      ? (persistedQualityByJobId.get(plan.generationJobId) ?? null)
+      : null;
+    const metrics = persisted?.qualityMetrics ?? fallbackMetrics;
     return {
       id: plan.id,
       title: plan.lesson.title,
       localDate: plan.localDate,
       status: plan.status,
       metrics,
-      score: calculateQualityScore(metrics),
+      score: persisted?.qualityScore ?? calculateQualityScore(metrics),
+      warnings: persisted?.qualityWarnings ?? [],
     };
   });
   const learningEffect = calculateLearningEffect({
@@ -551,9 +596,50 @@ export default async function ProgressPage() {
     (sum, project) => sum + calculateProjectProgress(project.milestones).completed,
     0,
   );
+  const learningXp = calculateLearningXp({
+    completedLessons: completedPlansCount,
+    reviewedCards: reviewLogsCount,
+    correctQuizAttempts: quizAttemptsForEffect.filter((attempt) => attempt.isCorrect).length,
+    codeSubmissions: filteredCodeSubmissionsCount,
+    resolvedMisconceptions: resolvedMisconceptionsCount,
+    notes: notesCount,
+    voiceNotes: voiceNotesCount,
+    completedProjectMilestones: completedMilestoneCount,
+  });
+  const learningBadges = buildLearningBadges({
+    streakDays: streak,
+    codeSubmissions: filteredCodeSubmissionsCount,
+    voiceNotes: voiceNotesCount,
+    thoughtReviews: thoughtReviewsCount,
+    resolvedMisconceptions: resolvedMisconceptionsCount,
+    completedProjects: completedProjectCount,
+    glossaryCards: glossaryReviewed,
+    radarCards: radarReviewed,
+  });
+  const habitGoal = buildLearningHabitGoal({
+    completedDaysThisWeek: countCompletedDaysInLocalWeek({
+      completedLocalDates: completedDates.map((item) => item.localDate),
+      todayLocalDate,
+    }),
+    streakDays: streak,
+    todayQuestCompleted:
+      currentMission.input.todayPlanStatus === "completed" ||
+      currentMission.input.todayNoteCount > 0 ||
+      currentMission.input.todayVoiceNoteCount > 0,
+    lightweightQuestHref: "/voice?mode=daily_understanding",
+  });
 
   return (
-    <AppShell activePath="/progress" title="学习进度">
+    <AppShell
+      activePath="/progress"
+      title="学习进度"
+      missionBanner={
+        <CurrentMissionCard
+          mission={currentMission.mission}
+          signals={currentMission.signals}
+        />
+      }
+    >
       <PageHeader
         title="学习进度"
         subtitle="学习日历、内容质量、学习效果、代码趋势与知识覆盖"
@@ -575,6 +661,14 @@ export default async function ProgressPage() {
         weeklyRemediationPlan={weeklyRemediationPlan}
       />
 
+      <div className="mb-4 grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <XpLevelCard xp={learningXp} />
+        <div className="grid gap-4">
+          <LearningHabitGoalCard goal={habitGoal} />
+          <BadgeShelf badges={learningBadges} />
+        </div>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2 grid gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -585,7 +679,7 @@ export default async function ProgressPage() {
               <CardContent className="text-sm">
                 <div className="text-2xl font-semibold tabular-nums">{streak}</div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  以 DailyPlan.completed 为准（用户时区日期）
+                  以完成学习日为准（用户时区日期）
                 </div>
               </CardContent>
             </Card>
@@ -622,7 +716,7 @@ export default async function ProgressPage() {
               <CardContent className="text-sm">
                 <div className="text-2xl font-semibold tabular-nums">{notesCount}</div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  ReviewLog：{reviewLogsCount}
+                  复习记录：{reviewLogsCount}
                 </div>
               </CardContent>
             </Card>
@@ -689,7 +783,7 @@ export default async function ProgressPage() {
                     <a
                       key={p.id}
                       href={`/library?lessonId=${encodeURIComponent(p.lessonId)}`}
-                      className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50"
+                      className={progressRecentSignalLinkClassName}
                     >
                       <div className="font-medium">{p.lesson.title}</div>
                       <div className="mt-1 text-xs text-muted-foreground">
@@ -716,7 +810,7 @@ export default async function ProgressPage() {
                   <a
                     key={m.id}
                     href={`/library?lessonId=${encodeURIComponent(m.lessonId)}`}
-                    className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50"
+                    className={progressRecentSignalLinkClassName}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0 font-medium">{m.summary}</div>
@@ -750,12 +844,13 @@ export default async function ProgressPage() {
                     <a
                       key={f.id}
                       href={`/library?lessonId=${encodeURIComponent(f.lessonId)}`}
-                      className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50"
+                      className={progressRecentSignalLinkClassName}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="font-medium">{f.localDate}</div>
                         <Badge variant="outline">
-                          {f.provider}{f.overall ? ` / ${f.overall}` : ""}
+                          {formatTodayPlanSourceLabel(f.provider)}
+                          {f.overall ? ` / ${formatHomeCodeFeedbackOverallLabel(f.overall) ?? "待检查"}` : ""}
                         </Badge>
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">{f.summary}</div>
@@ -785,13 +880,13 @@ export default async function ProgressPage() {
                   <a
                     key={r.id}
                     href={`/coach?reviewId=${encodeURIComponent(r.id)}`}
-                    className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50"
+                    className={progressRecentSignalLinkClassName}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0 font-medium">
                         {r.mainClaim ?? "未命名评审"}
                       </div>
-                      <Badge variant="outline">{r.mode}</Badge>
+                      <Badge variant="outline">{formatCoachModeLabel(r.mode)}</Badge>
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       {r.createdAt.toISOString().slice(0, 16).replace("T", " ")}
@@ -818,7 +913,7 @@ export default async function ProgressPage() {
                     <a
                       key={project.id}
                       href={`/projects?projectId=${encodeURIComponent(project.id)}`}
-                      className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50"
+                      className={progressRecentSignalLinkClassName}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="min-w-0 font-medium">{project.title}</div>
@@ -827,7 +922,7 @@ export default async function ProgressPage() {
                         </Badge>
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">
-                        {PROJECT_TYPE_LABELS[normalizeProjectType(project.type)]} / {project.status}
+                        {PROJECT_TYPE_LABELS[normalizeProjectType(project.type)]} / {missionStatusText(project.status)}
                       </div>
                     </a>
                   );
@@ -877,7 +972,7 @@ export default async function ProgressPage() {
                         <Badge variant="outline">{s.weaknessScore.toFixed(1)}</Badge>
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">
-                        {topic?.domain.name ?? "-"} / exposure {s.exposureCount}
+                        领域：{formatProgressWeakTopicDomainLabel(topic?.domain.name)} / 接触次数：{s.exposureCount}
                       </div>
                     </div>
                   );

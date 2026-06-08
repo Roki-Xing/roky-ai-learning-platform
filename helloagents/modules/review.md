@@ -34,6 +34,32 @@
    - default queue: `/today`, `/library`, `/progress`
    - project queue: project detail, `/projects`, `/review`
    - code-feedback queue: project detail, `/review`, `/progress`
+10. When a review session finishes, `buildReviewSessionSummary()` shows:
+   - this-session rating counts (`forgot/hard/good/easy`)
+   - top weak areas derived from rated card `tags`, `lesson`, and `topic`
+   - remediation suggestions and next-step CTA
+   - `remediationActions` when this session has any `forgot` or `hard` cards
+11. Weak sessions expose three explicit remediation actions:
+   - `让 Coach 解释这些卡片` links to `/coach` with a prefilled remediation draft.
+   - `生成补弱小课` links to `/today?mode=remediation&source=review&focus=...`.
+   - `查看错题中心` links to `/mistakes`.
+12. `/today?mode=remediation&source=review&focus=...` shows a `Review 补弱短课` banner so the Review handoff has a visible landing instead of a silent query string.
+13. Active review cards stay centered with a bounded width so mobile and desktop layouts share the same focused reading owner.
+14. Mobile review controls prioritize touch:
+   - The page header `开始复习` CTA uses `reviewPageCtaClassName = "min-h-11 w-full sm:w-auto"` so mobile users get a full-width 44px touch target before entering the active card.
+   - `显示答案` is at least 48px tall and full-width on narrow screens.
+   - Rating controls are large single-column buttons on mobile and four columns on desktop.
+   - Rating buttons expose the label plus spacing interval as their accessible name, such as `忘了 +1d` and `很熟 +14d`; E2E locators should use these names rather than old keyboard-prefix text like `4 很熟`.
+   - Keyboard shortcut copy is hidden below the `sm` breakpoint and remains desktop-only guidance.
+15. Empty/completed review feedback reuses `LearningCelebrationCue`; the completion badge is localized as `复习总结`, not `Session summary`.
+16. Active review card type badges use learner-facing labels such as `概念卡`, `代码反馈卡`, `项目卡`, `错题卡`, `术语卡`, and `Radar 卡`; raw `Flashcard.type` values such as `code_bug` and `quiz_error` are not shown directly.
+17. Completed review summary CTAs prioritize mobile touch:
+   - The bottom action row uses mobile single-column `grid gap-2` and desktop `sm:flex sm:flex-wrap`.
+   - Primary and secondary actions, including `让 Coach 拆解薄弱点` and `回到今日学习`, use `min-h-11 w-full sm:w-auto`.
+   - The service-owned action labels remain the source of truth; UI tests should assert the rendered `primaryAction.label` / `secondaryAction.label` rather than inventing alternate copy.
+18. Review statistics use learner-facing copy:
+   - The total review record metric displays `累计复习记录`.
+   - The database model name `ReviewLog` must not be shown directly in learner-facing `/review` statistics.
 
 ## Idempotency Boundary
 
@@ -50,3 +76,9 @@
 - `npm test -- tests/unit/review-schedule.test.ts`
 - `npm test -- tests/unit/today-review-summary.test.ts`
 - `npm test -- tests/unit/review-empty-state.test.ts`
+- `npm test -- tests/unit/review-session-summary.test.ts`
+- `npm test -- tests/unit/learning-ui-components.test.ts`
+- `npm test -- tests/unit/today-remediation-intent.test.ts`
+- `npx playwright test tests/e2e/review-interactions.spec.ts --project="Desktop Chrome"`
+- `E2E_BASE_URL=http://127.0.0.1:3000 npm run e2e:mobile-matrix`
+- `E2E_BASE_URL=http://127.0.0.1:3000 npx playwright test tests/e2e/a11y.spec.ts --project="Desktop Chrome" --project="Mobile Chrome"`

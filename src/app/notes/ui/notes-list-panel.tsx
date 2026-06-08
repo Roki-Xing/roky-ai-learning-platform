@@ -38,7 +38,7 @@ export function NotesListPanel(props: {
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="min-w-0 text-sm font-medium">{note.title}</div>
                     {isSelected ? (
-                      <LearningStatusBadge tone="info">来自 Voice 的当前笔记</LearningStatusBadge>
+                      <LearningStatusBadge tone="info">来自语音笔记的当前笔记</LearningStatusBadge>
                     ) : null}
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">

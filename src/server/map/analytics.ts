@@ -76,6 +76,34 @@ export type KnowledgeMapInsights = {
   summaryCards: KnowledgeMapInsightSummaryCard[];
 };
 
+/**
+ * Returns the topics that should be rendered in the first map screen.
+ *
+ * Args:
+ *   topics: Ordered topic rows for the selected domain.
+ *   limit: Maximum number of topics to render.
+ *   activeSlug: Optional slug that must remain in the rendered window.
+ *
+ * Returns:
+ *   Visible topics plus total and hidden counts for UI copy.
+ */
+export function buildVisibleKnowledgeMapTopics<T extends { slug: string }>(
+  topics: T[],
+  limit: number,
+  activeSlug?: string | null,
+) {
+  const safeLimit = Math.max(0, Math.floor(limit));
+  const activeIndex = activeSlug ? topics.findIndex((topic) => topic.slug === activeSlug) : -1;
+  const start = activeIndex >= safeLimit ? activeIndex - safeLimit + 1 : 0;
+  const visibleTopics = topics.slice(start, start + safeLimit);
+
+  return {
+    visibleTopics,
+    totalCount: topics.length,
+    hiddenCount: Math.max(0, topics.length - visibleTopics.length),
+  };
+}
+
 export function createEmptyKnowledgeMapStat(): KnowledgeMapStat {
   return {
     planCount: 0,

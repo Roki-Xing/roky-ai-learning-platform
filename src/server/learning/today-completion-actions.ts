@@ -11,6 +11,21 @@ export type TodayCompletionNextActions = {
   title: string;
   statusLabel: string;
   summary: string;
+  completionHub: null | {
+    title: string;
+    metrics: Array<{
+      label: string;
+      value: string;
+      helper: string;
+      tone: LearningStatusTone;
+    }>;
+  };
+  recommendedVoiceReflection: null | {
+    title: string;
+    prompt: string;
+    href: string;
+    ctaLabel: string;
+  };
   projectPractice: null | {
     title: string;
     href: string;
@@ -31,6 +46,11 @@ export type TodayCompletionNextActionsInput = {
   voiceNoteCount: number;
   thoughtReviewCount: number;
   hasCodeSubmission: boolean;
+  hasCodingExercise?: boolean;
+  flashcardCount?: number;
+  quizTotalCount?: number;
+  quizAttemptedCount?: number;
+  quizCorrectCount?: number;
   activeProject: null | {
     id: string;
     title: string;
@@ -48,6 +68,14 @@ function encodedVoiceHref(lessonId: string) {
   const query = new URLSearchParams({
     lessonId,
     mode: "today_lesson",
+  });
+  return `/voice?${query.toString()}`;
+}
+
+function encodedDailyUnderstandingVoiceHref(lessonId: string) {
+  const query = new URLSearchParams({
+    lessonId,
+    mode: "daily_understanding",
   });
   return `/voice?${query.toString()}`;
 }
@@ -72,6 +100,8 @@ export function buildTodayCompletionNextActions(
       title: "完成后下一步",
       statusLabel: "等待完成",
       summary: "先写一句总结并完成今日学习，系统会生成复习卡片，再进入后续沉淀。",
+      completionHub: null,
+      recommendedVoiceReflection: null,
       projectPractice: null,
       actions: [
         {
@@ -83,6 +113,47 @@ export function buildTodayCompletionNextActions(
       ],
     };
   }
+
+  const quizTotalCount = input.quizTotalCount ?? 0;
+  const quizAttemptedCount = input.quizAttemptedCount ?? 0;
+  const quizCorrectCount = input.quizCorrectCount ?? 0;
+  const hasCodingExercise = input.hasCodingExercise ?? input.hasCodeSubmission;
+  const completionHub: TodayCompletionNextActions["completionHub"] = {
+    title: "今日完成 Hub",
+    metrics: [
+      {
+        label: "生成卡片",
+        value: `${input.flashcardCount ?? 0} 张`,
+        helper: "今日内容已进入复习循环。",
+        tone: "success",
+      },
+      {
+        label: "小测验",
+        value: quizTotalCount > 0 ? `答对 ${quizCorrectCount}/${quizTotalCount}` : "暂无测验",
+        helper:
+          quizTotalCount > 0
+            ? `已提交 ${quizAttemptedCount}/${quizTotalCount} 题。`
+            : "今天没有测验题，完成主课和反思即可。",
+        tone: quizTotalCount > 0 && quizAttemptedCount < quizTotalCount ? "warning" : "info",
+      },
+      {
+        label: "代码提交",
+        value: hasCodingExercise ? (input.hasCodeSubmission ? "已提交" : "未提交") : "无需提交",
+        helper: hasCodingExercise
+          ? input.hasCodeSubmission
+            ? "代码练习已接入今日沉淀。"
+            : "完成代码练习后再进入项目会更稳。"
+          : "今天没有代码练习，可以优先做复习或项目。",
+        tone: hasCodingExercise && !input.hasCodeSubmission ? "warning" : "info",
+      },
+    ],
+  };
+  const recommendedVoiceReflection: TodayCompletionNextActions["recommendedVoiceReflection"] = {
+    title: "推荐语音反思",
+    prompt: "请用 60 秒说明：我今天学了什么？我哪里还不懂？我能举什么例子？我希望 Coach 检查什么？",
+    href: encodedDailyUnderstandingVoiceHref(input.lessonId),
+    ctaLabel: input.voiceNoteCount === 0 ? "开始 60 秒反思" : "继续语音反思",
+  };
 
   const actions: TodayCompletionAction[] = [];
   if (input.lessonDueFlashcardCount > 0) {
@@ -191,6 +262,8 @@ export function buildTodayCompletionNextActions(
     title: "完成后下一步",
     statusLabel: "今日已完成",
     summary,
+    completionHub,
+    recommendedVoiceReflection,
     projectPractice,
     actions,
   };

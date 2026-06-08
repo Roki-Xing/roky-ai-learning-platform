@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   isProtectedPath,
   shouldRedirectToLogin,
@@ -9,6 +10,7 @@ import {
   isDemoUserAllowed,
 } from "@/server/auth/demo";
 import {
+  assertPreviewWritableAllowed,
   previewRedirectLocation,
   isPreviewSessionTokenValid,
   isPreviewTokenValid,
@@ -19,12 +21,15 @@ test("learning data routes are protected by auth policy", () => {
     "/",
     "/today",
     "/review",
+    "/path",
+    "/weekly",
     "/map",
     "/library",
     "/notes",
     "/progress",
     "/settings",
     "/projects",
+    "/mistakes",
     "/coach",
     "/voice",
     "/glossary",
@@ -35,10 +40,27 @@ test("learning data routes are protected by auth policy", () => {
   }
 });
 
-test("public auth, preview, admin login shell, and health routes stay public", () => {
-  for (const path of ["/login", "/preview", "/admin", "/auth/confirm", "/api/health", "/favicon.ico"]) {
+test("public auth, preview, admin login shell, health, and PWA routes stay public", () => {
+  for (const path of [
+    "/login",
+    "/preview",
+    "/admin",
+    "/auth/confirm",
+    "/api/health",
+    "/favicon.ico",
+    "/manifest.webmanifest",
+  ]) {
     assert.equal(isProtectedPath(path), false, `${path} should be public`);
   }
+});
+
+test("proxy matcher keeps Next runtime assets outside auth redirects", () => {
+  const matcher = readFileSync("src/proxy.ts", "utf8");
+
+  assert.match(matcher, /_next\/static/);
+  assert.match(matcher, /_next\/image/);
+  assert.match(matcher, /_next\/webpack-hmr/);
+  assert.match(matcher, /manifest\\\\\.webmanifest/);
 });
 
 test("demo user requires explicit opt-in in production", () => {
@@ -105,6 +127,24 @@ test("preview redirect uses only relative same-site locations", () => {
   assert.equal(previewRedirectLocation("//evil.test/today"), "/");
   assert.equal(previewRedirectLocation("https://evil.test/today"), "/");
   assert.equal(previewRedirectLocation("today"), "/");
+});
+
+test("preview write guard rejects mutation paths with a stable read-only error", () => {
+  assert.doesNotThrow(() => assertPreviewWritableAllowed(false));
+  assert.throws(() => assertPreviewWritableAllowed(true), /Preview Mode is read-only/);
+});
+
+test("preview write protection covers quiz, code, admin, and settings actions", () => {
+  for (const file of [
+    "src/server/quiz/actions.ts",
+    "src/server/coding/actions.ts",
+    "src/app/admin/actions.ts",
+    "src/app/settings/actions.ts",
+    "src/app/mistakes/actions.ts",
+  ]) {
+    const source = readFileSync(file, "utf8");
+    assert.match(source, /assertWritableRequest/);
+  }
 });
 
 test("protected routes redirect without real user or active demo session", () => {

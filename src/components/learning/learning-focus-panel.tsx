@@ -44,7 +44,7 @@ export function LearningFocusPanel(props: {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <LearningStatusBadge tone="info">Focus Mode</LearningStatusBadge>
+            <LearningStatusBadge tone="info">专注模式</LearningStatusBadge>
             <LearningStatusBadge tone={toneForStatus(current.status)}>
               {current.status === "done" ? "完成" : current.status === "active" ? "进行中" : "待办"}
             </LearningStatusBadge>
@@ -54,15 +54,16 @@ export function LearningFocusPanel(props: {
         </div>
         <div className="min-w-[160px] text-xs text-muted-foreground">
           {index + 1} / {props.stages.length}
-          <LearningProgressBar value={progress} className="mt-2" />
+          <LearningProgressBar value={progress} label="专注模式进度" className="mt-2" />
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap sm:items-center">
         <Button
           type="button"
           size="sm"
           variant="outline"
+          className="min-h-11 w-full sm:w-auto"
           disabled={index === 0}
           onClick={() => setIndex((prev) => Math.max(0, prev - 1))}
         >
@@ -72,12 +73,13 @@ export function LearningFocusPanel(props: {
           type="button"
           size="sm"
           variant="secondary"
+          className="min-h-11 w-full sm:w-auto"
           disabled={index >= props.stages.length - 1}
           onClick={() => setIndex((prev) => Math.min(props.stages.length - 1, prev + 1))}
         >
           下一步
         </Button>
-        <Button asChild size="sm">
+        <Button asChild size="sm" className="min-h-11 w-full sm:w-auto">
           <a href={current.href}>进入当前阶段</a>
         </Button>
       </div>

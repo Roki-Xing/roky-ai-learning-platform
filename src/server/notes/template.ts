@@ -15,6 +15,21 @@ function bulletList(items: string[], fallback: string) {
 }
 
 /**
+ * Formats DailyPlan status for learner-facing note templates.
+ *
+ * Args:
+ *   status: Raw DailyPlan status from the selected lesson plan.
+ *
+ * Returns:
+ *   A Chinese learner-facing status label for the notes UI and template.
+ */
+export function formatNotePlanStatusLabel(status: string | null | undefined) {
+  if (status === "completed") return "已完成";
+  if (!status) return "未关联计划";
+  return "待完成";
+}
+
+/**
  * Builds the editable Markdown scaffold used by the notes page.
  *
  * Args:
@@ -26,7 +41,7 @@ function bulletList(items: string[], fallback: string) {
 export function buildLessonNoteTemplate(input: LessonNoteTemplateInput) {
   const title = input.lessonTitle ? `${input.lessonTitle} - 学习笔记` : "今日总结";
   const lessonLine = input.lessonTitle ?? "暂无关联课程";
-  const statusLine = input.planStatus ?? "未关联计划";
+  const statusLine = formatNotePlanStatusLabel(input.planStatus);
 
   return [
     `# ${title}`,

@@ -33,7 +33,7 @@ export function LearningMissionCard(props: {
   return (
     <div
       className={cn(
-        "flex items-start justify-between gap-3 rounded-lg border p-3 text-sm",
+        "grid gap-3 rounded-lg border p-3 text-sm sm:flex sm:items-start sm:justify-between",
         missionToneClass(tone),
         props.className,
       )}
@@ -48,7 +48,12 @@ export function LearningMissionCard(props: {
         </div>
       </div>
       {props.href && props.actionLabel ? (
-        <Button asChild size="sm" variant={tone === "success" ? "outline" : "secondary"} className="shrink-0">
+        <Button
+          asChild
+          size="sm"
+          variant={tone === "success" ? "outline" : "secondary"}
+          className="min-h-11 w-full sm:w-auto sm:shrink-0"
+        >
           <Link href={props.href}>
             {props.actionLabel}
             <ArrowRight className="size-3.5" />

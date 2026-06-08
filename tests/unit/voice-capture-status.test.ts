@@ -36,7 +36,7 @@ test("voice capture status shows recording timer and focus guidance", () => {
   assert.match(panel.description, /只讲一个概念/);
 });
 
-test("voice capture status tells user to inspect transcript after successful transcription", () => {
+test("voice capture status tells user to inspect localized transcript text after successful transcription", () => {
   const panel = buildVoiceCaptureStatusPanel({
     status: "file-selected",
     seconds: 21,
@@ -44,7 +44,69 @@ test("voice capture status tells user to inspect transcript after successful tra
     lastResultStatus: "success",
   });
 
-  assert.equal(panel.title, "转写已填入 Transcript");
+  assert.equal(panel.title, "转写已填入转写文本");
   assert.equal(panel.tone, "success");
   assert.match(panel.description, /检查错字/);
+  assert.doesNotMatch(panel.title, /Transcript/);
+  assert.doesNotMatch(panel.description, /Transcript/);
+});
+
+test("voice capture status treats a stopped recording as an automatic transcription handoff", () => {
+  const panel = buildVoiceCaptureStatusPanel({
+    status: "recorded",
+    seconds: 34,
+    hasTranscript: false,
+    lastResultStatus: null,
+  });
+
+  assert.equal(panel.title, "录音已完成，准备转写");
+  assert.equal(panel.tone, "info");
+  assert.match(panel.description, /停止后会自动转写/);
+  assert.match(panel.description, /填入转写文本/);
+  assert.doesNotMatch(panel.description, /Transcript/);
+});
+
+test("voice capture status keeps learner-facing transcript copy localized", () => {
+  const panels = [
+    buildVoiceCaptureStatusPanel({
+      status: "file-too-large",
+      seconds: 0,
+      hasTranscript: false,
+      lastResultStatus: null,
+    }),
+    buildVoiceCaptureStatusPanel({
+      status: "transcribing",
+      seconds: 0,
+      hasTranscript: false,
+      lastResultStatus: null,
+    }),
+    buildVoiceCaptureStatusPanel({
+      status: "file-selected",
+      seconds: 0,
+      hasTranscript: false,
+      lastResultStatus: null,
+    }),
+    buildVoiceCaptureStatusPanel({
+      status: "file-selected",
+      seconds: 0,
+      hasTranscript: false,
+      lastResultStatus: "manual_required",
+    }),
+  ];
+
+  const visibleCopy = panels.map((panel) => `${panel.title} ${panel.description}`).join("\n");
+  assert.doesNotMatch(visibleCopy, /Transcript/);
+  assert.match(visibleCopy, /转写文本/);
+});
+
+test("voice capture status uses the same manual transcription label as result badges", () => {
+  const panel = buildVoiceCaptureStatusPanel({
+    status: "file-selected",
+    seconds: 0,
+    hasTranscript: false,
+    lastResultStatus: "manual_required",
+  });
+
+  assert.equal(panel.badgeLabel, "需手动整理");
+  assert.doesNotMatch(panel.badgeLabel, /manual_required|需手动$/);
 });

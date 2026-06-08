@@ -30,7 +30,8 @@ test("notes list highlights the selected voice note handoff target", () => {
   );
 
   assert.match(markup, /笔记列表/);
-  assert.match(markup, /来自 Voice 的当前笔记/);
+  assert.match(markup, /来自语音笔记的当前笔记/);
+  assert.doesNotMatch(markup, /来自 Voice 的当前笔记/);
   assert.match(markup, /语音笔记 · 今日课程/);
   assert.match(markup, /href="\/notes\?noteId=note-voice-1"/);
   assert.match(markup, /border-indigo-200 bg-indigo-50/);

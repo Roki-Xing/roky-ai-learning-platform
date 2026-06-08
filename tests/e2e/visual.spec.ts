@@ -4,33 +4,31 @@ import path from "node:path";
 import { enterLearningApp } from "@/../tests/e2e/helpers";
 import { visualPages } from "@/../tests/e2e/visual-pages";
 
-const viewports = [
-  { name: "desktop", width: 1440, height: 1100 },
-  { name: "mobile", width: 390, height: 900 },
-] as const;
-
 test.describe("visual regression smoke @visual", () => {
-  for (const viewport of viewports) {
-    for (const target of visualPages) {
-      test(`${target.name} renders stable ${viewport.name} screenshot`, async ({ page }) => {
-        await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        await openVisualPage(page, target.path);
-        await expect(page.getByRole("heading", { name: target.heading }).first()).toBeVisible();
+  for (const target of visualPages) {
+    test(`${target.name} renders stable screenshot`, async ({ page }, testInfo) => {
+      await openVisualPage(page, target.path);
+      await expect(page.getByRole("heading", { name: target.heading }).first()).toBeVisible();
 
-        const image = await page.screenshot({
-          animations: "disabled",
-          fullPage: false,
-          path: await visualPath(`${target.name}-${viewport.name}.png`),
-        });
-
-        expect(image.length).toBeGreaterThan(10_000);
+      const image = await page.screenshot({
+        animations: "disabled",
+        fullPage: false,
+        path: await visualPath(`${target.name}-${slug(testInfo.project.name)}.png`),
       });
-    }
+
+      expect(image.length).toBeGreaterThan(10_000);
+    });
   }
 });
 
 async function openVisualPage(page: Page, pagePath: string) {
-  await enterLearningApp(page, pagePath);
+  if (pagePath === "/login") {
+    await page.goto("/login");
+    await page.waitForLoadState("domcontentloaded");
+    return;
+  }
+
+  await enterLearningApp(page, pagePath, { directDemoSession: true });
   if (page.url().includes("/preview") || page.url().includes("/login")) {
     await page.goto(pagePath);
   }
@@ -41,4 +39,8 @@ async function visualPath(fileName: string) {
   const dir = path.join(process.cwd(), "test-results", "visual-smoke");
   await mkdir(dir, { recursive: true });
   return path.join(dir, fileName);
+}
+
+function slug(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }

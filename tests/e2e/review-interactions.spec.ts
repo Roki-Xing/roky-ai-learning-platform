@@ -91,7 +91,7 @@ test("review flow reveals an answer, rates it, and advances the queue @interacti
 
     await Promise.all([
       page.waitForLoadState("networkidle"),
-      page.getByRole("button", { name: /4 很熟/ }).click(),
+      page.getByRole("button", { name: /很熟 \+14d/ }).click(),
     ]);
 
     await expect(page.getByText(`E2E review queue prompt ${marker}`)).not.toBeVisible();

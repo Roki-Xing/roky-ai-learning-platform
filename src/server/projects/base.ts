@@ -35,6 +35,21 @@ export type ProjectProgress = {
   isComplete: boolean;
 };
 
+export type ProjectPortfolioItem = {
+  id: string;
+  title: string;
+  typeLabel: string;
+  summary: string;
+  completedMilestones: number;
+  codeSnippetCount: number;
+  reflectionCount: number;
+  cardCount: number;
+  relatedTopics: string[];
+  reviewHref: string;
+  featuredCodeSnippet: string | null;
+  portfolioMarkdown: string;
+};
+
 export const PROJECT_TYPE_LABELS: Record<ProjectType, string> = {
   python_basics: "Python 基础项目",
   data_structures: "数据结构项目",
@@ -414,4 +429,130 @@ export function buildProjectCompletionFlashcards(args: {
     lessonId: null,
     dueAt: now,
   }));
+}
+
+function jsonStrings(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+const PROJECT_TOPIC_LABELS: Record<string, string> = {
+  "binary-search": "二分搜索",
+  "cosine-similarity": "余弦相似度",
+  "dependency-injection": "依赖注入",
+  "edge-cases": "边界情况",
+  "file-io": "文件读写",
+  "hash-map": "哈希表",
+  "inverted-index": "倒排索引",
+  "open-source-project": "开源项目",
+  "set-operations": "集合运算",
+  "state-machine": "状态机",
+  "string-processing": "字符串处理",
+  "tie-break": "平局规则",
+  "tool-calling": "工具调用",
+  "tool-schema": "工具协议",
+  "vector-search": "向量检索",
+};
+
+function formatProjectTopicLabel(topic: string) {
+  const value = topic.trim();
+  if (!value) return "未标记知识";
+  return PROJECT_TOPIC_LABELS[value] ?? value;
+}
+
+function buildProjectPortfolioMarkdown(args: {
+  title: string;
+  typeLabel: string;
+  summary: string;
+  completedMilestones: number;
+  codeSnippetCount: number;
+  reflectionCount: number;
+  cardCount: number;
+  relatedTopics: string[];
+  featuredCodeSnippet: string | null;
+}) {
+  const lines = [
+    `# ${args.title}`,
+    "",
+    "## 项目总结",
+    args.summary,
+    "",
+    "## 学习证据",
+    `- 项目类型：${args.typeLabel}`,
+    `- 完成里程碑：${args.completedMilestones}`,
+    `- 代码片段：${args.codeSnippetCount}`,
+    `- 反思/笔记：${args.reflectionCount}`,
+    `- 生成项目卡片：${args.cardCount}`,
+    args.relatedTopics.length
+      ? `- 相关知识：${args.relatedTopics.map(formatProjectTopicLabel).join(", ")}`
+      : "- 相关知识：待补充",
+  ];
+
+  if (args.featuredCodeSnippet) {
+    lines.push("", "## 代表代码片段", "```python", args.featuredCodeSnippet, "```");
+  }
+
+  return lines.join("\n");
+}
+
+export function buildProjectPortfolioItems(
+  projects: Array<{
+    id: string;
+    title: string;
+    type: string;
+    status: string;
+    summary?: string | null;
+    relatedTopics?: unknown;
+    milestones: Array<{
+      title: string;
+      status: string;
+      code?: string | null;
+      note?: string | null;
+      reflection?: string | null;
+    }>;
+  }>,
+  cardCountByProjectId: Record<string, number> = {},
+): ProjectPortfolioItem[] {
+  return projects
+    .filter((project) => project.status === "completed")
+    .map((project) => {
+      const type = normalizeProjectType(project.type);
+      const completedMilestones = project.milestones.filter(
+        (milestone) => milestone.status === "completed",
+      );
+      const codeMilestones = completedMilestones.filter((milestone) => Boolean(milestone.code?.trim()));
+      const reflectionCount = completedMilestones.filter(
+        (milestone) => Boolean(milestone.note?.trim()) || Boolean(milestone.reflection?.trim()),
+      ).length;
+      const featuredCodeSnippet = codeMilestones[0]?.code?.trim().slice(0, 700) ?? null;
+      const summary =
+        project.summary?.trim() ||
+        `已完成 ${completedMilestones.length} 个里程碑，形成可复习的项目沉淀。`;
+      const relatedTopics = jsonStrings(project.relatedTopics);
+
+      return {
+        id: project.id,
+        title: project.title,
+        typeLabel: PROJECT_TYPE_LABELS[type],
+        summary,
+        completedMilestones: completedMilestones.length,
+        codeSnippetCount: codeMilestones.length,
+        reflectionCount,
+        cardCount: cardCountByProjectId[project.id] ?? 0,
+        relatedTopics,
+        reviewHref: `/review?source=project&projectId=${encodeURIComponent(project.id)}`,
+        featuredCodeSnippet,
+        portfolioMarkdown: buildProjectPortfolioMarkdown({
+          title: project.title,
+          typeLabel: PROJECT_TYPE_LABELS[type],
+          summary,
+          completedMilestones: completedMilestones.length,
+          codeSnippetCount: codeMilestones.length,
+          reflectionCount,
+          cardCount: cardCountByProjectId[project.id] ?? 0,
+          relatedTopics,
+          featuredCodeSnippet,
+        }),
+      };
+    })
+    .sort((a, b) => b.completedMilestones - a.completedMilestones || a.title.localeCompare(b.title));
 }

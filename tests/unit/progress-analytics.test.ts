@@ -1,5 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { Sprint9AnalyticsPanels } from "@/app/progress/analytics-panels";
 import {
   buildCalendarDays,
   buildWeeklyRemediationPlan,
@@ -15,6 +19,494 @@ import {
   summarizeQuizAccuracyTrend,
   summarizeReviewRetentionTrend,
 } from "@/server/analytics/progress";
+
+test("progress learning calendar exposes day status without relying on color", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(Sprint9AnalyticsPanels, {
+      calendarDays: [
+        { localDate: "2026-05-22", status: "completed", intensity: 1 },
+        { localDate: "2026-05-23", status: "planned", intensity: 1 },
+        { localDate: "2026-05-24", status: "none", intensity: 0 },
+      ],
+      qualityRows: [],
+      learningEffect: {
+        quizAccuracy: 0,
+        reviewRetention: 0,
+        codeSubmissionRate: 0,
+        misconceptionResolutionRate: 0,
+        streak: 0,
+        domainCoverage: 0,
+        topicDiversity: 0,
+      },
+      quizAccuracyTrend: [],
+      codeTrend: [],
+      codeFeedbackIssueTrend: [],
+      misconceptionTrend: [],
+      weakDomains: [],
+      reviewRetentionTrend: [],
+      knowledgeCoverage: {
+        glossaryCoveragePct: 0,
+        radarCoveragePct: 0,
+        glossaryTotal: 0,
+        glossaryReviewed: 0,
+        radarTotal: 0,
+        radarReviewed: 0,
+      },
+      generationHealth: {
+        totalPlans: 0,
+        deepseekPlanCount: 0,
+        fallbackPlanCount: 0,
+        successJobCount: 0,
+        failedJobCount: 0,
+        repairCount: 0,
+        fallbackRate: 0,
+        repairRate: 0,
+        averageQualityScore: 0,
+        lowQualityJobCount: 0,
+        qualityScoreCoverage: 0,
+        schemaVersionDistribution: [],
+        modelDistribution: [],
+      },
+      weeklyRemediationPlan: {
+        title: "本周补弱计划",
+        summary: "先保持节奏。",
+        focusDomain: null,
+        steps: [],
+      },
+    }),
+  );
+
+  assert.match(markup, /学习日历/);
+  assert.match(markup, /aria-label="2026-05-22：已完成学习"/);
+  assert.match(markup, /aria-label="2026-05-23：已安排学习"/);
+  assert.match(markup, /aria-label="2026-05-24：暂无学习记录"/);
+});
+
+test("progress weekly remediation steps use Chinese step labels", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(Sprint9AnalyticsPanels, {
+      calendarDays: [],
+      qualityRows: [],
+      learningEffect: {
+        quizAccuracy: 0,
+        reviewRetention: 0,
+        codeSubmissionRate: 0,
+        misconceptionResolutionRate: 0,
+        streak: 0,
+        domainCoverage: 0,
+        topicDiversity: 0,
+      },
+      quizAccuracyTrend: [],
+      codeTrend: [],
+      codeFeedbackIssueTrend: [],
+      misconceptionTrend: [],
+      weakDomains: [],
+      reviewRetentionTrend: [],
+      knowledgeCoverage: {
+        glossaryCoveragePct: 0,
+        radarCoveragePct: 0,
+        glossaryTotal: 0,
+        glossaryReviewed: 0,
+        radarTotal: 0,
+        radarReviewed: 0,
+      },
+      generationHealth: {
+        totalPlans: 0,
+        deepseekPlanCount: 0,
+        fallbackPlanCount: 0,
+        successJobCount: 0,
+        failedJobCount: 0,
+        repairCount: 0,
+        fallbackRate: 0,
+        repairRate: 0,
+        averageQualityScore: 0,
+        lowQualityJobCount: 0,
+        qualityScoreCoverage: 0,
+        schemaVersionDistribution: [],
+        modelDistribution: [],
+      },
+      weeklyRemediationPlan: {
+        title: "本周补弱计划",
+        summary: "先处理最弱领域。",
+        focusDomain: null,
+        steps: [
+          {
+            title: "复习到期卡片",
+            description: "先清空今天最影响留存的卡片。",
+            href: "/review",
+            tone: "warning",
+          },
+          {
+            title: "让 Coach 讲解错题",
+            description: "把卡住的知识点转成补弱解释。",
+            href: "/coach",
+            tone: "info",
+          },
+        ],
+      },
+    }),
+  );
+
+  assert.match(markup, /本周补弱计划/);
+  assert.match(markup, /第 1 步/);
+  assert.match(markup, /第 2 步/);
+  assert.doesNotMatch(markup, />Step 1</);
+  assert.doesNotMatch(markup, />Step 2</);
+});
+
+test("progress trend badges use Chinese issue and mistake status labels", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(Sprint9AnalyticsPanels, {
+      calendarDays: [],
+      qualityRows: [],
+      learningEffect: {
+        quizAccuracy: 0,
+        reviewRetention: 0,
+        codeSubmissionRate: 0,
+        misconceptionResolutionRate: 0,
+        streak: 0,
+        domainCoverage: 0,
+        topicDiversity: 0,
+      },
+      quizAccuracyTrend: [],
+      codeTrend: [],
+      codeFeedbackIssueTrend: [
+        {
+          localDate: "2026-06-06",
+          feedbackCount: 2,
+          issueCount: 3,
+          highIssueCount: 2,
+          mediumIssueCount: 1,
+          lowIssueCount: 0,
+          topIssueType: "logic",
+        },
+      ],
+      misconceptionTrend: [
+        {
+          localDate: "2026-06-06",
+          total: 3,
+          active: 1,
+          resolved: 2,
+          ignored: 0,
+          resolutionRate: 67,
+        },
+      ],
+      weakDomains: [],
+      reviewRetentionTrend: [],
+      knowledgeCoverage: {
+        glossaryCoveragePct: 0,
+        radarCoveragePct: 0,
+        glossaryTotal: 0,
+        glossaryReviewed: 0,
+        radarTotal: 0,
+        radarReviewed: 0,
+      },
+      generationHealth: {
+        totalPlans: 0,
+        deepseekPlanCount: 0,
+        fallbackPlanCount: 0,
+        successJobCount: 0,
+        failedJobCount: 0,
+        repairCount: 0,
+        fallbackRate: 0,
+        repairRate: 0,
+        averageQualityScore: 0,
+        lowQualityJobCount: 0,
+        qualityScoreCoverage: 0,
+        schemaVersionDistribution: [],
+        modelDistribution: [],
+      },
+      weeklyRemediationPlan: {
+        title: "本周补弱计划",
+        summary: "先保持节奏。",
+        focusDomain: null,
+        steps: [],
+      },
+    }),
+  );
+
+  assert.match(markup, /高优先级 2/);
+  assert.match(markup, /未解决 1/);
+  assert.doesNotMatch(markup, />high 2</);
+  assert.doesNotMatch(markup, />open 1</);
+});
+
+test("progress content quality source labels are learner-friendly Chinese text", () => {
+  function renderSource(source: string | null | undefined) {
+    return renderToStaticMarkup(
+      React.createElement(Sprint9AnalyticsPanels, {
+        calendarDays: [],
+        qualityRows: [
+          {
+            id: `quality-${source ?? "missing"}`,
+            title: "今日课程",
+            localDate: "2026-06-06",
+            status: "completed",
+            score: 82,
+            metrics: {
+              contentLength: 680,
+              guidedStepCount: 5,
+              quizCount: 3,
+              codingExerciseQuality: "strong",
+              flashcardCount: 2,
+              schemaVersion: "2.3",
+              source,
+              generationRetries: 0,
+              fallbackUsed: source !== "deepseek",
+            },
+            warnings: [],
+          },
+        ],
+        learningEffect: {
+          quizAccuracy: 0,
+          reviewRetention: 0,
+          codeSubmissionRate: 0,
+          misconceptionResolutionRate: 0,
+          streak: 0,
+          domainCoverage: 0,
+          topicDiversity: 0,
+        },
+        quizAccuracyTrend: [],
+        codeTrend: [],
+        codeFeedbackIssueTrend: [],
+        misconceptionTrend: [],
+        weakDomains: [],
+        reviewRetentionTrend: [],
+        knowledgeCoverage: {
+          glossaryCoveragePct: 0,
+          radarCoveragePct: 0,
+          glossaryTotal: 0,
+          glossaryReviewed: 0,
+          radarTotal: 0,
+          radarReviewed: 0,
+        },
+        generationHealth: {
+          totalPlans: 0,
+          deepseekPlanCount: 0,
+          fallbackPlanCount: 0,
+          successJobCount: 0,
+          failedJobCount: 0,
+          repairCount: 0,
+          fallbackRate: 0,
+          repairRate: 0,
+          averageQualityScore: 0,
+          lowQualityJobCount: 0,
+          qualityScoreCoverage: 0,
+          schemaVersionDistribution: [],
+          modelDistribution: [],
+        },
+        weeklyRemediationPlan: {
+          title: "本周补弱计划",
+          summary: "先保持节奏。",
+          focusDomain: null,
+          steps: [],
+        },
+      }),
+    );
+  }
+
+  assert.match(renderSource("deepseek"), /来源：AI 生成/);
+  assert.match(renderSource("template"), /来源：模板兜底/);
+  assert.match(renderSource("fallback"), /来源：系统兜底/);
+  assert.match(renderSource(null), /来源：未标记来源/);
+  assert.match(renderSource(undefined), /来源：未标记来源/);
+
+  const combinedMarkup = [
+    renderSource("deepseek"),
+    renderSource("template"),
+    renderSource("fallback"),
+    renderSource(null),
+    renderSource(undefined),
+  ].join("\n");
+
+  assert.doesNotMatch(combinedMarkup, /来源：deepseek/);
+  assert.doesNotMatch(combinedMarkup, /来源：template/);
+  assert.doesNotMatch(combinedMarkup, /来源：fallback/);
+  assert.doesNotMatch(combinedMarkup, /unknown/);
+});
+
+test("progress content quality coding exercise labels are learner-friendly Chinese text", () => {
+  function renderCodingQuality(codingExerciseQuality: "strong" | "basic" | "missing" | "legacy") {
+    return renderToStaticMarkup(
+      React.createElement(Sprint9AnalyticsPanels, {
+        calendarDays: [],
+        qualityRows: [
+          {
+            id: `quality-${codingExerciseQuality}`,
+            title: "今日课程",
+            localDate: "2026-06-07",
+            status: "completed",
+            score: 76,
+            metrics: {
+              contentLength: 680,
+              guidedStepCount: 5,
+              quizCount: 3,
+              codingExerciseQuality,
+              flashcardCount: 2,
+              schemaVersion: "2.3",
+              source: "deepseek",
+              generationRetries: 0,
+              fallbackUsed: false,
+            },
+            warnings: [],
+          },
+        ],
+        learningEffect: {
+          quizAccuracy: 0,
+          reviewRetention: 0,
+          codeSubmissionRate: 0,
+          misconceptionResolutionRate: 0,
+          streak: 0,
+          domainCoverage: 0,
+          topicDiversity: 0,
+        },
+        quizAccuracyTrend: [],
+        codeTrend: [],
+        codeFeedbackIssueTrend: [],
+        misconceptionTrend: [],
+        weakDomains: [],
+        reviewRetentionTrend: [],
+        knowledgeCoverage: {
+          glossaryCoveragePct: 0,
+          radarCoveragePct: 0,
+          glossaryTotal: 0,
+          glossaryReviewed: 0,
+          radarTotal: 0,
+          radarReviewed: 0,
+        },
+        generationHealth: {
+          totalPlans: 0,
+          deepseekPlanCount: 0,
+          fallbackPlanCount: 0,
+          successJobCount: 0,
+          failedJobCount: 0,
+          repairCount: 0,
+          fallbackRate: 0,
+          repairRate: 0,
+          averageQualityScore: 0,
+          lowQualityJobCount: 0,
+          qualityScoreCoverage: 0,
+          schemaVersionDistribution: [],
+          modelDistribution: [],
+        },
+        weeklyRemediationPlan: {
+          title: "本周补弱计划",
+          summary: "先保持节奏。",
+          focusDomain: null,
+          steps: [],
+        },
+      }),
+    );
+  }
+
+  assert.match(renderCodingQuality("strong"), /代码练习：完整练习/);
+  assert.match(renderCodingQuality("basic"), /代码练习：基础练习/);
+  assert.match(renderCodingQuality("missing"), /代码练习：暂无练习/);
+  assert.match(renderCodingQuality("legacy"), /代码练习：待评估/);
+
+  const combinedMarkup = [
+    renderCodingQuality("strong"),
+    renderCodingQuality("basic"),
+    renderCodingQuality("missing"),
+    renderCodingQuality("legacy"),
+  ].join("\n");
+
+  assert.doesNotMatch(combinedMarkup, /代码练习：strong/);
+  assert.doesNotMatch(combinedMarkup, /代码练习：basic/);
+  assert.doesNotMatch(combinedMarkup, /代码练习：missing/);
+  assert.doesNotMatch(combinedMarkup, /代码练习：legacy/);
+});
+
+test("progress generation stability copy uses learner-friendly Chinese labels", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(Sprint9AnalyticsPanels, {
+      calendarDays: [],
+      qualityRows: [],
+      learningEffect: {
+        quizAccuracy: 0,
+        reviewRetention: 0,
+        codeSubmissionRate: 0,
+        misconceptionResolutionRate: 0,
+        streak: 0,
+        domainCoverage: 0,
+        topicDiversity: 0,
+      },
+      quizAccuracyTrend: [],
+      codeTrend: [],
+      codeFeedbackIssueTrend: [],
+      misconceptionTrend: [],
+      weakDomains: [],
+      reviewRetentionTrend: [],
+      knowledgeCoverage: {
+        glossaryCoveragePct: 0,
+        radarCoveragePct: 0,
+        glossaryTotal: 0,
+        glossaryReviewed: 0,
+        radarTotal: 0,
+        radarReviewed: 0,
+      },
+      generationHealth: {
+        totalPlans: 4,
+        deepseekPlanCount: 2,
+        fallbackPlanCount: 2,
+        successJobCount: 3,
+        failedJobCount: 1,
+        repairCount: 2,
+        fallbackRate: 50,
+        repairRate: 50,
+        averageQualityScore: 66,
+        lowQualityJobCount: 2,
+        qualityScoreCoverage: 4,
+        schemaVersionDistribution: [
+          { schemaVersion: "2.3", count: 3 },
+          { schemaVersion: "unknown", count: 1 },
+        ],
+        modelDistribution: [
+          { model: "deepseek-v4-flash", count: 3 },
+          { model: "deepseek-v4-pro", count: 1 },
+          { model: "unknown", count: 1 },
+        ],
+      },
+      weeklyRemediationPlan: {
+        title: "本周补弱计划",
+        summary: "先保持节奏。",
+        focusDomain: null,
+        steps: [],
+      },
+    }),
+  );
+
+  assert.match(markup, /AI 生成 \/ 兜底生成/);
+  assert.match(markup, /兜底率 50%/);
+  assert.match(markup, /生成任务/);
+  assert.match(markup, /成功\/失败，修复率 50%/);
+  assert.match(markup, /覆盖 4 个任务，低质量 2/);
+  assert.match(markup, /Schema 版本 2\.3：3/);
+  assert.match(markup, /Schema 版本 未标记：1/);
+  assert.match(markup, /AI 模型：DeepSeek Flash：3/);
+  assert.match(markup, /AI 模型：DeepSeek Pro：1/);
+  assert.match(markup, /AI 模型：未标记：1/);
+
+  assert.doesNotMatch(markup, /DeepSeek \/ fallback/);
+  assert.doesNotMatch(markup, /fallback 50%/);
+  assert.doesNotMatch(markup, /生成 job/);
+  assert.doesNotMatch(markup, /success\/error，repair/);
+  assert.doesNotMatch(markup, /覆盖 4 个 job/);
+  assert.doesNotMatch(markup, /schema 2\.3: 3/);
+  assert.doesNotMatch(markup, /Schema 版本 unknown/);
+  assert.doesNotMatch(markup, /deepseek-v4-flash/);
+  assert.doesNotMatch(markup, /deepseek-v4-pro/);
+  assert.doesNotMatch(markup, /AI 模型：unknown/);
+});
+
+test("progress summary cards hide internal model names from learners", () => {
+  const source = readFileSync("src/app/progress/page.tsx", "utf8");
+
+  assert.match(source, /以完成学习日为准（用户时区日期）/);
+  assert.match(source, /复习记录：\{reviewLogsCount\}/);
+  assert.doesNotMatch(source, /以 DailyPlan\.completed 为准/);
+  assert.doesNotMatch(source, /ReviewLog：\{reviewLogsCount\}/);
+});
 
 test("calculateContentQuality extracts Sprint 9 lesson quality metrics", () => {
   const quality = calculateContentQuality({
@@ -235,17 +727,46 @@ test("summarizeGenerationHealth reports provider stability and schema distributi
       {
         status: "success",
         model: "deepseek-v4-flash",
-        output: { schemaVersion: "2.3" },
+        output: { schemaVersion: "2.3", qualityScore: 92 },
       },
       {
         status: "success",
         model: "deepseek-v4-flash",
-        output: { schemaVersion: "2.3", meta: { repaired: true } },
+        output: { schemaVersion: "2.3", qualityScore: 58, meta: { repaired: true } },
       },
       {
         status: "error",
         model: "deepseek-v4-flash",
-        output: { rawPrimary: "{broken json" },
+        output: { rawPrimary: "{broken json", qualityScore: 41 },
+      },
+      {
+        status: "success",
+        model: "deepseek-v4-pro",
+        output: {
+          schemaVersion: "2.3",
+          lesson: {
+            contentMarkdown:
+              "# Title\n\nA detailed lesson body that is definitely long enough to count as a real lesson.",
+            guidedSteps: [
+              { type: "activation" },
+              { type: "concept" },
+              { type: "example" },
+              { type: "coding" },
+              { type: "reflection" },
+            ],
+          },
+          quiz: [
+            { type: "single_choice", options: ["A", "B"] },
+            { type: "single_choice", options: ["A", "B"] },
+            { type: "true_false" },
+          ],
+          codingExercise: {
+            title: "Two Sum",
+            visibleTests: [{ input: "x", expectedOutput: "y" }],
+            commonBugs: ["off-by-one"],
+          },
+          flashcards: [{ front: "Q", back: "A" }, { front: "Q2", back: "A2" }],
+        },
       },
     ],
   });
@@ -253,17 +774,21 @@ test("summarizeGenerationHealth reports provider stability and schema distributi
   assert.equal(health.totalPlans, 4);
   assert.equal(health.deepseekPlanCount, 2);
   assert.equal(health.fallbackPlanCount, 2);
-  assert.equal(health.successJobCount, 2);
+  assert.equal(health.successJobCount, 3);
   assert.equal(health.failedJobCount, 1);
   assert.equal(health.repairCount, 2);
   assert.equal(health.fallbackRate, 50);
-  assert.equal(health.repairRate, 67);
+  assert.equal(health.repairRate, 50);
+  assert.equal(health.averageQualityScore, 66);
+  assert.equal(health.lowQualityJobCount, 2);
+  assert.equal(health.qualityScoreCoverage, 4);
   assert.deepEqual(health.schemaVersionDistribution, [
     { schemaVersion: "2.3", count: 3 },
     { schemaVersion: "unknown", count: 1 },
   ]);
   assert.deepEqual(health.modelDistribution, [
     { model: "deepseek-v4-flash", count: 3 },
+    { model: "deepseek-v4-pro", count: 1 },
   ]);
 });
 
@@ -402,4 +927,59 @@ test("summarizeMisconceptionTrend groups active and resolved mistakes by local d
       resolutionRate: 33,
     },
   ]);
+});
+
+test("progress recent signal links keep mobile touch targets", () => {
+  const source = readFileSync("src/app/progress/page.tsx", "utf8");
+
+  assert.match(
+    source,
+    /const progressRecentSignalLinkClassName = "min-h-11 rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted\/50";/,
+  );
+  assert.equal(
+    (source.match(/className=\{progressRecentSignalLinkClassName\}/g) ?? []).length,
+    5,
+  );
+});
+
+test("progress weak domain links keep mobile touch targets", () => {
+  const source = readFileSync("src/app/progress/analytics-panels.tsx", "utf8");
+
+  assert.match(
+    source,
+    /const progressWeakDomainLinkClassName = "min-h-11 rounded-md border px-3 py-2 transition-colors hover:bg-muted\/50";/,
+  );
+
+  const weakDomainIndex = source.indexOf("薄弱领域");
+  assert.notEqual(weakDomainIndex, -1);
+  const weakDomainBlock = source.slice(Math.max(0, weakDomainIndex - 120), weakDomainIndex + 650);
+  assert.match(weakDomainBlock, /className=\{progressWeakDomainLinkClassName\}/);
+  assert.doesNotMatch(
+    source,
+    /className="rounded-md border px-3 py-2 transition-colors hover:bg-muted\/50"/,
+  );
+});
+
+test("progress recent signal lists localize learner-visible status labels", () => {
+  const source = readFileSync("src/app/progress/page.tsx", "utf8");
+
+  assert.match(source, /formatHomeCodeFeedbackOverallLabel\(f\.overall\)/);
+  assert.match(source, /formatTodayPlanSourceLabel\(f\.provider\)/);
+  assert.match(source, /formatCoachModeLabel\(r\.mode\)/);
+  assert.match(source, /missionStatusText\(project\.status\)/);
+  assert.doesNotMatch(source, /<Badge variant="outline">\s*\{f\.provider\}/);
+  assert.doesNotMatch(source, /` \/ \$\{f\.overall\}`/);
+  assert.doesNotMatch(source, /<Badge variant="outline">\{r\.mode\}<\/Badge>/);
+  assert.doesNotMatch(source, /\{PROJECT_TYPE_LABELS\[normalizeProjectType\(project\.type\)\]\} \/ \{project\.status\}/);
+});
+
+test("progress weak topic cards localize exposure and missing domain labels", () => {
+  const source = readFileSync("src/app/progress/page.tsx", "utf8");
+
+  assert.match(source, /function formatProgressWeakTopicDomainLabel/);
+  assert.match(source, /formatProgressWeakTopicDomainLabel\(topic\?\.domain\.name\)/);
+  assert.match(source, /"未标记领域"/);
+  assert.match(source, /接触次数：\{s\.exposureCount\}/);
+  assert.doesNotMatch(source, /topic\?\.domain\.name \?\? "-"/);
+  assert.doesNotMatch(source, /exposure \{s\.exposureCount\}/);
 });

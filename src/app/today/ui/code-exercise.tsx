@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
+import { formatTodayPlanSourceLabel } from "@/app/_lib/home-labels";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { saveCodeSubmissionAction } from "@/server/coding/actions";
@@ -44,6 +46,72 @@ export type CodeFeedbackView = {
   updatedAt: string;
 } | null;
 
+function codeSubmissionStatusLabel(status?: string) {
+  switch (status) {
+    case "feedback_ready":
+      return "反馈已生成";
+    case "submitted":
+      return "已提交";
+    case "saved":
+      return "已保存";
+    default:
+      return status ? "已保存" : "";
+  }
+}
+
+function codeFeedbackOverallLabel(overall?: string | null) {
+  switch (overall) {
+    case "likely_correct":
+      return "大概率正确";
+    case "partially_correct":
+      return "部分正确";
+    case "incorrect":
+      return "需要重写";
+    case "cannot_judge":
+      return "需要更多信息";
+    default:
+      return null;
+  }
+}
+
+function codeFeedbackIssueSeverityLabel(severity: string) {
+  switch (severity) {
+    case "high":
+      return "高优先级";
+    case "low":
+      return "低优先级";
+    case "medium":
+    default:
+      return "中优先级";
+  }
+}
+
+function codeFeedbackIssueTypeLabel(type: string) {
+  switch (type) {
+    case "logic":
+      return "逻辑问题";
+    case "edge_case":
+      return "边界条件";
+    case "complexity":
+      return "复杂度问题";
+    case "style":
+      return "代码风格";
+    case "syntax":
+      return "语法问题";
+    case "concept":
+      return "概念问题";
+    default:
+      return "一般问题";
+  }
+}
+
+function codeLanguageLabel(language: string) {
+  if (language === "python") return "Python";
+  if (language === "typescript") return "TypeScript";
+  if (language === "javascript") return "JavaScript";
+  return language.toUpperCase();
+}
+
 export function CodeExercise(props: {
   lessonId: string;
   localDate: string;
@@ -71,6 +139,9 @@ export function CodeExercise(props: {
   const language = (exercise.language ?? submission?.language ?? guessed ?? "python").toLowerCase();
   const languageHint =
     language.startsWith("py") ? "python" : language.startsWith("ts") ? "typescript" : language;
+  const submissionStatusLabel = codeSubmissionStatusLabel(submission?.status);
+  const feedbackOverallLabel = codeFeedbackOverallLabel(feedback?.overall);
+  const visibleLanguageLabel = codeLanguageLabel(languageHint);
 
   return (
     <div className="mt-2 grid gap-3" data-testid="today-code-exercise">
@@ -87,6 +158,38 @@ export function CodeExercise(props: {
         <input type="hidden" name="language" value={submission?.language ?? languageHint} />
 
         <div className="grid gap-2">
+          <div className="rounded-md border bg-muted/30 p-3">
+            <div className="grid gap-3 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <div className="text-sm font-medium">代码思路模式</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  手机端可以先写思路或伪代码，回到电脑后再补完整实现。
+                </div>
+              </div>
+              <Button
+                asChild
+                size="sm"
+                variant="secondary"
+                className="min-h-11 w-full sm:w-auto"
+              >
+                <Link href={`/voice?lessonId=${encodeURIComponent(lessonId)}&mode=code_debug`}>
+                  语音解释入口
+                </Link>
+              </Button>
+            </div>
+            <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
+              <div className="rounded-md border bg-background/60 px-3 py-2">
+                先说清思路
+              </div>
+              <div className="rounded-md border bg-background/60 px-3 py-2">
+                伪代码草稿
+              </div>
+              <div className="rounded-md border bg-background/60 px-3 py-2">
+                再补 Python / TypeScript
+              </div>
+            </div>
+          </div>
+
           <div className="text-sm font-medium">我的提交（仅保存，不执行）</div>
           <Textarea
             name="code"
@@ -98,14 +201,19 @@ export function CodeExercise(props: {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button type="submit" size="sm" disabled={!supported}>
+        <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+          <Button
+            type="submit"
+            size="sm"
+            disabled={!supported}
+            className="min-h-11 w-full sm:w-auto"
+          >
             保存提交
           </Button>
           {submission ? (
             <div className="text-xs text-muted-foreground">
               上次保存：{submission.updatedAt.slice(0, 16).replace("T", " ")}
-              {submission.status ? ` / ${submission.status}` : ""}
+              {submissionStatusLabel ? ` / ${submissionStatusLabel}` : ""}
             </div>
           ) : (
             <div className="text-xs text-muted-foreground">
@@ -113,7 +221,7 @@ export function CodeExercise(props: {
             </div>
           )}
           <div className="text-xs text-muted-foreground">
-            language：<span className="font-mono">{languageHint}</span>
+            代码语言：<span className="font-mono">{visibleLanguageLabel}</span>
           </div>
         </div>
       </form>
@@ -165,8 +273,8 @@ export function CodeExercise(props: {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-sm font-medium">代码反馈</div>
             <div className="text-xs text-muted-foreground">
-              {feedback.provider}
-              {feedback.overall ? ` / ${feedback.overall}` : ""} / {feedback.updatedAt.slice(0, 16).replace("T", " ")}
+              {formatTodayPlanSourceLabel(feedback.provider)}
+              {feedbackOverallLabel ? ` / ${feedbackOverallLabel}` : ""} / {feedback.updatedAt.slice(0, 16).replace("T", " ")}
             </div>
           </div>
           <div className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
@@ -184,7 +292,10 @@ export function CodeExercise(props: {
               需要处理：
               {"\n"}
               {feedback.issues
-                .map((x, i) => `${i + 1}. [${x.severity}/${x.type}] ${x.message}`)
+                .map(
+                  (x, i) =>
+                    `${i + 1}. [${codeFeedbackIssueSeverityLabel(x.severity)} / ${codeFeedbackIssueTypeLabel(x.type)}] ${x.message}`,
+                )
                 .join("\n")}
             </div>
           ) : null}

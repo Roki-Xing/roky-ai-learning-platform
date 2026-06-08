@@ -29,6 +29,31 @@ export type GuidedProgressView = {
   updatedAt: string;
 };
 
+function guidedStepTypeLabel(type: GuidedStep["type"]) {
+  switch (type) {
+    case "activation":
+      return "背景唤醒";
+    case "intuition":
+      return "核心直觉";
+    case "concept":
+      return "概念理解";
+    case "example":
+      return "例子拆解";
+    case "micro_question":
+      return "微问题";
+    case "pseudocode":
+      return "伪代码";
+    case "coding":
+      return "代码练习";
+    case "quiz":
+      return "小测验";
+    case "reflection":
+      return "反思沉淀";
+    default:
+      return "引导步骤";
+  }
+}
+
 export function GuidedSteps(props: {
   planId: string;
   steps: GuidedStep[] | string[];
@@ -86,7 +111,7 @@ export function GuidedSteps(props: {
               <div className="text-sm font-medium">
                 {active + 1}. {current.title}
               </div>
-              <div className="text-xs text-muted-foreground">类型：{current.type}</div>
+              <div className="text-xs text-muted-foreground">类型：{guidedStepTypeLabel(current.type)}</div>
             </div>
             <div className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
               {current.content}
@@ -105,6 +130,7 @@ export function GuidedSteps(props: {
                   type="button"
                   size="sm"
                   variant="secondary"
+                  className="min-h-11 w-full sm:w-auto"
                   onClick={() => setShowHints((v) => !v)}
                 >
                   {showHints ? "隐藏提示" : "显示提示"}
@@ -125,6 +151,7 @@ export function GuidedSteps(props: {
                   type="button"
                   size="sm"
                   variant="secondary"
+                  className="min-h-11 w-full sm:w-auto"
                   onClick={() => setShowExpected((v) => !v)}
                 >
                   {showExpected ? "隐藏参考答案" : "显示参考答案"}
@@ -152,7 +179,7 @@ export function GuidedSteps(props: {
         />
       </div>
 
-      <form action={saveGuidedProgressAction} className="flex flex-wrap items-center gap-2">
+      <form action={saveGuidedProgressAction} className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
         <input type="hidden" name="planId" value={props.planId} />
         <input type="hidden" name="activeStep" value={String(active)} />
         <input type="hidden" name="stepCount" value={String(total)} />
@@ -162,6 +189,7 @@ export function GuidedSteps(props: {
         <Button
           type="button"
           variant="secondary"
+          className="min-h-11 w-full sm:w-auto"
           disabled={active <= 0}
           onClick={() => setActive((i) => Math.max(0, i - 1))}
         >
@@ -170,12 +198,13 @@ export function GuidedSteps(props: {
         <Button
           type="button"
           variant="secondary"
+          className="min-h-11 w-full sm:w-auto"
           disabled={active >= total - 1}
           onClick={() => setActive((i) => Math.min(total - 1, i + 1))}
         >
           下一步
         </Button>
-        <Button type="submit" size="sm">
+        <Button type="submit" size="sm" className="min-h-11 w-full sm:w-auto">
           保存进度
         </Button>
         <div className="text-xs text-muted-foreground">

@@ -13,9 +13,11 @@ test("voice pipeline next action asks for capture before a note exists", () => {
     noteId: null,
   });
 
-  assert.equal(action.label, "先保存 Voice Note");
+  assert.equal(action.label, "先保存语音笔记");
   assert.equal(action.kind, "capture");
-  assert.match(action.description, /录音、上传或粘贴 transcript/);
+  assert.equal(action.primaryButtonLabel, "保存语音笔记");
+  assert.match(action.description, /录音、上传或粘贴转写文本/);
+  assert.doesNotMatch(action.description, /transcript/);
 });
 
 test("voice pipeline next action prioritizes coach after saving transcript", () => {

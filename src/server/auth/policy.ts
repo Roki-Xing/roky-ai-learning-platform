@@ -2,12 +2,15 @@ const PROTECTED_PREFIXES = [
   "/",
   "/today",
   "/review",
+  "/path",
+  "/weekly",
   "/map",
   "/library",
   "/notes",
   "/progress",
   "/settings",
   "/projects",
+  "/mistakes",
   "/coach",
   "/voice",
   "/glossary",
@@ -23,6 +26,7 @@ const PUBLIC_PATH_PREFIXES = [
   "/api/health",
   "/api/cron/daily",
   "/favicon.ico",
+  "/manifest.webmanifest",
   "/admin",
 ];
 

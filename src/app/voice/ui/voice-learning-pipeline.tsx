@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FileText, Layers, MessageSquareText, NotebookText, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LearningCTAGroup } from "@/components/learning/learning-cta-group";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
@@ -21,6 +22,8 @@ function nextActionPanelClassName(tone: VoicePipelineNextActionTone) {
       return "border-border bg-muted/30 text-foreground";
   }
 }
+
+const mobileCtaClassName = "min-h-11 w-full sm:w-auto";
 
 export function VoiceLearningPipeline(props: {
   hasSelected: boolean;
@@ -58,7 +61,7 @@ export function VoiceLearningPipeline(props: {
       description="把一段口语理解依次沉淀为 Coach 反馈、笔记和复习卡。"
       action={
         <LearningStatusBadge tone={props.hasCards ? "success" : props.hasSelected ? "info" : "warning"}>
-          {props.hasCards ? `${props.linkedCards} cards` : props.hasSelected ? "进行中" : "待捕获"}
+          {props.hasCards ? `${props.linkedCards} 张卡片` : props.hasSelected ? "进行中" : "待捕获"}
         </LearningStatusBadge>
       }
       className="rounded-lg"
@@ -73,19 +76,19 @@ export function VoiceLearningPipeline(props: {
           />
           <LearningStepCard
             index={2}
-            title="Coach"
+            title="Coach 检查"
             description="检查概念混淆"
             status={props.hasCoach ? "done" : props.hasSelected ? "active" : "todo"}
           />
           <LearningStepCard
             index={3}
-            title="Note"
+            title="整理笔记"
             description="整理成笔记"
             status={props.hasNote ? "done" : props.hasSelected ? "active" : "todo"}
           />
           <LearningStepCard
             index={4}
-            title="Cards"
+            title="复习卡片"
             description="进入复习队列"
             status={props.hasCards ? "done" : props.hasCoach ? "active" : "todo"}
           />
@@ -93,13 +96,18 @@ export function VoiceLearningPipeline(props: {
 
         <div className={`rounded-lg border p-3 ${nextActionPanelClassName(nextAction.tone)}`}>
           <div className="text-xs font-medium uppercase tracking-wide opacity-75">当前最优动作</div>
-          <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+          <div className="mt-1 grid gap-3 sm:flex sm:items-center sm:justify-between">
             <div className="min-w-0">
               <div className="font-medium">{nextAction.label}</div>
               <div className="mt-1 text-xs opacity-80">{nextAction.description}</div>
             </div>
             {nextAction.href ? (
-              <Button asChild size="sm" variant={nextAction.tone === "success" ? "default" : "outline"}>
+              <Button
+                asChild
+                size="sm"
+                variant={nextAction.tone === "success" ? "default" : "outline"}
+                className={mobileCtaClassName}
+              >
                 <Link href={nextAction.href}>{nextAction.primaryButtonLabel}</Link>
               </Button>
             ) : (
@@ -114,54 +122,76 @@ export function VoiceLearningPipeline(props: {
           <div className="rounded-lg border bg-emerald-50/60 p-3 text-sm text-emerald-900">
             <div className="font-medium">语音卡片已进入复习队列</div>
             <div className="mt-1 text-xs text-emerald-800">
-              这次 Voice Note 生成了 {props.linkedCards} 张卡片，建议马上用主动回忆过一遍。
+              这次语音笔记生成了 {props.linkedCards} 张卡片，建议马上用主动回忆过一遍。
             </div>
           </div>
         ) : null}
 
-        <LearningCTAGroup>
-          <form action={props.sendToCoachAction}>
+        <LearningCTAGroup className="grid gap-2 sm:flex sm:flex-wrap">
+          <form action={props.sendToCoachAction} className="grid">
             <input type="hidden" name="voiceNoteId" value={props.voiceNoteId ?? ""} />
-            <Button type="submit" size="sm" disabled={!canUseVoice || props.hasCoach}>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={!canUseVoice || props.hasCoach}
+              className={mobileCtaClassName}
+            >
+              <MessageSquareText className="size-4" />
               {props.hasCoach ? "已送 Coach" : "送 Coach 检查"}
             </Button>
           </form>
 
-          <form action={props.saveAsNoteAction}>
+          <form action={props.saveAsNoteAction} className="grid">
             <input type="hidden" name="voiceNoteId" value={props.voiceNoteId ?? ""} />
-            <Button type="submit" size="sm" variant="secondary" disabled={!canUseVoice || props.hasNote}>
+            <Button
+              type="submit"
+              size="sm"
+              variant="secondary"
+              disabled={!canUseVoice || props.hasNote}
+              className={mobileCtaClassName}
+            >
+              <NotebookText className="size-4" />
               {props.hasNote ? "已整理成笔记" : "整理成笔记"}
             </Button>
           </form>
 
-          <form action={props.generateFlashcardsAction}>
+          <form action={props.generateFlashcardsAction} className="grid">
             <input type="hidden" name="voiceNoteId" value={props.voiceNoteId ?? ""} />
             <Button
               type="submit"
               size="sm"
               variant="outline"
               disabled={!canGenerateCards || props.hasCards}
+              className={mobileCtaClassName}
             >
+              <Layers className="size-4" />
               {props.hasCards ? "已生成复习卡片" : "生成复习卡片"}
             </Button>
           </form>
 
           {props.reviewId ? (
-            <Button asChild size="sm" variant="outline">
-              <Link href={`/coach?reviewId=${encodeURIComponent(props.reviewId)}`}>查看 Coach</Link>
+            <Button asChild size="sm" variant="outline" className={mobileCtaClassName}>
+              <Link href={`/coach?reviewId=${encodeURIComponent(props.reviewId)}`}>
+                <MessageSquareText className="size-4" />
+                查看 Coach
+              </Link>
             </Button>
           ) : null}
 
           {props.noteId ? (
-            <Button asChild size="sm" variant="outline">
+            <Button asChild size="sm" variant="outline" className={mobileCtaClassName}>
               <Link href={`/notes?noteId=${encodeURIComponent(props.noteId)}`}>
+                <FileText className="size-4" />
                 查看这条笔记
               </Link>
             </Button>
           ) : null}
 
-          <Button asChild size="sm" variant={props.hasCards ? "default" : "outline"}>
-            <Link href={reviewHref}>{reviewLabel}</Link>
+          <Button asChild size="sm" variant={props.hasCards ? "default" : "outline"} className={mobileCtaClassName}>
+            <Link href={reviewHref}>
+              <RotateCcw className="size-4" />
+              {reviewLabel}
+            </Link>
           </Button>
         </LearningCTAGroup>
       </div>

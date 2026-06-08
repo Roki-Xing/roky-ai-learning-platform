@@ -1,8 +1,21 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { AlertTriangle, BookOpen, Brain, CheckCircle2, HelpCircle, Layers3, RotateCcw, Sparkles } from "lucide-react";
+import {
+  AlertTriangle,
+  BookOpen,
+  Brain,
+  CheckCircle2,
+  FileText,
+  HelpCircle,
+  Layers3,
+  Mic,
+  NotebookText,
+  RotateCcw,
+  Sparkles,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatFlashcardTypeLabel } from "@/app/_lib/home-labels";
 import { LearningStatusBadge, type LearningStatusTone } from "@/components/learning/learning-status-badge";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +37,9 @@ export type CoachContextCompassSignal = {
   tone?: LearningStatusTone;
   href?: string;
 };
+
+const coachRemediationQueueLinkClassName =
+  "min-h-11 rounded-md border px-3 py-2 transition-colors hover:bg-muted/60";
 
 function toneClass(tone: LearningStatusTone) {
   switch (tone) {
@@ -55,6 +71,77 @@ function mutedToneClass(tone: LearningStatusTone) {
   }
 }
 
+function coachIssueTypeLabel(type?: string) {
+  switch (type) {
+    case "conceptual":
+      return "概念问题";
+    case "factual":
+      return "事实问题";
+    case "logical":
+      return "推理问题";
+    case "missing_context":
+      return "上下文不足";
+    case "implementation":
+      return "实现问题";
+    case "terminology":
+      return "术语问题";
+    default:
+      return "一般问题";
+  }
+}
+
+function coachIssueSeverityLabel(severity?: string) {
+  switch (severity) {
+    case "high":
+      return "高优先级";
+    case "low":
+      return "低优先级";
+    case "medium":
+    default:
+      return "中优先级";
+  }
+}
+
+function coachIssueSeverityTone(severity?: string): LearningStatusTone {
+  switch (severity) {
+    case "high":
+      return "danger";
+    case "medium":
+      return "warning";
+    case "low":
+    default:
+      return "neutral";
+  }
+}
+
+function coachVoiceModeLabel(mode: string) {
+  switch (mode) {
+    case "today_lesson":
+      return "今日课程";
+    case "code_debug":
+    case "code_reasoning":
+      return "代码调试";
+    case "paper_reading":
+      return "论文阅读";
+    case "industry_radar":
+      return "行业观察";
+    case "glossary_question":
+    case "glossary_term":
+      return "术语提问";
+    case "concept_question":
+      return "概念疑问";
+    case "algorithm_design":
+      return "算法设计";
+    case "free_thought":
+      return "自由想法";
+    default:
+      return "语音反思";
+  }
+}
+
+const coachWorkspaceCtaClassName = "min-h-11 w-full sm:w-auto";
+const coachModeSelectClassName = "min-h-11 rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
 export function CoachHero(props: {
   lessonTitle?: string | null;
   localDate?: string | null;
@@ -66,7 +153,7 @@ export function CoachHero(props: {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <LearningStatusBadge tone="info">Tutor Workspace</LearningStatusBadge>
+            <LearningStatusBadge tone="info">Coach 工作区</LearningStatusBadge>
             {props.localDate ? (
               <LearningStatusBadge tone="neutral">{props.localDate}</LearningStatusBadge>
             ) : null}
@@ -106,8 +193,9 @@ export function CoachModeRail(props: {
       <div className="text-sm font-medium">评审模式</div>
       <select
         name="mode"
+        aria-label="评审模式"
         defaultValue={props.defaultMode ?? "today_lesson"}
-        className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className={coachModeSelectClassName}
       >
         {props.modes.map(([value, label]) => (
           <option key={value} value={value}>
@@ -151,7 +239,7 @@ export function CoachContextCompass(props: {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <LearningStatusBadge tone="info">Context Compass</LearningStatusBadge>
+            <LearningStatusBadge tone="info">上下文指南针</LearningStatusBadge>
             <LearningStatusBadge tone="neutral">{props.localDate}</LearningStatusBadge>
           </div>
           <div className="mt-2 text-sm font-semibold">学习上下文指南针</div>
@@ -229,7 +317,7 @@ export function CoachResultBlock(props: {
           </span>
           <h3 className="text-sm font-semibold">{props.title}</h3>
         </div>
-        {props.action ? <div className="shrink-0">{props.action}</div> : null}
+        {props.action ? <div className="w-full sm:w-auto sm:shrink-0">{props.action}</div> : null}
       </div>
       <div className="mt-3 text-sm leading-6 text-muted-foreground">{props.children}</div>
     </section>
@@ -287,17 +375,9 @@ export function CoachIssueList(props: {
           {props.issues.map((issue, idx) => (
             <div key={`${issue.issue}:${idx}`} className="rounded-md border bg-background/80 p-3">
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <Badge variant="outline">{issue.type ?? "issue"}</Badge>
-                <LearningStatusBadge
-                  tone={
-                    issue.severity === "high"
-                      ? "danger"
-                      : issue.severity === "medium"
-                        ? "warning"
-                        : "neutral"
-                  }
-                >
-                  {issue.severity ?? "medium"}
+                <Badge variant="outline">{coachIssueTypeLabel(issue.type)}</Badge>
+                <LearningStatusBadge tone={coachIssueSeverityTone(issue.severity)}>
+                  {coachIssueSeverityLabel(issue.severity)}
                 </LearningStatusBadge>
               </div>
               <div className="mt-2 text-sm font-medium text-foreground">{issue.issue}</div>
@@ -343,8 +423,10 @@ export function CoachFlashcardPanel(props: {
   flashcards: Array<{ front?: string; back?: string; type?: string }>;
   action: (formData: FormData) => Promise<void>;
   relatedTerms: string[];
+  reviewSource?: "thought-review" | "voice-note";
 }) {
   const hasGeneratedCards = props.generatedCardCount > 0;
+  const reviewHref = `/review?source=${props.reviewSource ?? "thought-review"}`;
 
   return (
     <CoachResultBlock
@@ -354,7 +436,7 @@ export function CoachFlashcardPanel(props: {
       action={
         <form action={props.action}>
           <input type="hidden" name="reviewId" value={props.reviewId} />
-          <Button type="submit" size="sm" disabled={!props.flashcards.length}>
+          <Button type="submit" size="sm" disabled={!props.flashcards.length} className={coachWorkspaceCtaClassName}>
             生成卡片
           </Button>
         </form>
@@ -366,7 +448,7 @@ export function CoachFlashcardPanel(props: {
       </div>
       {hasGeneratedCards ? (
         <div className="mt-3 rounded-md border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-emerald-900">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="grid gap-3 sm:flex sm:items-center sm:justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <RotateCcw className="size-4" aria-hidden="true" />
@@ -376,8 +458,8 @@ export function CoachFlashcardPanel(props: {
                 先用主动回忆检查这次评审沉淀的概念，再回来补一版更清晰的理解。
               </div>
             </div>
-            <Button asChild size="sm" variant="outline">
-              <Link href="/review?source=thought-review">
+            <Button asChild size="sm" variant="outline" className={coachWorkspaceCtaClassName}>
+              <Link href={reviewHref}>
                 复习这 {props.generatedCardCount} 张 Coach 卡片
               </Link>
             </Button>
@@ -390,7 +472,7 @@ export function CoachFlashcardPanel(props: {
             <div key={`${card.front}:${idx}`} className="rounded-md border bg-background/80 p-3">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="text-sm font-medium text-foreground">{card.front}</div>
-                {card.type ? <Badge variant="outline">{card.type}</Badge> : null}
+                {card.type ? <Badge variant="outline">{formatFlashcardTypeLabel(card.type)}</Badge> : null}
               </div>
               <div className="mt-1 text-sm text-muted-foreground">{card.back}</div>
             </div>
@@ -407,6 +489,62 @@ export function CoachFlashcardPanel(props: {
         </div>
       ) : null}
     </CoachResultBlock>
+  );
+}
+
+export function CoachVoiceSourcePanel(props: {
+  voiceNoteId: string;
+  mode: string;
+  transcriptPreview: string;
+  noteId: string | null;
+  saveAsNoteAction: (formData: FormData) => void | Promise<void>;
+}) {
+  const voiceHref = `/voice?voiceNoteId=${encodeURIComponent(props.voiceNoteId)}`;
+
+  return (
+    <section className="rounded-lg border border-indigo-200 bg-indigo-50/70 p-3 text-indigo-950">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <LearningStatusBadge tone="info">来自语音笔记</LearningStatusBadge>
+            <LearningStatusBadge tone="neutral">{coachVoiceModeLabel(props.mode)}</LearningStatusBadge>
+          </div>
+          <div className="mt-2 text-sm font-medium">语音理解已进入 Coach review</div>
+          <div className="mt-1 text-xs leading-5 text-indigo-900">
+            这条反馈来自语音笔记；可以在下方一键生成卡片，也可以把原始语音内容保存为 Note。
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-md border border-indigo-100 bg-background/70 px-3 py-2 text-sm text-muted-foreground">
+        {props.transcriptPreview}
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
+        <Button asChild size="sm" variant="outline" className={coachWorkspaceCtaClassName}>
+          <Link href={voiceHref}>
+            <Mic className="size-4" />
+            查看语音笔记
+          </Link>
+        </Button>
+        {props.noteId ? (
+          <Button asChild size="sm" variant="outline" className={coachWorkspaceCtaClassName}>
+            <Link href={`/notes?noteId=${encodeURIComponent(props.noteId)}`}>
+              <FileText className="size-4" />
+              查看 Note
+            </Link>
+          </Button>
+        ) : (
+          <form action={props.saveAsNoteAction} className="grid">
+            <input type="hidden" name="voiceNoteId" value={props.voiceNoteId} />
+            <Button type="submit" size="sm" variant="secondary" className={coachWorkspaceCtaClassName}>
+              <NotebookText className="size-4" />
+              保存为 Note
+            </Button>
+          </form>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -470,7 +608,7 @@ export function CoachRemediationQueue(props: {
         {firstMisconception ? (
           <Link
             href="/coach"
-            className={cn("rounded-md border px-3 py-2 transition-colors hover:bg-muted/60", mutedToneClass("warning"))}
+            className={cn(coachRemediationQueueLinkClassName, mutedToneClass("warning"))}
           >
             <div className="flex flex-wrap items-center gap-2">
               <LearningStatusBadge tone="warning">误区</LearningStatusBadge>
@@ -488,7 +626,7 @@ export function CoachRemediationQueue(props: {
         {firstCodeFeedback ? (
           <Link
             href="/review?source=code-feedback"
-            className={cn("rounded-md border px-3 py-2 transition-colors hover:bg-muted/60", mutedToneClass("info"))}
+            className={cn(coachRemediationQueueLinkClassName, mutedToneClass("info"))}
           >
             <div className="flex flex-wrap items-center gap-2">
               <LearningStatusBadge tone="info">代码反馈</LearningStatusBadge>
@@ -515,15 +653,15 @@ export function CoachRemediationQueue(props: {
 
 export function CoachQuickLinks(props: { lessonId?: string | null }) {
   return (
-    <div className="grid grid-cols-2 gap-2">
-      <Button asChild size="sm" variant="secondary">
+    <div className="grid gap-2 sm:grid-cols-2">
+      <Button asChild size="sm" variant="secondary" className={coachWorkspaceCtaClassName}>
         <Link href="/today">今日学习</Link>
       </Button>
-      <Button asChild size="sm" variant="outline">
+      <Button asChild size="sm" variant="outline" className={coachWorkspaceCtaClassName}>
         <Link href="/review">复习中心</Link>
       </Button>
       {props.lessonId ? (
-        <Button asChild size="sm" variant="outline" className="col-span-2">
+        <Button asChild size="sm" variant="outline" className="min-h-11 w-full sm:w-auto sm:col-span-2">
           <Link href={`/library?lessonId=${encodeURIComponent(props.lessonId)}`}>查看关联课程</Link>
         </Button>
       ) : null}

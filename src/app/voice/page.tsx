@@ -27,6 +27,12 @@ const MODES = [
 ] as const;
 
 const MODE_LABELS = new Map<string, string>(MODES);
+const voicePageCtaClassName = "min-h-11 w-full sm:w-auto";
+const voiceRecentNoteLinkClassName = "min-h-11 rounded-md border px-3 py-2 text-sm transition-colors";
+
+function voiceModeLabel(mode: string) {
+  return MODE_LABELS.get(mode) ?? "语音反思";
+}
 
 function compactText(value: string, max = 120) {
   const text = value.replace(/\s+/g, " ").trim();
@@ -83,7 +89,7 @@ export default async function VoicePage({
       activePath="/voice"
       title="语音笔记"
       actions={
-        <Button asChild size="sm" variant="secondary">
+        <Button asChild size="sm" variant="secondary" className={voicePageCtaClassName}>
           <Link href="/coach">打开 Coach</Link>
         </Button>
       }
@@ -91,7 +97,7 @@ export default async function VoicePage({
       <PageHeader
         title="语音学习捕获"
         subtitle="说出你的理解，Roky 帮你整理、检查并沉淀成笔记和卡片。"
-        badge="Voice"
+        badge="语音捕获"
       />
 
       <div className="grid gap-4 xl:grid-cols-[380px_minmax(0,1fr)_320px]">
@@ -113,20 +119,18 @@ export default async function VoicePage({
 
         <div className="grid gap-4">
           <LearningCompassCard
-            title={selected ? "当前 Voice Note" : "等待捕获"}
+            title={selected ? "当前语音笔记" : "等待捕获"}
             subtitle={
               selected
-                ? `${selected.createdAt.toISOString().slice(0, 16).replace("T", " ")} / ${
-                    MODE_LABELS.get(selected.mode) ?? selected.mode
-                  }`
-                : "先录音或粘贴 transcript"
+                ? `${selected.createdAt.toISOString().slice(0, 16).replace("T", " ")} / ${voiceModeLabel(selected.mode)}`
+                : "先录音或粘贴转写文本"
             }
             signal={selected ? "已捕获" : "待输入"}
             tone={selected ? "info" : "warning"}
           >
             {selected
               ? "下一步：把这段理解送到 Coach，或者先保存成笔记。"
-              : "Voice Note 的价值不是保存音频，而是把口语思路变成可复习、可追问的学习材料。"}
+              : "语音笔记的价值不是保存音频，而是把口语思路变成可复习、可追问的学习材料。"}
           </LearningCompassCard>
 
           <VoiceLearningPipeline
@@ -148,16 +152,16 @@ export default async function VoicePage({
               <div className="grid gap-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <LearningStatusBadge tone="info">
-                    {MODE_LABELS.get(selected.mode) ?? selected.mode}
+                    {voiceModeLabel(selected.mode)}
                   </LearningStatusBadge>
-                  {hasCoach ? <LearningStatusBadge tone="success">Coach linked</LearningStatusBadge> : null}
-                  {hasNote ? <LearningStatusBadge tone="success">Note saved</LearningStatusBadge> : null}
-                  {hasCards ? <LearningStatusBadge tone="success">{linkedCards} cards</LearningStatusBadge> : null}
+                  {hasCoach ? <LearningStatusBadge tone="success">已连接 Coach</LearningStatusBadge> : null}
+                  {hasNote ? <LearningStatusBadge tone="success">已保存笔记</LearningStatusBadge> : null}
+                  {hasCards ? <LearningStatusBadge tone="success">{linkedCards} 张卡片</LearningStatusBadge> : null}
                   {selected.audioUrl ? <LearningStatusBadge tone="neutral">{selected.audioUrl}</LearningStatusBadge> : null}
                 </div>
 
                 <div>
-                  <div className="text-sm font-medium">Transcript</div>
+                  <div className="text-sm font-medium">转写文本</div>
                   <div className="mt-2 max-h-[360px] overflow-auto whitespace-pre-wrap rounded-md border bg-muted/20 p-3 text-sm text-muted-foreground">
                     {selectedText}
                   </div>
@@ -165,8 +169,8 @@ export default async function VoicePage({
               </div>
             ) : (
               <LearningEmptyState
-                title="还没有 Voice Note"
-                description="在左侧录音、上传音频或直接输入 transcript，保存后这里会出现分析入口。"
+                title="还没有语音笔记"
+                description="在左侧录音、上传音频或直接输入转写文本，保存后这里会出现分析入口。"
                 actions={[
                   { href: "/today", label: "回到今日学习", variant: "secondary" },
                   { href: "/coach", label: "打开 Coach", variant: "outline" },
@@ -184,7 +188,7 @@ export default async function VoicePage({
             signal={recentPlan ? "关联课程" : "独立记录"}
             tone={recentPlan ? "success" : "neutral"}
             action={
-              <Button asChild size="sm" variant="secondary">
+              <Button asChild size="sm" variant="secondary" className={voicePageCtaClassName}>
                 <Link href="/review">去复习</Link>
               </Button>
             }
@@ -194,11 +198,11 @@ export default async function VoicePage({
                 最近课程：{recentPlan.localDate} / {recentPlan.lesson.title}
               </>
             ) : (
-              "没有关联课程时，Voice Note 也可以作为独立想法进入 Coach。"
+              "没有关联课程时，语音笔记也可以作为独立想法进入 Coach。"
             )}
           </LearningCompassCard>
 
-          <LearningSectionCard title="最近 Voice Notes" description="点击回到任意一次语音学习记录。">
+          <LearningSectionCard title="最近语音笔记" description="点击回到任意一次语音学习记录。">
             <div className="grid gap-2">
               {notes.length ? (
                 notes.map((n) => (
@@ -206,7 +210,7 @@ export default async function VoicePage({
                     key={n.id}
                     href={`/voice?voiceNoteId=${encodeURIComponent(n.id)}`}
                     className={[
-                      "rounded-md border px-3 py-2 text-sm transition-colors",
+                      voiceRecentNoteLinkClassName,
                       selected?.id === n.id ? "bg-muted" : "hover:bg-muted/50",
                     ].join(" ")}
                   >
@@ -215,7 +219,7 @@ export default async function VoicePage({
                         {compactText(n.editedTranscript || n.transcript, 72)}
                       </div>
                       <LearningStatusBadge tone="neutral">
-                        {MODE_LABELS.get(n.mode) ?? n.mode}
+                        {voiceModeLabel(n.mode)}
                       </LearningStatusBadge>
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">
@@ -226,7 +230,7 @@ export default async function VoicePage({
                   </Link>
                 ))
               ) : (
-                <div className="text-sm text-muted-foreground">暂无历史 Voice Note。</div>
+                <div className="text-sm text-muted-foreground">暂无历史语音笔记。</div>
               )}
             </div>
           </LearningSectionCard>

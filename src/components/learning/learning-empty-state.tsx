@@ -21,9 +21,15 @@ export function LearningEmptyState(props: {
         ) : null}
       </div>
       {props.actions?.length ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="grid gap-2 sm:flex sm:flex-wrap">
           {props.actions.map((a) => (
-            <Button key={a.href} asChild size="sm" variant={a.variant ?? "secondary"}>
+            <Button
+              key={a.href}
+              asChild
+              size="sm"
+              variant={a.variant ?? "secondary"}
+              className="min-h-11 w-full sm:w-auto"
+            >
               <Link href={a.href}>{a.label}</Link>
             </Button>
           ))}
@@ -32,4 +38,3 @@ export function LearningEmptyState(props: {
     </div>
   );
 }
-

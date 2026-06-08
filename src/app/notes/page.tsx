@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { requireUserId } from "@/server/auth/user";
 import { prisma } from "@/server/db";
 import { resolveVisibleLibraryLessonId } from "@/server/library/lesson-detail";
-import { buildLessonNoteTemplate } from "@/server/notes/template";
+import { buildLessonNoteTemplate, formatNotePlanStatusLabel } from "@/server/notes/template";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import { localDateInTimeZone } from "@/server/time/day";
 import { createNoteAction } from "@/app/notes/actions";
@@ -19,6 +19,9 @@ function strings(value: unknown) {
     ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
     : [];
 }
+
+const notesCtaClassName = "min-h-11 w-full sm:w-auto";
+const notesInputClassName = "min-h-11";
 
 export default async function NotesPage({
   searchParams,
@@ -123,14 +126,14 @@ export default async function NotesPage({
             <CardTitle className="text-base">新建笔记</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm">
+            <div className="grid gap-3 rounded-md border p-3 text-sm sm:flex sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <div className="text-sm font-medium">关联课程</div>
                 <div className="mt-1 truncate text-xs text-muted-foreground">
                   {selectedLesson ? selectedLesson.title : "（未选择）"}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1 text-xs text-muted-foreground">
-                  <span>计划：{selectedPlan?.status ?? "未关联"}</span>
+                  <span>计划：{formatNotePlanStatusLabel(selectedPlan?.status)}</span>
                   <span>/</span>
                   <span>测验：{selectedLessonQuizCount}</span>
                   <span>/</span>
@@ -139,12 +142,12 @@ export default async function NotesPage({
                   <span>已有笔记：{selectedHasExistingNote ? "是" : "否"}</span>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button asChild size="sm" variant="outline">
+              <div className="grid gap-2 sm:flex sm:flex-wrap">
+                <Button asChild size="sm" variant="outline" className={notesCtaClassName}>
                   <Link href="/today">去今日学习</Link>
                 </Button>
                 {selectedLesson ? (
-                  <Button asChild size="sm" variant="secondary">
+                  <Button asChild size="sm" variant="secondary" className={notesCtaClassName}>
                     <Link href={`/library?lessonId=${encodeURIComponent(selectedLesson.id)}`}>
                       看课程档案
                     </Link>
@@ -166,6 +169,7 @@ export default async function NotesPage({
                 <div className="text-sm font-medium">标题</div>
                 <Input
                   name="title"
+                  className={notesInputClassName}
                   placeholder="例如：Transformer 今日总结"
                   defaultValue={
                     selectedLesson ? `${selectedLesson.title} - 总结` : "今日总结"
@@ -183,8 +187,8 @@ export default async function NotesPage({
                   required
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <Button type="submit">保存笔记</Button>
+              <div className="grid gap-2 sm:flex sm:items-center">
+                <Button type="submit" className={notesCtaClassName}>保存笔记</Button>
                 <div className="text-xs text-muted-foreground">
                   今日计划：{todayPlan ? "已生成" : "未生成"}
                 </div>

@@ -15,12 +15,14 @@ export const APP_ROUTE_GROUPS: AppRouteGroup[] = [
       { href: "/today", label: "今日学习" },
       { href: "/review", label: "复习中心" },
       { href: "/progress", label: "学习进度" },
+      { href: "/weekly", label: "每周复盘" },
     ],
   },
   {
     label: "能力",
     routes: [
       { href: "/coach", label: "思路评审" },
+      { href: "/mistakes", label: "错题误区" },
       { href: "/voice", label: "语音笔记" },
       { href: "/projects", label: "项目实践" },
     ],
@@ -28,6 +30,7 @@ export const APP_ROUTE_GROUPS: AppRouteGroup[] = [
   {
     label: "知识库",
     routes: [
+      { href: "/path", label: "学习路径" },
       { href: "/map", label: "知识地图" },
       { href: "/library", label: "课程库" },
       { href: "/notes", label: "我的笔记" },

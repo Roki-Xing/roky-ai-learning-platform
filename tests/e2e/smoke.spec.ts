@@ -10,26 +10,36 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
 
   await enterLearningApp(page, "/");
   await expect(page.getByRole("heading", { name: "Roky Learn" })).toBeVisible();
-  await expect(page.getByText("现在最值得做")).toBeVisible();
+  await expect(page.getByText("当前任务", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("当前项目进度")).toBeVisible();
   if (previewToken) {
-    await expect(page.getByText("Preview Mode")).toBeVisible();
+    await expect(page.getByText("Preview Mode：当前使用 demo-user")).toBeVisible();
   }
 
   await page.goto("/today");
   await expect(page.getByText("专注学习模式").first()).toBeVisible();
   await expect(page.getByText("今日概览").first()).toBeVisible();
-  await expect(page.getByText("完成后下一步").first()).toBeVisible();
+  await expect(page.getByText("查看完整课程内容").first()).toBeVisible();
+
+  await page.goto("/path");
+  await expect(page.getByRole("heading", { name: "学习路径" })).toBeVisible();
+  await expect(page.getByText("路线图")).toBeVisible();
+  await expect(page.getByText("为什么我今天学这个？")).toBeVisible();
+
+  await page.goto("/weekly");
+  await expect(page.getByRole("heading", { name: "每周复盘" })).toBeVisible();
+  await expect(page.getByText("本周学了什么")).toBeVisible();
+  await expect(page.getByText("下周建议").first()).toBeVisible();
 
   await page.goto("/projects");
   await expect(page.getByRole("heading", { name: "项目实践" })).toBeVisible();
-  await expect(page.getByText("Mission Mode").first()).toBeVisible();
+  await expect(page.getByText("项目任务模式").first()).toBeVisible();
   await expect(page.getByText("今日项目任务").first()).toBeVisible();
 
   await page.goto("/glossary");
   await expect(page.getByRole("heading", { name: "术语库" })).toBeVisible();
   await expect(page.getByText("路径化学习").first()).toBeVisible();
-  await expect(page.getByText(/已看过/).first()).toBeVisible();
+  await expect(page.getByText("已看").first()).toBeVisible();
 
   await page.goto("/radar");
   await expect(page.getByRole("heading", { name: "AI Radar" })).toBeVisible();
@@ -39,7 +49,7 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
   await page.goto("/coach");
   await expect(page.getByRole("heading", { name: "思路评审" })).toBeVisible();
   await expect(page.getByText("我的理解")).toBeVisible();
-  await expect(page.getByText("Context Compass")).toBeVisible();
+  await expect(page.getByText("上下文指南针", { exact: true })).toBeVisible();
 
   await page.goto("/coach?mode=today_lesson");
   await expect(page.locator('select[name="mode"]')).toHaveValue("today_lesson");
@@ -56,6 +66,11 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
 
   await page.goto("/voice?mode=today_lesson");
   await expect(page.locator('select[name="mode"]')).toHaveValue("today_lesson");
+
+  await page.goto("/mistakes");
+  await expect(page.getByRole("heading", { name: "错题误区" })).toBeVisible();
+  await expect(page.getByText("筛选视图")).toBeVisible();
+  await expect(page.getByText("误区清单")).toBeVisible();
 
   await page.goto("/notes");
   await expect(page.getByRole("heading", { name: "我的笔记" })).toBeVisible();
@@ -79,6 +94,6 @@ test("review trainer hides answers until reveal @smoke", async ({ page }) => {
 
   await expect(page.getByText("先在脑中回答，再显示答案。")).toBeVisible();
   await revealButton.click();
-  await expect(page.getByRole("button", { name: /1 忘了/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /4 很熟/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /忘了 \+1d/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /很熟 \+14d/ })).toBeVisible();
 });

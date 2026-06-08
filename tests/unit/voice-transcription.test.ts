@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   MAX_VOICE_AUDIO_BYTES,
+  buildVoiceTranscriptionPrompt,
+  normalizeVoiceTranscript,
   transcribeVoiceAudio,
   validateVoiceAudioFile,
 } from "@/server/voice/transcription";
@@ -53,4 +55,55 @@ test("transcribeVoiceAudio reports manual fallback when no provider key is confi
   } finally {
     if (previous) process.env.OPENAI_API_KEY = previous;
   }
+});
+
+test("voice transcription prompt preserves AI acronyms and benchmark names", () => {
+  const prompt = buildVoiceTranscriptionPrompt("today_lesson");
+
+  assert.match(prompt, /Preserve these AI acronyms and technical terms\./);
+  for (const term of [
+    "CoT",
+    "SWE-bench",
+    "RLHF",
+    "DPO",
+    "SFT",
+    "LoRA",
+    "QLoRA",
+    "MoE",
+    "RAG",
+    "MMLU",
+    "GPQA",
+    "HumanEval",
+    "ReAct",
+    "ToT",
+    "MCP",
+    "BM25",
+    "Reranker",
+    "Embedding",
+    "Vector Database",
+  ]) {
+    assert.match(prompt, new RegExp(term.replace("-", "\\-")));
+  }
+});
+
+test("normalizeVoiceTranscript repairs common AI acronym transcription mistakes", () => {
+  const normalized = normalizeVoiceTranscript(
+    "today we compare cot, chain of thought, swe bench, swebench, rag, lora, human eval, react and m c p with gpqa, mmlu, bm25, reranker, embedding and vector database",
+  );
+
+  assert.match(normalized, /CoT/);
+  assert.match(normalized, /Chain-of-Thought/);
+  assert.match(normalized, /SWE-bench/);
+  assert.match(normalized, /SWE-bench, SWE-bench/);
+  assert.match(normalized, /RAG/);
+  assert.match(normalized, /LoRA/);
+  assert.match(normalized, /HumanEval/);
+  assert.match(normalized, /ReAct/);
+  assert.match(normalized, /MCP/);
+  assert.match(normalized, /GPQA/);
+  assert.match(normalized, /MMLU/);
+  assert.match(normalized, /BM25/);
+  assert.match(normalized, /Reranker/);
+  assert.match(normalized, /Embedding/);
+  assert.match(normalized, /Vector Database/);
 });

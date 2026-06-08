@@ -12,6 +12,7 @@ import { buildKnowledgeLink } from "@/server/knowledge/base";
 import { DEFAULT_KNOWLEDGE_PATHS, buildKnowledgePathProgress } from "@/server/knowledge/paths";
 import { generateGlossaryFlashcardAction } from "@/app/glossary/actions";
 import { KnowledgePathExplorer } from "@/components/learning/knowledge-path-explorer";
+import { formatGlossaryCategoryLabel, formatGlossaryDifficultyLabel } from "@/app/_lib/home-labels";
 
 type SourceRef = { title?: string; url?: string };
 type GlossaryCardStatus = {
@@ -25,6 +26,14 @@ const glossaryCardSelect = {
   dueAt: true,
   reviewCount: true,
 } as const;
+
+const glossaryCtaClassName = "min-h-11 w-full sm:w-auto";
+const glossarySearchInputClassName = "min-h-11";
+const glossaryResultLinkClassName = "min-h-11 rounded-md border px-3 py-2 text-sm transition-colors";
+const glossaryCategoryFilterLinkClassName =
+  "inline-flex min-h-11 items-center rounded-md border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/50";
+const glossaryRelatedTermLinkClassName = "inline-flex min-h-11 items-center rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/50";
+const glossarySourceLinkClassName = "inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline";
 
 function strings(value: unknown) {
   return Array.isArray(value) ? value.filter((x): x is string => typeof x === "string") : [];
@@ -141,7 +150,6 @@ export default async function GlossaryPage({
     .slice(0, 5);
   const recommendedPaths = DEFAULT_KNOWLEDGE_PATHS
     .filter((p) => p.kind === "glossary")
-    .slice(0, 2)
     .map((path) =>
       buildKnowledgePathProgress({
         path,
@@ -158,7 +166,7 @@ export default async function GlossaryPage({
       activePath="/glossary"
       title="术语库"
       actions={
-        <Button asChild size="sm" variant="secondary">
+        <Button asChild size="sm" variant="secondary" className={glossaryCtaClassName}>
           <Link href="/review">去复习</Link>
         </Button>
       }
@@ -181,30 +189,44 @@ export default async function GlossaryPage({
             />
 
             <form className="grid gap-2">
-              <Input name="q" placeholder="搜索 CoT / RAG / SWE-bench" defaultValue={q} />
+              <Input
+                name="q"
+                placeholder="搜索 CoT / RAG / SWE-bench"
+                defaultValue={q}
+                className={glossarySearchInputClassName}
+              />
               {selectedCategory ? <input type="hidden" name="category" value={selectedCategory} /> : null}
-              <Button type="submit" size="sm">搜索</Button>
+              <Button type="submit" size="sm" className={glossaryCtaClassName}>搜索</Button>
             </form>
 
             <div className="flex flex-wrap gap-2">
-              <Badge asChild variant={selectedCategory ? "outline" : "secondary"}>
-                <Link href={q ? `/glossary?q=${encodeURIComponent(q)}` : "/glossary"}>全部</Link>
-              </Badge>
+              <Link
+                href={q ? `/glossary?q=${encodeURIComponent(q)}` : "/glossary"}
+                className={[
+                  glossaryCategoryFilterLinkClassName,
+                  selectedCategory ? "bg-background" : "border-secondary bg-secondary text-secondary-foreground",
+                ].join(" ")}
+              >
+                全部
+              </Link>
               {categories.map((c) => {
                 const params = new URLSearchParams({
                   category: c.category,
                   ...(q ? { q } : {}),
                 });
                 return (
-                  <Badge
+                  <Link
                     key={c.category}
-                    asChild
-                    variant={selectedCategory === c.category ? "secondary" : "outline"}
+                    href={`/glossary?${params.toString()}`}
+                    className={[
+                      glossaryCategoryFilterLinkClassName,
+                      selectedCategory === c.category
+                        ? "border-secondary bg-secondary text-secondary-foreground"
+                        : "bg-background",
+                    ].join(" ")}
                   >
-                    <Link href={`/glossary?${params.toString()}`}>
-                      {c.category} {c._count._all}
-                    </Link>
-                  </Badge>
+                    {formatGlossaryCategoryLabel(c.category)} {c._count._all}
+                  </Link>
                 );
               })}
             </div>
@@ -223,7 +245,7 @@ export default async function GlossaryPage({
                       key={term.id}
                       href={`/glossary?${params.toString()}`}
                       className={[
-                        "rounded-md border px-3 py-2 text-sm transition-colors",
+                        glossaryResultLinkClassName,
                         active ? "bg-muted" : "hover:bg-muted/50",
                       ].join(" ")}
                     >
@@ -236,7 +258,7 @@ export default async function GlossaryPage({
                             {term.oneLine}
                           </div>
                         </div>
-                        <Badge variant="outline">{term.category}</Badge>
+                        <Badge variant="outline">{formatGlossaryCategoryLabel(term.category)}</Badge>
                       </div>
                     </Link>
                   );
@@ -263,8 +285,8 @@ export default async function GlossaryPage({
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary">{selectedTerm.category}</Badge>
-                    <Badge variant="outline">{selectedTerm.difficulty}</Badge>
+                    <Badge variant="secondary">{formatGlossaryCategoryLabel(selectedTerm.category)}</Badge>
+                    <Badge variant="outline">{formatGlossaryDifficultyLabel(selectedTerm.difficulty)}</Badge>
                     {selectedHasCard ? <Badge variant="secondary">已生成卡片</Badge> : null}
                   </div>
                 </div>
@@ -275,25 +297,27 @@ export default async function GlossaryPage({
                 </div>
 
                 <div className="rounded-md border p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="grid gap-2 sm:flex sm:items-center sm:justify-between">
                     <div>
                       <div className="text-sm font-medium">相关术语链</div>
                       <div className="mt-1 text-xs text-muted-foreground">
                         用“路径”方式复习：从一个术语串到另一个术语。
                       </div>
                     </div>
-                    <Button asChild size="sm" variant="secondary">
+                    <Button asChild size="sm" variant="secondary" className={glossaryCtaClassName}>
                       <Link href="/review">去复习</Link>
                     </Button>
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
                     {relatedChain.length ? (
                       relatedChain.map((t) => (
-                        <Badge key={t.slug} asChild variant="outline">
-                          <Link href={`/glossary?term=${encodeURIComponent(t.slug)}`}>
-                            {t.abbreviation ?? t.fullName}
-                          </Link>
-                        </Badge>
+                        <Link
+                          key={t.slug}
+                          href={`/glossary?term=${encodeURIComponent(t.slug)}`}
+                          className={glossaryRelatedTermLinkClassName}
+                        >
+                          {t.abbreviation ?? t.fullName}
+                        </Link>
                       ))
                     ) : (
                       <div className="text-sm text-muted-foreground">暂无可用相关链路。</div>
@@ -347,7 +371,7 @@ export default async function GlossaryPage({
                         <a
                           key={`${ref.url}:${index}`}
                           href={ref.url}
-                          className="text-primary underline-offset-4 hover:underline"
+                          className={glossarySourceLinkClassName}
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -358,12 +382,12 @@ export default async function GlossaryPage({
                   </div>
                 </div>
 
-                <form action={generateGlossaryFlashcardAction} className="flex flex-wrap gap-2">
+                <form action={generateGlossaryFlashcardAction} className="grid gap-2 sm:flex sm:flex-wrap">
                   <input type="hidden" name="slug" value={selectedTerm.slug} />
-                  <Button type="submit" disabled={selectedHasCard}>
+                  <Button type="submit" disabled={selectedHasCard} className={glossaryCtaClassName}>
                     {selectedHasCard ? "复习卡片已存在" : "生成复习卡片"}
                   </Button>
-                  <Button asChild variant="secondary">
+                  <Button asChild variant="secondary" className={glossaryCtaClassName}>
                     <Link href={buildKnowledgeLink({ kind: "glossary", slug: selectedTerm.slug })}>
                       复制详情入口
                     </Link>

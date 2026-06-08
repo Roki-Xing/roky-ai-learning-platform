@@ -39,7 +39,7 @@ export function KnowledgePathExplorer(props: {
             按顺序看、制卡、复习，把广度知识变成可追踪路径。
           </div>
         </div>
-        <LearningStatusBadge tone="info">Path Mode</LearningStatusBadge>
+        <LearningStatusBadge tone="info">路径模式</LearningStatusBadge>
       </div>
 
       <div className="mt-3 grid gap-3">
@@ -48,7 +48,7 @@ export function KnowledgePathExplorer(props: {
           const nextHref = path.nextSlug ? props.hrefForSlug(path.nextSlug) : null;
           return (
             <section key={path.id} className="rounded-md border bg-background p-3">
-              <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="grid gap-3 sm:flex sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <div className="text-sm font-semibold">{path.label}</div>
                   <div className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -56,21 +56,29 @@ export function KnowledgePathExplorer(props: {
                   </div>
                 </div>
                 {nextHref ? (
-                  <Button asChild size="sm" variant="secondary">
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="secondary"
+                    className="min-h-11 w-full sm:w-auto sm:shrink-0"
+                  >
                     <Link href={nextHref}>下一项：{path.nextSlug}</Link>
                   </Button>
                 ) : null}
               </div>
 
               <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-4">
-                <PathMetric label="已看过" value={`${path.viewedCount}/${total}`} />
-                <PathMetric label="已制卡" value={`${path.cardCount}/${total}`} />
+                <PathMetric label="已看" value={`${path.viewedCount}/${total}`} />
+                <PathMetric label="已生成卡片" value={`${path.cardCount}/${total}`} />
                 <PathMetric label="已复习" value={`${path.reviewedCount}/${total}`} />
                 <PathMetric label="未掌握" value={path.weakCount} />
               </div>
 
               <div className="mt-3">
-                <LearningProgressBar value={path.reviewedCount / total} />
+                <LearningProgressBar
+                  value={path.reviewedCount / total}
+                  label={`路径进度：${path.label}`}
+                />
               </div>
 
               <div className="mt-3 flex flex-wrap gap-1.5">
@@ -99,7 +107,7 @@ export function KnowledgePathExplorer(props: {
 
 function PathMetric(props: { label: string; value: string | number }) {
   return (
-    <div className="rounded-md border bg-muted/20 px-3 py-2" aria-label={`${props.label} ${props.value}`}>
+    <div className="rounded-md border bg-muted/20 px-3 py-2">
       <div>{props.label}</div>
       <div className="mt-1 font-semibold tabular-nums text-foreground">{props.value}</div>
     </div>

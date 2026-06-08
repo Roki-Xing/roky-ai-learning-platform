@@ -284,6 +284,30 @@ export async function generatePlanForLocalDateAction(formData: FormData) {
   revalidatePath("/library");
 }
 
+export async function regeneratePlanForLocalDateAction(formData: FormData) {
+  await requireAdmin();
+  const userId = await requireUserId();
+  const localDate = requireLocalDate(formData.get("localDate"));
+
+  const profile = await prisma.userProfile.upsert({
+    where: { userId },
+    update: {},
+    create: { userId },
+  });
+  const timeZone = profile.timeZone ?? "Asia/Shanghai";
+  const now = utcStartOfLocalDay({ localDate, timeZone });
+
+  await prisma.dailyPlan.updateMany({
+    where: { userId, localDate, isTest: true, archivedAt: null },
+    data: { archivedAt: new Date() },
+  });
+  await getOrCreateTodayPlan({ userId, now, isTest: true });
+
+  revalidatePath("/admin");
+  revalidatePath("/today");
+  revalidatePath("/library");
+}
+
 export async function loopCheckForLocalDateAction(formData: FormData) {
   await requireAdmin();
   const userId = await requireUserId();

@@ -153,3 +153,32 @@ test("generateFlashcardsForThoughtReview is idempotent and updates generated car
   });
   assert.match(JSON.stringify(row.generatedCards), /thought:/);
 });
+
+test("generateFlashcardsForThoughtReview keeps voice-linked reviews in the voice note queue", async () => {
+  const { userId, lesson } = await createCoachSubmitFixture();
+  const result = await createThoughtReview({
+    userId,
+    mode: "concept_question",
+    rawText: "我用语音解释 attention 但把它说成平均池化。",
+    includeTodayLesson: true,
+    lessonId: lesson.id,
+    reviewJsonExtra: {
+      source: "voice-note",
+      voiceNoteId: "voice-note-for-coach-action",
+    },
+  });
+
+  const generated = await generateFlashcardsForThoughtReview({
+    userId,
+    reviewId: result.reviewId,
+  });
+
+  assert.equal(generated.reviewSource, "voice-note");
+
+  const cards = await prisma.flashcard.findMany({
+    where: { id: { startsWith: `thought:${result.reviewId}:` }, userId },
+  });
+  assert.ok(cards.length >= 1);
+  assert.ok(cards.every((card) => JSON.stringify(card.tags).includes("voice-note")));
+  assert.ok(cards.every((card) => JSON.stringify(card.tags).includes("thought-review")));
+});

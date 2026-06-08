@@ -42,6 +42,8 @@ test("next best action routes open misconceptions to coach", () => {
 
   assert.equal(action.href, "/coach");
   assert.equal(action.tone, "danger");
+  assert.match(action.reason, /2 个未解决误区/);
+  assert.doesNotMatch(action.reason, /open misconception/);
 });
 
 test("next best action names the active misconception focus", () => {
@@ -110,7 +112,7 @@ test("next best action asks for a voice reflection before project work", () => {
   assert.match(action.reason, /语音/);
 });
 
-test("next best action recommends starting a project when learning chores are clear and no project is active", () => {
+test("next best action recommends lightweight breadth exploration when learning chores are clear", () => {
   const action = buildNextBestAction({
     ...baseInput,
     todayPlanStatus: "completed",
@@ -121,8 +123,8 @@ test("next best action recommends starting a project when learning chores are cl
     activeProject: null,
   });
 
-  assert.equal(action.href, "/projects");
-  assert.match(action.title, /开始一个小项目/);
-  assert.match(action.reason, /把今天学到的内容落到代码里/);
-  assert.equal(action.ctaLabel, "开始项目实践");
+  assert.equal(action.href, "/radar");
+  assert.match(action.title, /广度探索/);
+  assert.match(action.reason, /Glossary|Radar|轻量/);
+  assert.equal(action.ctaLabel, "探索 Radar");
 });

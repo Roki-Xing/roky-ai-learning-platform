@@ -10,7 +10,8 @@ test("voice transcript autofill accepts transcribed text and asks to focus trans
 
   assert.equal(result.nextTranscript, "我刚才解释了 attention 的 Q/K/V。");
   assert.equal(result.shouldFocusTranscript, true);
-  assert.equal(result.notice, "转写已填入，请检查 Transcript 后保存。");
+  assert.equal(result.notice, "转写已填入，请检查转写文本后保存。");
+  assert.doesNotMatch(result.notice, /Transcript/);
 });
 
 test("voice transcript autofill preserves manually typed transcript", () => {
@@ -21,6 +22,8 @@ test("voice transcript autofill preserves manually typed transcript", () => {
 
   assert.equal(result.nextTranscript, "我已经手动写了一版。");
   assert.equal(result.shouldFocusTranscript, true);
+  assert.equal(result.notice, "已保留你手动输入的转写文本，请对照转写结果检查是否需要补充。");
+  assert.doesNotMatch(result.notice, /Transcript/);
   assert.match(result.notice, /已保留你手动输入/);
 });
 

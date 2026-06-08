@@ -13,13 +13,29 @@ import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import { buildReviewableFlashcardWhere } from "@/server/review/filter";
 import {
   aggregateKnowledgeMapStats,
+  buildVisibleKnowledgeMapTopics,
   buildKnowledgeMapInsights,
   createEmptyKnowledgeMapStat,
 } from "@/server/map/analytics";
+import {
+  formatFlashcardTypeLabel,
+  formatHomeDailyPlanStatusLabel,
+  formatKnowledgeEntityTypeLabel,
+  formatMapMisconceptionStatusLabel,
+  formatTodayPlanSourceLabel,
+} from "@/app/_lib/home-labels";
 
-function countDue(cards: Array<{ dueAt: Date }>, now: Date) {
-  return cards.filter((card) => card.dueAt <= now).length;
-}
+const MAP_PLAN_LIMIT = 180;
+const MAP_SIGNAL_LIMIT = 500;
+const MAP_REVIEW_LOG_LIMIT = 800;
+const MAP_SELECTED_ITEM_LIMIT = 8;
+const MAP_VISIBLE_DOMAIN_LIMIT = 24;
+const MAP_VISIBLE_TOPIC_LIMIT = 20;
+const mapDomainLinkClassName = "min-h-11 rounded-md border px-3 py-2 text-sm transition-colors";
+const mapSummaryCtaClassName = "min-h-11 w-full sm:w-auto";
+const mapPageCtaClassName = "min-h-11 w-full sm:w-auto";
+const mapNextFocusLinkClassName = "inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-2";
+const mapRelatedLessonLinkClassName = "min-h-11 rounded-md border px-3 py-2 transition-colors hover:bg-muted/50";
 
 export default async function MapPage({
   searchParams,
@@ -39,8 +55,10 @@ export default async function MapPage({
     flashcards,
     glossaryCount,
     radarCount,
-    glossaryCards,
-    radarCards,
+    glossaryCardCount,
+    radarCardCount,
+    glossaryDueCount,
+    radarDueCount,
     radarTypeGroups,
   ] = await Promise.all([
     prisma.domain.findMany({
@@ -54,15 +72,30 @@ export default async function MapPage({
     }),
     prisma.dailyPlan.findMany({
       where: { userId: user.id, isTest: false, archivedAt: null },
-      include: {
+      select: {
+        id: true,
+        lessonId: true,
+        localDate: true,
+        status: true,
+        source: true,
+        selectedDomain: true,
+        selectedTopic: true,
         lesson: {
-          include: {
-            topic: { include: { domain: true } },
+          select: {
+            id: true,
+            title: true,
+            topic: {
+              select: {
+                slug: true,
+                title: true,
+                domain: { select: { slug: true, name: true } },
+              },
+            },
           },
         },
       },
       orderBy: [{ localDate: "desc" }, { createdAt: "desc" }],
-      take: 500,
+      take: MAP_PLAN_LIMIT,
     }),
     prisma.flashcard.findMany({
       where: {
@@ -88,19 +121,31 @@ export default async function MapPage({
           },
         },
       },
-      take: 1000,
+      take: MAP_SIGNAL_LIMIT,
     }),
     prisma.glossaryTerm.count(),
     prisma.knowledgeEntity.count(),
-    prisma.flashcard.findMany({
+    prisma.flashcard.count({
       where: { userId: user.id, lessonId: null, tags: { array_contains: ["glossary"] } },
-      select: { id: true, dueAt: true, reviewCount: true },
-      take: 1000,
     }),
-    prisma.flashcard.findMany({
+    prisma.flashcard.count({
       where: { userId: user.id, lessonId: null, tags: { array_contains: ["radar"] } },
-      select: { id: true, dueAt: true, reviewCount: true, type: true },
-      take: 1000,
+    }),
+    prisma.flashcard.count({
+      where: {
+        userId: user.id,
+        lessonId: null,
+        tags: { array_contains: ["glossary"] },
+        dueAt: { lte: now },
+      },
+    }),
+    prisma.flashcard.count({
+      where: {
+        userId: user.id,
+        lessonId: null,
+        tags: { array_contains: ["radar"] },
+        dueAt: { lte: now },
+      },
     }),
     prisma.knowledgeEntity.groupBy({
       by: ["type"],
@@ -148,7 +193,7 @@ export default async function MapPage({
               },
             },
           },
-          take: 2000,
+          take: MAP_REVIEW_LOG_LIMIT,
         }),
         prisma.quizAttempt.findMany({
           where: {
@@ -173,12 +218,12 @@ export default async function MapPage({
               },
             },
           },
-          take: 2000,
+          take: MAP_REVIEW_LOG_LIMIT,
         }),
         prisma.codeSubmission.findMany({
           where: { userId: user.id, lessonId: { in: lessonIds } },
           select: { lessonId: true, localDate: true },
-          take: 1000,
+          take: MAP_SIGNAL_LIMIT,
         }),
         prisma.misconception.findMany({
           where: { userId: user.id, lessonId: { in: lessonIds } },
@@ -193,7 +238,7 @@ export default async function MapPage({
             lastAttemptAt: true,
           },
           orderBy: [{ lastAttemptAt: "desc" }],
-          take: 1000,
+          take: MAP_SIGNAL_LIMIT,
         }),
       ])
     : [[], [], [], []] as const;
@@ -264,27 +309,36 @@ export default async function MapPage({
 
   const selectedDomainSlug = sp.domain ?? domains[0]?.slug ?? null;
   const selectedDomain = domains.find((d) => d.slug === selectedDomainSlug) ?? domains[0] ?? null;
+  const visibleDomainWindow = buildVisibleKnowledgeMapTopics(
+    domains,
+    MAP_VISIBLE_DOMAIN_LIMIT,
+    selectedDomain?.slug,
+  );
   const selectedPlans = selectedDomain
     ? plans
         .filter((p) => (p.selectedDomain ?? p.lesson.topic.domain.slug) === selectedDomain.slug)
-        .slice(0, 8)
+        .slice(0, MAP_SELECTED_ITEM_LIMIT)
     : [];
+  const selectedTopicWindow = selectedDomain
+    ? buildVisibleKnowledgeMapTopics(selectedDomain.topics, MAP_VISIBLE_TOPIC_LIMIT)
+    : { visibleTopics: [], totalCount: 0, hiddenCount: 0 };
   const selectedLessonIds = selectedPlans.map((p) => p.lessonId);
   const selectedCards = selectedDomain
     ? flashcards
         .filter((card) => card.lesson?.topic.domain.slug === selectedDomain.slug)
-        .slice(0, 8)
+        .slice(0, MAP_SELECTED_ITEM_LIMIT)
     : [];
   const selectedMisconceptions = selectedDomain
     ? misconceptions
         .filter((m) => lessonSignalById.get(m.lessonId)?.domainSlug === selectedDomain.slug)
-        .slice(0, 8)
+        .slice(0, MAP_SELECTED_ITEM_LIMIT)
     : [];
   const relatedNotes = selectedLessonIds.length
     ? await prisma.note.findMany({
         where: { userId: user.id, lessonId: { in: selectedLessonIds } },
+        select: { id: true, title: true, updatedAt: true },
         orderBy: [{ updatedAt: "desc" }],
-        take: 8,
+        take: MAP_SELECTED_ITEM_LIMIT,
       })
     : [];
 
@@ -306,13 +360,13 @@ export default async function MapPage({
               <div className="text-xl font-semibold">{card.value}</div>
               <div className="min-h-8 text-xs text-muted-foreground">{card.detail}</div>
               {card.domainSlug ? (
-                <Button asChild size="sm" variant="secondary">
+                <Button asChild size="sm" variant="secondary" className={mapSummaryCtaClassName}>
                   <Link href={`/map?domain=${encodeURIComponent(card.domainSlug)}`}>
                     查看领域
                   </Link>
                 </Button>
               ) : (
-                <Button size="sm" variant="secondary" disabled>
+                <Button size="sm" variant="secondary" className={mapSummaryCtaClassName} disabled>
                   暂无信号
                 </Button>
               )}
@@ -328,10 +382,10 @@ export default async function MapPage({
           </CardHeader>
           <CardContent className="text-sm">
             <div className="text-2xl font-semibold tabular-nums">
-              {glossaryCards.length}/{glossaryCount}
+              {glossaryCardCount}/{glossaryCount}
             </div>
             <div className="mt-1 text-xs text-muted-foreground">
-              到期 {countDue(glossaryCards, now)} 张
+              到期 {glossaryDueCount} 张
             </div>
           </CardContent>
         </Card>
@@ -341,10 +395,10 @@ export default async function MapPage({
           </CardHeader>
           <CardContent className="text-sm">
             <div className="text-2xl font-semibold tabular-nums">
-              {radarCards.length}/{radarCount}
+              {radarCardCount}/{radarCount}
             </div>
             <div className="mt-1 text-xs text-muted-foreground">
-              到期 {countDue(radarCards, now)} 张
+              到期 {radarDueCount} 张
             </div>
           </CardContent>
         </Card>
@@ -366,7 +420,7 @@ export default async function MapPage({
           <CardContent className="flex flex-wrap gap-2 text-sm">
             {radarTypeGroups.map((group) => (
               <Badge key={group.type} variant="outline">
-                {group.type} {group._count._all}
+                {formatKnowledgeEntityTypeLabel(group.type)} {group._count._all}
               </Badge>
             ))}
           </CardContent>
@@ -379,8 +433,9 @@ export default async function MapPage({
 	            <CardTitle className="text-base">领域列表</CardTitle>
 	          </CardHeader>
 	          <CardContent className="grid gap-2">
-	            {domains.length ? (
-	              domains.map((domain) => {
+	            {visibleDomainWindow.visibleTopics.length ? (
+	              <>
+	              {visibleDomainWindow.visibleTopics.map((domain) => {
 	                const stat = domainStats.get(domain.slug) ?? createEmptyKnowledgeMapStat();
 	                const progress = Math.max(
 	                  0,
@@ -392,7 +447,7 @@ export default async function MapPage({
 	                    key={domain.id}
 	                    href={`/map?domain=${encodeURIComponent(domain.slug)}`}
 	                    className={[
-	                      "rounded-md border px-3 py-2 text-sm transition-colors",
+	                      mapDomainLinkClassName,
 	                      active ? "bg-muted" : "hover:bg-muted/50",
 	                    ].join(" ")}
 	                  >
@@ -410,7 +465,10 @@ export default async function MapPage({
 	                      </LearningStatusBadge>
 	                    </div>
 	                    <div className="mt-2">
-	                      <LearningProgressBar value={progress} />
+	                      <LearningProgressBar
+	                        value={progress}
+	                        label={`领域掌握进度：${domain.name}`}
+	                      />
 	                    </div>
 	                    <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
 	                      <div>完成 {stat.completedLessons}</div>
@@ -422,7 +480,14 @@ export default async function MapPage({
 	                    </div>
 	                  </Link>
 	                );
-	              })
+	              })}
+                  {visibleDomainWindow.hiddenCount > 0 ? (
+                    <div className="rounded-md border border-dashed bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                      为保持知识地图首屏流畅，仅显示 {visibleDomainWindow.visibleTopics.length}
+                      /{visibleDomainWindow.totalCount} 个领域；当前领域会始终保留在列表中。
+                    </div>
+                  ) : null}
+                </>
             ) : (
               <div className="text-sm text-muted-foreground">
                 暂无领域数据。请先在 /admin 执行 seed domains/topics。
@@ -442,9 +507,9 @@ export default async function MapPage({
                   <Badge variant="secondary">{selectedDomain.name}</Badge>
                   <Badge variant="outline">{selectedDomain.slug}</Badge>
                 </div>
-                {selectedDomain.topics.length ? (
+                {selectedTopicWindow.visibleTopics.length ? (
                   <div className="grid gap-2">
-                    {selectedDomain.topics.map((topic) => {
+                    {selectedTopicWindow.visibleTopics.map((topic) => {
                       const stat = topicStats.get(topic.slug) ?? createEmptyKnowledgeMapStat();
                       return (
                         <div key={topic.id} className="rounded-md border px-3 py-2 text-sm">
@@ -455,7 +520,7 @@ export default async function MapPage({
                                 {topic.summary ?? topic.slug}
                               </div>
                             </div>
-                            <Badge variant="outline">score {stat.masteryScore}</Badge>
+                            <Badge variant="outline">掌握分 {stat.masteryScore}</Badge>
                           </div>
                           <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                             <div>完成 {stat.completedLessons}</div>
@@ -468,6 +533,12 @@ export default async function MapPage({
                         </div>
                       );
                     })}
+                    {selectedTopicWindow.hiddenCount > 0 ? (
+                      <div className="rounded-md border border-dashed bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                        为保持知识地图首屏流畅，仅显示前 {selectedTopicWindow.visibleTopics.length}
+                        个主题；还有 {selectedTopicWindow.hiddenCount} 个主题可通过课程库或学习路径继续查看。
+                      </div>
+                    ) : null}
                   </div>
                 ) : (
                   <div className="text-sm text-muted-foreground">该领域暂无主题。</div>
@@ -492,7 +563,9 @@ export default async function MapPage({
 	                    <div className="grid gap-2 rounded-md border p-3">
 	                      <div className="flex items-center justify-between gap-3">
 	                        <div className="font-medium">{selectedDomain.name}</div>
-	                        <LearningStatusBadge tone="info">score {stat.masteryScore}</LearningStatusBadge>
+	                        <LearningStatusBadge tone="info">
+	                          掌握分 {stat.masteryScore}
+	                        </LearningStatusBadge>
 	                      </div>
 	                      <LearningInsightCard
 	                        title="下一步建议"
@@ -511,7 +584,7 @@ export default async function MapPage({
 	                        <div>卡片：{stat.flashcardCount}</div>
                         <div>到期：{stat.dueFlashcardCount}</div>
                         <div>已复习卡：{stat.reviewedCardCount}</div>
-                        <div>ReviewLog：{stat.reviewLogCount}</div>
+                        <div>复习记录：{stat.reviewLogCount}</div>
                         <div>测验：{stat.correctQuizCount}/{stat.quizAttemptCount}</div>
                         <div>正确率：{stat.quizAccuracy}%</div>
                         <div>代码提交：{stat.codeSubmissionCount}</div>
@@ -519,7 +592,7 @@ export default async function MapPage({
                         <div>最近：{stat.lastStudiedLocalDate ?? "-"}</div>
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        masteryScore = 完成课程 * 10 + ReviewLog * 2 + 正确测验 * 3 + 代码提交 * 3 - 到期卡 - 活跃错题 * 5
+                        掌握分 = 完成课程 * 10 + 复习记录 * 2 + 正确测验 * 3 + 代码提交 * 3 - 到期卡 - 活跃错题 * 5
                       </div>
                     </div>
                   );
@@ -532,11 +605,11 @@ export default async function MapPage({
                       <Link
                         key={plan.id}
                         href={`/library?lessonId=${encodeURIComponent(plan.lessonId)}`}
-                        className="rounded-md border px-3 py-2 transition-colors hover:bg-muted/50"
+                        className={mapRelatedLessonLinkClassName}
                       >
                         <div className="font-medium">{plan.lesson.title}</div>
                         <div className="mt-1 text-xs text-muted-foreground">
-                          {plan.localDate} / {plan.status} / {plan.source ?? "unknown"}
+                          {plan.localDate} / {formatHomeDailyPlanStatusLabel(plan.status)} / {formatTodayPlanSourceLabel(plan.source)}
                         </div>
                       </Link>
                     ))
@@ -558,7 +631,7 @@ export default async function MapPage({
                             </div>
                           </div>
                           <Badge variant={card.dueAt <= now ? "secondary" : "outline"}>
-                            {card.type}
+                            {formatFlashcardTypeLabel(card.type)}
                           </Badge>
                         </div>
                       </div>
@@ -581,7 +654,7 @@ export default async function MapPage({
                             </div>
                           </div>
                           <Badge variant={item.status === "open" ? "secondary" : "outline"}>
-                            {item.status} x{item.occurrenceCount}
+                            {formatMapMisconceptionStatusLabel(item.status)} x{item.occurrenceCount}
                           </Badge>
                         </div>
                       </div>
@@ -607,7 +680,7 @@ export default async function MapPage({
                   )}
                 </div>
 
-                <Button asChild size="sm" variant="secondary">
+                <Button asChild size="sm" variant="secondary" className={mapPageCtaClassName}>
                   <Link href="/today">生成下一节</Link>
                 </Button>
 
@@ -617,7 +690,7 @@ export default async function MapPage({
                     <div className="mt-1">
                       优先补：
                       <Link
-                        className="font-medium text-primary underline underline-offset-2"
+                        className={mapNextFocusLinkClassName}
                         href={`/map?domain=${encodeURIComponent(mapInsights.nextFocus.slug)}`}
                       >
                         {mapInsights.nextFocus.label}

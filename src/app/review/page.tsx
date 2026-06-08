@@ -17,6 +17,8 @@ import { buildReviewScheduleSummary } from "@/server/review/schedule";
 import { buildReviewEmptyState } from "@/server/review/empty-state";
 import { ReviewTrainer } from "@/app/review/ui/review-trainer";
 
+const reviewPageCtaClassName = "min-h-11 w-full sm:w-auto";
+
 export default async function ReviewPage({
   searchParams,
 }: {
@@ -29,6 +31,7 @@ export default async function ReviewPage({
   const userId = await requireUserId();
   const due = await getDueFlashcards({ userId, source, projectId });
   const current = due[0] ?? null;
+  const lessonIds = Array.from(new Set(due.map((card) => card.lessonId).filter((id): id is string => Boolean(id))));
 
   const profile = await getOrCreateUserProfile({ userId });
   const now = new Date();
@@ -47,7 +50,7 @@ export default async function ReviewPage({
         : { userId, id: "__no_project_code_feedback_cards__" }
       : buildReviewableFlashcardWhere(userId, { source, projectId });
 
-  const [reviewedTodayCount, totalReviewLogCount, ratingGroups] = await Promise.all([
+  const [reviewedTodayCount, totalReviewLogCount, ratingGroups, lessons] = await Promise.all([
     prisma.reviewLog.count({
       where: {
         createdAt: { gte: start, lt: end },
@@ -65,9 +68,28 @@ export default async function ReviewPage({
       },
       _count: { _all: true },
     }),
+    lessonIds.length
+      ? prisma.lesson.findMany({
+          where: { id: { in: lessonIds } },
+          select: {
+            id: true,
+            title: true,
+            topic: { select: { title: true } },
+          },
+        })
+      : Promise.resolve([]),
   ]);
 
   const ratingCountByName = new Map(ratingGroups.map((g) => [g.rating, g._count._all]));
+  const lessonMetaById = new Map(
+    lessons.map((lesson) => [
+      lesson.id,
+      {
+        lessonTitle: lesson.title,
+        topicTitle: lesson.topic.title,
+      },
+    ]),
+  );
   const reviewScheduleSummary = buildReviewScheduleSummary({
     dueCount: due.length,
     source,
@@ -81,6 +103,11 @@ export default async function ReviewPage({
         front: current.front,
         back: current.back,
         type: current.type ?? null,
+        tags: Array.isArray(current.tags)
+          ? current.tags.filter((tag): tag is string => typeof tag === "string")
+          : [],
+        lessonTitle: current.lessonId ? (lessonMetaById.get(current.lessonId)?.lessonTitle ?? null) : null,
+        topicTitle: current.lessonId ? (lessonMetaById.get(current.lessonId)?.topicTitle ?? null) : null,
       }
     : null;
 
@@ -89,7 +116,7 @@ export default async function ReviewPage({
       activePath="/review"
       title="复习中心"
       actions={
-        <Button size="sm" asChild>
+        <Button size="sm" asChild className={reviewPageCtaClassName}>
           <a href="#card">开始复习</a>
         </Button>
       }
@@ -143,7 +170,7 @@ export default async function ReviewPage({
                   <div className="mt-1 text-xs text-muted-foreground">当前队列</div>
                 </div>
                 <div className="rounded-md border p-3">
-                  <div className="text-xs text-muted-foreground">累计 ReviewLog</div>
+                  <div className="text-xs text-muted-foreground">累计复习记录</div>
                   <div className="mt-1 text-2xl font-semibold tabular-nums">
                     {totalReviewLogCount}
                   </div>

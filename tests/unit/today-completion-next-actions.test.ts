@@ -112,6 +112,43 @@ test("today completion actions keep project practice alive when no active projec
   assert.match(result.actions.map((action) => action.href).join(" "), /\/coach/);
 });
 
+test("today completion actions summarize the completion hub metrics", () => {
+  const result = buildTodayCompletionNextActions({
+    planStatus: "completed",
+    lessonId: "lesson-8",
+    lessonDueFlashcardCount: 0,
+    totalDueFlashcardCount: 0,
+    noteCount: 1,
+    voiceNoteCount: 0,
+    thoughtReviewCount: 0,
+    hasCodeSubmission: false,
+    hasCodingExercise: true,
+    flashcardCount: 4,
+    quizTotalCount: 3,
+    quizAttemptedCount: 2,
+    quizCorrectCount: 1,
+    activeProject: null,
+  });
+
+  assert.equal(result.completionHub?.title, "今日完成 Hub");
+  assert.equal(result.recommendedVoiceReflection?.title, "推荐语音反思");
+  assert.equal(result.recommendedVoiceReflection?.href, "/voice?lessonId=lesson-8&mode=daily_understanding");
+  assert.match(result.recommendedVoiceReflection?.prompt ?? "", /60 秒/);
+  assert.match(result.recommendedVoiceReflection?.prompt ?? "", /我今天学了什么/);
+  assert.deepEqual(
+    result.completionHub?.metrics.map((metric) => [
+      metric.label,
+      metric.value,
+      metric.helper,
+    ]),
+    [
+      ["生成卡片", "4 张", "今日内容已进入复习循环。"],
+      ["小测验", "答对 1/3", "已提交 2/3 题。"],
+      ["代码提交", "未提交", "完成代码练习后再进入项目会更稳。"],
+    ],
+  );
+});
+
 test("learning completion card renders ordered next actions", () => {
   const completion = buildTodayCompletionNextActions({
     planStatus: "completed",
@@ -165,6 +202,8 @@ test("learning completion card highlights the active project milestone as today'
     React.createElement(LearningCompletionCard, { completion }),
   );
 
+  assert.match(markup, /下一步：把今天的知识用到项目里/);
+  assert.match(markup, /推荐项目任务/);
   assert.match(markup, /今日项目任务/);
   assert.match(markup, /Attention 可视化小项目/);
   assert.match(markup, /画出注意力矩阵/);
@@ -190,10 +229,47 @@ test("learning completion card suggests starting a project when none is active",
     React.createElement(LearningCompletionCard, { completion }),
   );
 
+  assert.match(markup, /下一步：把今天的知识用到项目里/);
+  assert.match(markup, /推荐项目任务/);
   assert.match(markup, /今日项目任务/);
   assert.match(markup, /开始一个小项目/);
   assert.match(markup, /把今天学到的内容落到代码或复盘里/);
   assert.match(markup, /继续语音复盘/);
   assert.match(markup, /继续 Coach 检查/);
   assert.match(markup, /href="\/projects"/);
+});
+
+test("learning completion card renders completion hub metrics", () => {
+  const completion = buildTodayCompletionNextActions({
+    planStatus: "completed",
+    lessonId: "lesson-9",
+    lessonDueFlashcardCount: 0,
+    totalDueFlashcardCount: 0,
+    noteCount: 1,
+    voiceNoteCount: 0,
+    thoughtReviewCount: 0,
+    hasCodeSubmission: true,
+    hasCodingExercise: true,
+    flashcardCount: 6,
+    quizTotalCount: 3,
+    quizAttemptedCount: 3,
+    quizCorrectCount: 2,
+    activeProject: null,
+  });
+
+  const markup = renderToStaticMarkup(
+    React.createElement(LearningCompletionCard, { completion }),
+  );
+
+  assert.match(markup, /今日完成 Hub/);
+  assert.match(markup, /推荐语音反思/);
+  assert.match(markup, /60 秒/);
+  assert.match(markup, /我今天学了什么/);
+  assert.match(markup, /href="\/voice\?lessonId=lesson-9&amp;mode=daily_understanding"/);
+  assert.match(markup, /生成卡片/);
+  assert.match(markup, /6 张/);
+  assert.match(markup, /小测验/);
+  assert.match(markup, /答对 2\/3/);
+  assert.match(markup, /代码提交/);
+  assert.match(markup, /已提交/);
 });

@@ -20,6 +20,7 @@ export type QualityRow = {
   status: string;
   score: number;
   metrics: ContentQualityMetrics;
+  warnings: string[];
 };
 
 export type CodeTrendRow = {
@@ -45,6 +46,59 @@ function calendarClass(day: CalendarDay) {
   if (day.status === "planned") return "bg-sky-400";
   return "bg-muted";
 }
+
+function calendarStatusLabel(status: CalendarDay["status"]) {
+  if (status === "completed") return "已完成学习";
+  if (status === "planned") return "已安排学习";
+  return "暂无学习记录";
+}
+
+function codeFeedbackSeverityLabel(severity: string) {
+  if (severity === "high") return "高优先级";
+  if (severity === "medium") return "中优先级";
+  if (severity === "low") return "低优先级";
+  return "待判断";
+}
+
+function codeFeedbackIssueTypeLabel(type: string | null | undefined) {
+  if (type === "logic") return "逻辑问题";
+  if (type === "syntax") return "语法问题";
+  if (type === "edge_case") return "边界情况";
+  if (type === "complexity") return "复杂度问题";
+  if (type === "style") return "代码风格";
+  return type ?? "待分类";
+}
+
+function contentQualitySourceLabel(source: string | null | undefined) {
+  if (source === "deepseek") return "AI 生成";
+  if (source === "template") return "模板兜底";
+  if (source === "fallback") return "系统兜底";
+  if (source === "admin") return "后台重建";
+  if (source === "test") return "测试计划";
+  if (!source || source === "unknown") return "未标记来源";
+  return "其他来源";
+}
+
+function contentQualityCodingExerciseLabel(quality: string | null | undefined) {
+  if (quality === "strong") return "完整练习";
+  if (quality === "basic") return "基础练习";
+  if (quality === "missing") return "暂无练习";
+  return "待评估";
+}
+
+function schemaVersionLabel(version: string | null | undefined) {
+  if (!version || version === "unknown") return "未标记";
+  return version;
+}
+
+function generationModelLabel(model: string | null | undefined) {
+  if (model === "deepseek-v4-flash") return "DeepSeek Flash";
+  if (model === "deepseek-v4-pro") return "DeepSeek Pro";
+  if (!model || model === "unknown") return "未标记";
+  return "其他";
+}
+
+const progressWeakDomainLinkClassName = "min-h-11 rounded-md border px-3 py-2 transition-colors hover:bg-muted/50";
 
 export function Sprint9AnalyticsPanels(props: {
   calendarDays: CalendarDay[];
@@ -90,7 +144,7 @@ export function Sprint9AnalyticsPanels(props: {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="font-medium">{step.title}</div>
                 <Badge variant={step.tone === "success" ? "secondary" : "outline"}>
-                  Step {index + 1}
+                  第 {index + 1} 步
                 </Badge>
               </div>
               <div className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -110,15 +164,17 @@ export function Sprint9AnalyticsPanels(props: {
             {props.calendarDays.map((day) => (
               <div
                 key={day.localDate}
-                title={`${day.localDate} / ${day.status}`}
+                role="img"
+                aria-label={`${day.localDate}：${calendarStatusLabel(day.status)}`}
+                title={`${day.localDate} / ${calendarStatusLabel(day.status)}`}
                 className={`h-8 rounded-md ${calendarClass(day)}`}
               />
             ))}
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-            <span>绿色：completed</span>
-            <span>蓝色：planned</span>
-            <span>灰色：none</span>
+            <span>绿色：已完成学习</span>
+            <span>蓝色：已安排学习</span>
+            <span>灰色：暂无学习记录</span>
           </div>
         </CardContent>
       </Card>
@@ -139,8 +195,13 @@ export function Sprint9AnalyticsPanels(props: {
                 <div>引导步骤：{latestQuality.metrics.guidedStepCount}</div>
                 <div>测验：{latestQuality.metrics.quizCount}</div>
                 <div>卡片：{latestQuality.metrics.flashcardCount}</div>
-                <div>代码练习：{latestQuality.metrics.codingExerciseQuality}</div>
-                <div>来源：{latestQuality.metrics.source ?? "unknown"}</div>
+                <div>
+                  代码练习：{contentQualityCodingExerciseLabel(latestQuality.metrics.codingExerciseQuality)}
+                </div>
+                <div>来源：{contentQualitySourceLabel(latestQuality.metrics.source)}</div>
+                {latestQuality.warnings.slice(0, 2).map((warning) => (
+                  <div key={warning}>警告：{warning}</div>
+                ))}
               </div>
             </>
           ) : (
@@ -194,15 +255,17 @@ export function Sprint9AnalyticsPanels(props: {
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-medium">{row.localDate}</span>
                   <Badge variant={row.highIssueCount > 0 ? "outline" : "secondary"}>
-                    high {row.highIssueCount}
+                    {codeFeedbackSeverityLabel("high")} {row.highIssueCount}
                   </Badge>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                   <span>反馈 {row.feedbackCount}</span>
                   <span>问题 {row.issueCount}</span>
-                  <span>中 {row.mediumIssueCount}</span>
-                  <span>低 {row.lowIssueCount}</span>
-                  {row.topIssueType ? <span>高频 {row.topIssueType}</span> : null}
+                  <span>{codeFeedbackSeverityLabel("medium")} {row.mediumIssueCount}</span>
+                  <span>{codeFeedbackSeverityLabel("low")} {row.lowIssueCount}</span>
+                  {row.topIssueType ? (
+                    <span>高频 {codeFeedbackIssueTypeLabel(row.topIssueType)}</span>
+                  ) : null}
                 </div>
               </div>
             ))
@@ -254,7 +317,7 @@ export function Sprint9AnalyticsPanels(props: {
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-medium">{row.localDate}</span>
                   <Badge variant={row.active > 0 ? "outline" : "secondary"}>
-                    open {row.active}
+                    未解决 {row.active}
                   </Badge>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
@@ -281,7 +344,7 @@ export function Sprint9AnalyticsPanels(props: {
               <a
                 key={domain.slug}
                 href={`/map?domain=${encodeURIComponent(domain.slug)}`}
-                className="rounded-md border px-3 py-2 transition-colors hover:bg-muted/50"
+                className={progressWeakDomainLinkClassName}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0 font-medium">{domain.label}</div>
@@ -351,24 +414,29 @@ export function Sprint9AnalyticsPanels(props: {
         </CardHeader>
         <CardContent className="grid gap-2 text-sm">
           <Metric
-            label="DeepSeek / fallback"
+            label="AI 生成 / 兜底生成"
             value={`${props.generationHealth.deepseekPlanCount}/${props.generationHealth.fallbackPlanCount}`}
-            note={`fallback ${pct(props.generationHealth.fallbackRate)}`}
+            note={`兜底率 ${pct(props.generationHealth.fallbackRate)}`}
           />
           <Metric
-            label="生成 job"
+            label="生成任务"
             value={`${props.generationHealth.successJobCount}/${props.generationHealth.failedJobCount}`}
-            note={`success/error，repair ${pct(props.generationHealth.repairRate)}`}
+            note={`成功/失败，修复率 ${pct(props.generationHealth.repairRate)}`}
+          />
+          <Metric
+            label="最近质量"
+            value={`${props.generationHealth.averageQualityScore}/100`}
+            note={`覆盖 ${props.generationHealth.qualityScoreCoverage} 个任务，低质量 ${props.generationHealth.lowQualityJobCount}`}
           />
           <div className="flex flex-wrap gap-2">
             {props.generationHealth.schemaVersionDistribution.slice(0, 4).map((row) => (
               <Badge key={row.schemaVersion} variant="outline">
-                schema {row.schemaVersion}: {row.count}
+                Schema 版本 {schemaVersionLabel(row.schemaVersion)}：{row.count}
               </Badge>
             ))}
             {props.generationHealth.modelDistribution.slice(0, 3).map((row) => (
               <Badge key={row.model} variant="secondary">
-                {row.model}: {row.count}
+                AI 模型：{generationModelLabel(row.model)}：{row.count}
               </Badge>
             ))}
           </div>
