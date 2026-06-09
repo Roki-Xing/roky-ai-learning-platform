@@ -37,6 +37,9 @@ function stageShellClass(status: LearningPathStageStatus) {
 const pathStageCtaClassName =
   "min-h-11 w-full sm:w-auto inline-flex items-center justify-center rounded-md border px-3 py-2 text-center text-sm font-medium transition-colors hover:bg-background/80";
 
+const pathReadingLinkClassName =
+  "min-h-11 w-full sm:w-auto inline-flex items-center justify-center rounded-md border px-3 py-2 text-center text-sm font-medium transition-colors hover:bg-background/80";
+
 function StageCard({ stage, index }: { stage: LearningPathStage; index: number }) {
   return (
     <div className={`rounded-lg border p-4 shadow-sm ${stageShellClass(stage.status)}`}>
@@ -113,6 +116,33 @@ function StageCard({ stage, index }: { stage: LearningPathStage; index: number }
           <div className="mt-1 text-xs leading-5 text-muted-foreground">{stage.nextTopic}</div>
         </div>
       </div>
+
+      {stage.readingMaterials.length ? (
+        <div className="mt-4 rounded-md border bg-background/80 p-3">
+          <div className="text-sm font-medium">阶段阅读</div>
+          <div className="mt-3 grid gap-2">
+            {stage.readingMaterials.map((reading) => (
+              <div
+                key={reading.bookId}
+                className="grid gap-3 rounded-md border bg-card/80 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="text-sm font-medium">{reading.bookTitle}</div>
+                    <Badge variant="outline">{reading.pageLabel}</Badge>
+                  </div>
+                  <div className="mt-1 text-xs leading-5 text-muted-foreground">
+                    {reading.summary}
+                  </div>
+                </div>
+                <a href={reading.href} className={pathReadingLinkClassName}>
+                  {reading.actionLabel}
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-4 grid gap-2 md:grid-cols-3">
         {stage.criteria.map((criterion) => (

@@ -1,5 +1,21 @@
 # Evidence
 
+## Reduce Chaos Path Stage Reading Materials
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/learning-path.test.ts` | fail then pass, 4 tests | RED first failed because `readingMaterials` was `undefined`, `/path` lacked `阶段阅读`, and the page lacked `pathReadingLinkClassName`. GREEN passed after adding `path-reading.ts`, wiring `LearningPathStage.readingMaterials`, and rendering reading materials on stage cards. |
+| `npm test -- tests/unit/learning-path.test.ts tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts` | pass, 33 tests | Related regression covers Path, Books, Current Mission, Next Best Action, mobile navigation, and shared accessibility boundaries. |
+| `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates before push; full unit suite passed 471 tests, route audit reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
+
+Changed surface:
+
+- Reduce Chaos Path Stage Reading Materials layer: `src/server/learning/path-reading.ts`, `src/server/learning/path.ts`, `src/app/path/page.tsx`, `tests/unit/learning-path.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/path.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered yet:
+
+- GitHub push, production deployment, production smoke, and production deploy evidence are still pending for this slice. This slice does not include database migrations, real PDF upload, OCR, AI provider calls, or write-type production smoke.
+
 ## Reduce Chaos Weekly Ritual Summary and Reflection Note
 
 | Evidence | Result | Notes |

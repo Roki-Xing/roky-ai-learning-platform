@@ -1,5 +1,31 @@
 # Todo Checkpoint
 
+## Current Slice: Reduce Chaos Path Stage Reading Materials
+
+- [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 8.3 和第 14.2：Books 加入 Path，每个阶段可推荐阅读材料，并把 Books 输出接回长期学习路径。
+- [√] RED：扩展 Learning Path 测试，先失败于 `readingMaterials` 为 `undefined`、`/path` 缺少 `阶段阅读` 和 `pathReadingLinkClassName`。
+- [√] GREEN：新增 `src/server/learning/path-reading.ts`，为相关学习阶段生成 Books 推荐阅读材料。
+- [√] GREEN：`LearningPathStage` 新增 `readingMaterials`，`/path` 阶段卡显示 `阶段阅读`、书名、页码范围、推荐理由和 `/books/:id` 的 `去同读` 入口。
+- [√] GREEN：`去同读` CTA 接入 `pathReadingLinkClassName`，手机端保持至少 44px 触控高度和全宽布局。
+- [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/path.md` 和 `helloagents/CHANGELOG.md` 初始记录。
+- [√] 运行定向 RED/GREEN 和相关回归。
+- [√] 运行本地完整门禁。
+- [ ] 提交并推送 GitHub。
+- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
+- [ ] 补生产部署证据并清理临时 SSH key。
+
+## Current Resume State Hint
+
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.360.0 Reduce Chaos Path Stage Reading Materials`：只改 `/path` 读侧数据合约、阶段卡展示、Books 推荐规则、源码级测试和文档记录；不要改数据库 schema/migration、Current Mission 排序、Books 上传/OCR/AI provider、生产 env/provider 密钥、Preview 写保护语义或其他页面主流程。已完成 RED/GREEN、相关回归和完整本地门禁；下一步提交推送、生产部署和读侧 smoke。生产 smoke 只检查 `/path` 可见 `阶段阅读` 和 `去同读`，不做写入型操作。
+
+## Current Drift Check
+
+- Scope：仍服务 Roky Learn reduce-chaos 主线，把 `/path` 从“地图报告”推进为能承接 Books 同读的长期学习路线。
+- Compatibility：不新增迁移，不触碰生产 env、provider 密钥、数据库 schema、Current Mission 排序、Books 上传禁用态、OCR/AI provider 或 Preview 写保护；只新增读侧推荐材料和页面展示。
+- New fallback/owner：新增 `path-reading.ts` 作为 Books 到 Path 的读侧桥接 owner；没有新增外部 adapter 或兼容 fallback。
+- Retirement：旧的 `/path` 阶段卡没有 Books 阅读材料，用户需要从导航另找 `/books`；该断点已由阶段内 `阶段阅读` 入口退役。
+- Decision：continue; RED/GREEN、相关回归和完整本地门禁已完成，下一步提交推送并进入部署流程。
+
 ## Current Slice: Reduce Chaos Weekly Ritual Summary and Reflection Note
 
 - [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 9.1、9.2 和 9.4：`/weekly` 首屏学习总结、本周称号和可保存周记。

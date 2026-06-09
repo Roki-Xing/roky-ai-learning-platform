@@ -4,6 +4,10 @@ import {
   type CurrentMissionProgress,
   type CurrentMissionSignal,
 } from "@/server/learning/current-mission";
+import {
+  buildLearningPathReadingMaterials,
+  type LearningPathReadingMaterial,
+} from "@/server/learning/path-reading";
 import { prisma } from "@/server/db";
 
 type CriterionKind =
@@ -93,6 +97,7 @@ export type LearningPathStage = {
   blockers: string[];
   unlockCondition: string;
   nextTopic: string;
+  readingMaterials: LearningPathReadingMaterial[];
 };
 
 export type LearningPathFocus = {
@@ -556,6 +561,7 @@ export function buildLearningPathSnapshot(
       blockers: buildStageBlockers(config, metrics),
       unlockCondition: buildUnlockCondition(criteria),
       nextTopic: buildNextTopic(config, criteria, input),
+      readingMaterials: buildLearningPathReadingMaterials(config.id),
     } satisfies LearningPathStage;
   });
 

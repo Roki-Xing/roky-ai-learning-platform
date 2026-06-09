@@ -76,6 +76,16 @@ test("learning path picks today's domain as current stage and exposes next stage
   assert.equal(snapshot.currentStage.metrics.quizAccuracy, 67);
   assert.match(snapshot.currentStage.unlockCondition, /还差/);
   assert.match(snapshot.currentStage.nextTopic, /RAG/);
+  assert.deepEqual(snapshot.currentStage.readingMaterials, [
+    {
+      bookId: "ai-engineering",
+      bookTitle: "AI Engineering",
+      href: "/books/ai-engineering",
+      pageLabel: "第 12-14 页",
+      summary: "把 RAG、评估和线上反馈放回同一条工程闭环。",
+      actionLabel: "去同读",
+    },
+  ]);
 });
 
 test("learning path falls back to first unfinished stage when today has no domain focus", () => {
@@ -127,6 +137,10 @@ test("learning path falls back to first unfinished stage when today has no domai
 test("path page renders quiz accuracy, unlock condition, and next topic labels", () => {
   const source = readFileSync("src/app/path/page.tsx", "utf8");
 
+  assert.match(source, /阶段阅读/);
+  assert.match(source, /stage\.readingMaterials/);
+  assert.match(source, /reading\.pageLabel/);
+  assert.match(source, /reading\.summary/);
   assert.match(source, /测验正确率/);
   assert.match(source, /解锁条件/);
   assert.match(source, /下一步主题/);
@@ -145,8 +159,13 @@ test("path stage cards keep mobile touch targets on route CTAs", () => {
   const source = readFileSync("src/app/path/page.tsx", "utf8");
 
   assert.match(source, /const pathStageCtaClassName =\s*"min-h-11 w-full sm:w-auto[^"]*";/);
+  assert.match(source, /const pathReadingLinkClassName =\s*"min-h-11 w-full sm:w-auto[^"]*";/);
   assert.match(
     source,
     /<a\s+href=\{stage\.href\}\s+className=\{pathStageCtaClassName\}\s*>\s*\{stage\.ctaLabel\}\s*<\/a>/,
+  );
+  assert.match(
+    source,
+    /<a\s+href=\{reading\.href\}\s+className=\{pathReadingLinkClassName\}\s*>\s*\{reading\.actionLabel\}\s*<\/a>/,
   );
 });

@@ -4,6 +4,7 @@
 
 - UI: `/path`
 - Server data builder: `src/server/learning/path.ts`
+- Books reading bridge: `src/server/learning/path-reading.ts`
 
 ## Behavior
 
@@ -37,9 +38,11 @@
    - `项目里程碑`
    - `解锁条件`
    - `下一步主题`
-9. Route card stage badges use Chinese learner-facing labels such as `第 1 阶段`; the next-stage summary badge uses `下一阶段`.
-10. `nextTopic` prefers today’s generated lesson when it belongs to the current stage; otherwise it points at the first unmet stage criterion.
-11. Stage-card action CTAs use `pathStageCtaClassName` with `min-h-11 w-full sm:w-auto`, so each route step is a full-width 44px touch target on mobile and an adaptive-width link on desktop.
+9. Books-related stages expose `阶段阅读` from `path-reading.ts`, including the book title, page range, summary, and `/books/:id` `去同读` link.
+10. Route card stage badges use Chinese learner-facing labels such as `第 1 阶段`; the next-stage summary badge uses `下一阶段`.
+11. `nextTopic` prefers today’s generated lesson when it belongs to the current stage; otherwise it points at the first unmet stage criterion.
+12. Stage-card action CTAs use `pathStageCtaClassName` with `min-h-11 w-full sm:w-auto`, so each route step is a full-width 44px touch target on mobile and an adaptive-width link on desktop.
+13. Stage reading CTAs use `pathReadingLinkClassName` with `min-h-11 w-full sm:w-auto`, so Books handoff stays reachable on mobile.
 
 ## Verification
 
@@ -60,10 +63,15 @@
   - `项目里程碑` visible when project progress exists, not `milestone`
   - `解锁条件` visible
   - `下一步主题` visible
+  - `阶段阅读` visible on Books-related stages
+  - reading material links visible as `去同读`
   - route card list visible
 
 ## Local Evidence
 
+- Reduce Chaos Path Stage Reading Materials:
+  - `npm test -- tests/unit/learning-path.test.ts`: RED 首次失败于 `readingMaterials` 为 `undefined`、`/path` 缺少 `阶段阅读` 和 `pathReadingLinkClassName`；GREEN 后 4 项通过。
+  - `npm test -- tests/unit/learning-path.test.ts tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts`: 33 项通过；覆盖 Path、Books、Current Mission、Next Best Action、移动导航和鉴权导航边界。
 - Phase E Path Header Badge Localization:
   - `npm test -- tests/unit/learning-path.test.ts`: RED 后 GREEN，4 项通过；RED 首次确认 `/path` 页头仍为 `badge="Path"`，GREEN 后覆盖 `badge="学习路径"` 并反向断言旧英文 badge 不再出现。
   - `npm test -- tests/unit/learning-path.test.ts tests/unit/weekly-review.test.ts tests/unit/mistakes-view.test.ts tests/unit/auth-policy.test.ts tests/unit/learning-ui-components.test.ts`: 52 项通过；覆盖 Path、Weekly、Mistakes、Auth/Preview 和共享学习 UI 回归。

@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.360.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Path Stage Reading Materials]** 按指导文件第 8.3 和第 14.2 继续优化 `/path`，把 Books 从独立入口收束进长期学习路径。
+  - 新增 `src/server/learning/path-reading.ts`，按学习阶段生成 Books 推荐阅读材料。
+  - `LearningPathStage` 新增 `readingMaterials`，LLM/RAG、AI 工程、项目应用、广度等阶段可显示对应书籍、页码范围、推荐理由和 `/books/:id` 链接。
+  - `/path` 路线图阶段卡新增 `阶段阅读` 区块，展示书名、页码、推荐理由和 `去同读` CTA。
+  - `去同读` CTA 复用 `pathReadingLinkClassName`，手机端保持至少 44px 触控高度和全宽布局。
+  - 保留现有阶段进度、解锁条件、下一步主题、Current Mission 排序、Books 静态数据、上传禁用态、OCR/AI provider 边界、数据库 schema、Preview 写保护和生产配置。
+
+### Verified
+
+- RED：`npm test -- tests/unit/learning-path.test.ts` 首次失败于 `readingMaterials` 为 `undefined`，`/path` 缺少 `阶段阅读` 和 `pathReadingLinkClassName`。
+- GREEN：`npm test -- tests/unit/learning-path.test.ts` 4 项通过，覆盖 Path 阶段阅读材料数据合约、`阶段阅读` 页面接线、页码/推荐理由渲染和移动端 `去同读` 触控目标。
+- 相关回归：`npm test -- tests/unit/learning-path.test.ts tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts` 33 项通过，覆盖 Path、Books、Current Mission、Next Best Action、移动导航和共享可访问性边界。
+- 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 471 项通过，Next 生产构建生成 31 个静态页面。
+
+### Not Covered
+
+- 生产部署、生产 smoke、完整 Playwright 移动端截图矩阵和写入型生产 smoke 尚未执行；本切片不包含数据库迁移、真实 PDF 上传、OCR 或 AI provider 调用。生产部署证据会在上线后追加。
+
 ## [0.359.0] - 2026-06-10
 
 ### Changed
