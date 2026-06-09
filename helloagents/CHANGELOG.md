@@ -17,10 +17,14 @@
 - RED/GREEN：`npm test -- tests/unit/weekly-review.test.ts` 7 项通过，覆盖 Top 3 误区修复队列、`/mistakes?focus=<id>` href、已解决误区过滤、Markdown Top 3 小节、页面 Top 3 入口和手机端 `min-h-11` 触控目标。
 - 相关回归：`npm test -- tests/unit/weekly-review.test.ts tests/unit/mistakes-view.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/progress-analytics.test.ts tests/unit/learning-ui-components.test.ts` 92 项通过，覆盖 Weekly、Mistakes、Current Mission、Next Best Action、Progress 和共享学习 UI。
 - 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 469 项通过，Next 生产构建生成 31 个静态页面。
+- GitHub：代码提交 `8da6a52 feat: add weekly mistake repair queue` 已推送到 `origin/main`。
+- 生产部署：已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.358.0-20260610-065140.tar.gz`，rsync 同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，并重启 `ai-learning-platform` 容器。
+- 远端门禁：容器内 `npm ci --include=dev`、`npm run prisma:generate`、Weekly/Mistakes/Current Mission 相关回归 92 项、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、`npm run build` 通过，随后 `npm prune --omit=dev`。
+- 生产验收：`https://learn.roky.chat/api/health` 返回 200/ok；390px 移动视口密码登录 `/weekly` 后可见 `每周复盘`、`本周最值得修复的 3 个误区` 和 `导出 Weekly Markdown`，导出文本区包含 Top 3 误区修复小节；远端源码确认已部署 `mistakeRepairQueue`、`weeklyMistakeRepairLinkClassName` 和 `/mistakes?focus=<id>`。
 
 ### Not Covered
 
-- GitHub push、生产部署、远端门禁和生产 smoke 将在本切片后续证据提交中补齐。
+- 当前生产用户没有可修复误区样本，线上 `/weekly` 显示空态 `这周还没有需要优先修复的误区。`，因此未能用真实生产数据实测 `/mistakes?focus=<id>` 链接渲染；该行为由本地/远端单测和远端源码核验覆盖。未执行完整 Playwright 移动端截图矩阵或写入型错题修复 smoke；`npm audit` 仍报告既有 3 个 moderate 告警，未纳入本轮范围。
 
 ## [0.357.0] - 2026-06-10
 

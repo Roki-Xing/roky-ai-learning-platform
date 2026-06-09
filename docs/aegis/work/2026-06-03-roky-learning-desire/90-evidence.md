@@ -7,6 +7,11 @@
 | `npm test -- tests/unit/weekly-review.test.ts` | fail then pass, 7 tests | RED first failed because Weekly lacked `mistakeRepairQueue`, Markdown lacked `本周最值得修复的 3 个误区`, and `/weekly` still rendered the old single `错题最多的概念` card. GREEN covers Top 3 repair queue, `/mistakes?focus=<id>` hrefs, filtering `resolved` mistakes, Markdown Top 3 section, page Top 3 links, and `weeklyMistakeRepairLinkClassName` with `min-h-11`. |
 | `npm test -- tests/unit/weekly-review.test.ts tests/unit/mistakes-view.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/progress-analytics.test.ts tests/unit/learning-ui-components.test.ts` | pass, 92 tests | Related regression after Weekly Mistake Repair Queue; covers Weekly, Mistakes view, Current Mission, Next Best Action, Progress analytics, and shared learning UI. |
 | `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates before push; full unit suite passed 469 tests, route audit reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
+| `git push origin main` | pass | Code commit `8da6a52 feat: add weekly mistake repair queue` pushed to `origin/main`. |
+| Production backup and deploy | pass | Created `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.358.0-20260610-065140.tar.gz`, rsynced code to `118.25.15.72:/home/ubuntu/ai-learning-platform`, pruned dev dependencies after validation, and restarted container `ai-learning-platform`. |
+| Remote container gates | pass | In container: `npm ci --include=dev`, `npm run prisma:generate`, Weekly/Mistakes/Current Mission related regression 92 tests, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, and `npm run build` passed. |
+| `curl https://learn.roky.chat/api/health` and 390px Playwright login smoke | partial | Health returned 200/ok. Mobile smoke logged in to `/weekly`, saw `每周复盘`, `本周最值得修复的 3 个误区`, `导出 Weekly Markdown`, and the readonly Markdown contained the Top 3 mistake repair section. Production user currently had no repairable misconception sample, so the page showed `这周还没有需要优先修复的误区。` and no real `/mistakes?focus=<id>` links. |
+| Remote source deployment scan | pass | On `118.25.15.72:/home/ubuntu/ai-learning-platform`, source contains `mistakeRepairQueue`, `weeklyMistakeRepairLinkClassName`, `/mistakes?focus=`, and `本周最值得修复的 3 个误区`; `grep` was used because `rg` is not installed on the host. |
 
 Changed surface:
 
@@ -14,7 +19,7 @@ Changed surface:
 
 Not covered yet:
 
-- GitHub push, production deploy, remote gates, and production smoke are still pending for this slice.
+- Production user has no repairable misconception sample, so real data `/mistakes?focus=<id>` link rendering could not be exercised online. Full Playwright mobile screenshot matrix and write-type mistake repair smoke were not run. `npm audit` still reports existing 3 moderate dependency advisories and was not part of this slice.
 
 ## Reduce Chaos Mistakes Focus Repair
 

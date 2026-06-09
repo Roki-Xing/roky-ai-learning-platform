@@ -8,13 +8,13 @@
 - [√] GREEN：`/weekly` 改为 `本周最值得修复的 3 个误区`，每条展示来源、次数、关联课程并链接到具体误区。
 - [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/weekly.md` 和 `helloagents/CHANGELOG.md` 初始记录。
 - [√] 运行相关回归与本地完整门禁。
-- [ ] 提交并推送 GitHub。
-- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
-- [ ] 补生产证据并清理临时 SSH key。
+- [√] 提交并推送 GitHub：`8da6a52 feat: add weekly mistake repair queue`。
+- [√] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
+- [√] 补生产证据；临时 SSH key 待最终提交后清理。
 
 ## Current Resume State Hint
 
-从 `ai-learning-platform` 根目录继续。当前切片是 `0.358.0 Reduce Chaos Weekly Mistake Repair Queue`：只改 `/weekly` 读侧数据合约、Markdown 导出和页面展示，让本周误区形成最多 3 条 `/mistakes?focus=<id>` 修复入口；不要改 Misconception schema/migration、错题写入 action、Preview 写保护、生产 env/provider 密钥或其他页面主流程。已完成 RED/GREEN、相关回归和完整本地门禁；后续需要提交推送、生产部署和 smoke。
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.358.0 Reduce Chaos Weekly Mistake Repair Queue`：只改 `/weekly` 读侧数据合约、Markdown 导出和页面展示，让本周误区形成最多 3 条 `/mistakes?focus=<id>` 修复入口；不要改 Misconception schema/migration、错题写入 action、Preview 写保护、生产 env/provider 密钥或其他页面主流程。已完成 RED/GREEN、相关回归、完整本地门禁、GitHub push、生产部署、远端门禁、生产 health 和 390px `/weekly` smoke；生产用户当前没有可修复误区样本，线上只覆盖空态和 Markdown Top 3 小节。
 
 ## Current Drift Check
 
@@ -22,7 +22,7 @@
 - Compatibility：保留 `topMistake` 兼容字段，不新增迁移，不触碰错题写入 action、Preview 写保护、生产 env 或 provider 密钥。
 - New fallback/owner：没有新增外部 owner、adapter 或兼容层；无可修复误区时显示空态，`resolved` / `ignored` 不进入队列。
 - Retirement：旧的页面单条 `错题最多的概念` 展示已退役；Markdown 仍保留 `错题最多` 摘要并新增 Top 3 修复小节。
-- Decision：continue; 定向 RED/GREEN、相关回归和完整本地门禁已完成，仍需 GitHub push、生产部署和 smoke。
+- Decision：complete; 定向 RED/GREEN、相关回归、完整本地门禁、GitHub push、生产部署、远端门禁、生产 health、390px `/weekly` smoke 和远端源码核验均已完成。生产用户当前没有可修复误区样本，真实数据 `/mistakes?focus=<id>` 链接渲染保持未覆盖边界。
 
 ## Previous Slice: Reduce Chaos Mistakes Focus Repair
 
