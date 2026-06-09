@@ -49,3 +49,15 @@ test("books routes exist and keep companion reading copy learner-facing", () => 
   assert.match(readerPage, /生成 Flashcards/);
   assert.match(readerPage, /送 Coach/);
 });
+
+test("book reader keeps the AI companion as a sticky mobile bottom action", () => {
+  const readerPage = readFileSync("src/app/books/[id]/page.tsx", "utf8");
+
+  assert.match(readerPage, /aria-label="AI 伴读移动操作"/);
+  assert.match(readerPage, /sticky bottom-16 z-20/);
+  assert.match(readerPage, /bg-background\/95/);
+  assert.match(readerPage, /backdrop-blur/);
+  assert.match(readerPage, /<SheetContent side="bottom"/);
+  assert.match(readerPage, /打开 AI 伴读/);
+  assert.match(readerPage, /min-h-11 w-full/);
+});

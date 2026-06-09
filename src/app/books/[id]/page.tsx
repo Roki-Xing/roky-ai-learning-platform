@@ -135,28 +135,34 @@ export default async function BookReaderPage({
                 <div className="rounded-lg border bg-muted/20 p-4 text-sm leading-6 text-muted-foreground">
                   {book.summary}
                 </div>
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button className="min-h-11 w-full md:hidden">
-                      <Bot className="size-4" aria-hidden="true" />
-                      打开 AI 伴读
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="bottom" className="max-h-[82vh] overflow-y-auto p-0">
-                    <div className="border-b px-4 py-3">
-                      <SheetTitle className="text-sm font-semibold">AI 伴读</SheetTitle>
-                      <SheetDescription>
-                        针对当前页和文本选择生成解释、总结、笔记和卡片。
-                      </SheetDescription>
-                    </div>
-                    <div className="p-4">
-                      <BookCompanionPanel book={book} />
-                    </div>
-                  </SheetContent>
-                </Sheet>
               </div>
             </div>
           </LearningSectionCard>
+
+          <div
+            aria-label="AI 伴读移动操作"
+            className="sticky bottom-16 z-20 rounded-lg border bg-background/95 p-2 shadow-sm backdrop-blur xl:hidden"
+          >
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button className="min-h-11 w-full">
+                  <Bot className="size-4" aria-hidden="true" />
+                  打开 AI 伴读
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="max-h-[82vh] overflow-y-auto p-0">
+                <div className="border-b px-4 py-3">
+                  <SheetTitle className="text-sm font-semibold">AI 伴读</SheetTitle>
+                  <SheetDescription>
+                    针对当前页和文本选择生成解释、总结、笔记和卡片。
+                  </SheetDescription>
+                </div>
+                <div className="p-4">
+                  <BookCompanionPanel book={book} />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </main>
 
         <aside className="hidden content-start gap-4 xl:grid">

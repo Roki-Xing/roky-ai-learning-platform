@@ -479,6 +479,7 @@
 - `/books/ai-engineering` 应显示 `PDF Viewer`、`当前页文本提取`、`文本选择` 和 `AI 伴读`
 - AI 伴读应提供 `解释选区`、`总结当前页`、`保存为 Note`、`生成 Flashcards` 和 `送 Coach`
 - 移动端阅读应提供底部 Sheet 入口 `打开 AI 伴读`
+- 移动端阅读页的 `打开 AI 伴读` 应位于 `AI 伴读移动操作` sticky 操作区，至少包含 `sticky bottom-16 z-20`、`bg-background/95`、`backdrop-blur` 和 `min-h-11 w-full`，桌面端继续使用右侧伴读面板
 - Books 应接入 `Coach`、`Note`、`Flashcard`、`Mistake`、`Weekly`、`Project`、`Glossary`、`Radar`、`Current Mission` 和 `Path`
 - Current Mission 有活跃读书任务时应推荐 `今天继续读《AI Engineering》第 12-14 页`，并把今日闭环扩展为 5 步
 

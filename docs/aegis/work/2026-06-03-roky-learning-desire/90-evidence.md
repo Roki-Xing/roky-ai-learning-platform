@@ -2306,6 +2306,22 @@ Not covered:
 - Retirement：旧的 `<Badge asChild>` 类型筛选小触控模板已退役；旧模板只保留在测试反向断言和历史记录文本中。
 - Decision：continue; Phase E Radar Type Filter Mobile Touch Targets 已完成产品级 RED/GREEN、相关回归、覆盖扫描、本地门禁和 build。Aegis helper 失败仍归类为已知结构债，下一步继续寻找 guidance 中可本地关闭的小优化点。
 
+## Reduce Chaos Books Mobile Sticky Companion
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/books-companion.test.ts` | fail then pass, 3 tests | RED first failed because `/books/[id]` lacked `aria-label="AI 伴读移动操作"` and a sticky mobile bottom action. GREEN passed after moving `打开 AI 伴读` into a `sticky bottom-16 z-20` mobile action region with `bg-background/95`, `backdrop-blur`, and `min-h-11 w-full`. |
+| `npm test -- tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts tests/unit/auth-policy.test.ts` | pass, 38 tests | Related regression after Books Mobile Sticky Companion; covers Books seed/page contract, Current Mission active reading, Next Best Action ordering, mobile navigation, and auth/Preview boundaries. |
+| `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates before commit/deploy; full unit suite passed 464 tests, route and learning audits passed, and Next production build generated 31 static pages with `/books/[id]` in the route table. |
+
+Changed surface:
+
+- Reduce Chaos Books Mobile Sticky Companion layer: `src/app/books/[id]/page.tsx`, `tests/unit/books-companion.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/books-companion.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered:
+
+- Production deployment, remote container gates, production login smoke, full Playwright mobile matrix, real mobile screenshots, and production write-type smoke remain pending for the deploy phase.
+
 ## Phase E Admin Recent Plan Governance CTA Mobile Touch Targets
 
 | Evidence | Result | Notes |

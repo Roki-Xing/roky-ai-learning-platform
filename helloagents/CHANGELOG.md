@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.355.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Books Mobile Sticky Companion]** 按指导文件第 14.6 和第 16 节继续优化 `/books/ai-engineering` 移动端阅读体验，让 AI 伴读成为底部可达的主要行动。
+  - 将 `打开 AI 伴读` 从阅读侧栏移动到 `aria-label="AI 伴读移动操作"` 的 sticky 操作区。
+  - 移动端和平板宽度使用 `sticky bottom-16 z-20`、`bg-background/95` 和 `backdrop-blur`，固定在底部导航上方；桌面端继续使用右侧 `AI 伴读` 面板。
+  - 保留原有 Books 静态数据、Note/Flashcards/Coach 链接、禁用上传边界、鉴权、Current Mission 接线和 MVP 非 OCR 边界，不新增数据库迁移、真实上传或 AI 调用。
+
+### Verified
+
+- RED：`npm test -- tests/unit/books-companion.test.ts` 首次失败于阅读页缺少 `aria-label="AI 伴读移动操作"` 和 sticky 底部操作区。
+- GREEN：`npm test -- tests/unit/books-companion.test.ts` 3 项通过，覆盖 Books seed、阅读页学习者文案和移动端 sticky 伴读入口。
+- 相关回归：`npm test -- tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts tests/unit/auth-policy.test.ts` 38 项通过，覆盖 Books、Current Mission、Next Best Action、移动导航和鉴权/Preview 边界。
+- 本地最终门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 464 项通过，Next 生产构建生成 31 个静态页面。
+
+### Not Covered
+
+- 生产部署、远端门禁和真实移动端登录 smoke 待上线后补齐；`npm audit` 既有 3 个 moderate 告警未纳入本轮范围。
+
 ## [0.354.0] - 2026-06-10
 
 ### Changed
