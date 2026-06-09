@@ -29,6 +29,8 @@ test("learning data routes are protected by auth policy", () => {
     "/progress",
     "/settings",
     "/projects",
+    "/books",
+    "/books/ai-engineering",
     "/mistakes",
     "/coach",
     "/voice",

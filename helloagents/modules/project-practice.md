@@ -113,7 +113,7 @@
   - `导出 Portfolio Markdown` 中的 `相关知识` 行显示中文业务标签，例如 `倒排索引, 文件读写`，不把 raw topic slug 写入可复制成果。
 - 当前里程碑有代码反馈 issue 时，`ProjectFeedbackNextFix` 优先展示最高严重度 issue；没有 high issue 时展示第一条 issue。
 - 项目完成态通过 `ProjectCompletionRitual` 显示 `你完成了一个项目！`、`练到了：` 和 `生成：`，代码卡数量来自项目代码反馈卡片统计，概念卡数量来自项目复盘卡片统计。
-- Books 联动当前只在项目模板区显示 `从《xxx》第 2 章生成一个小项目` 预留文案；本切片不新增 `/books` 路由、不写 Books 数据模型。
+- Books 联动在项目模板区保留 `从《xxx》第 2 章生成一个小项目` 文案；`/books` 已由 Book Companion MVP 独立提供，Projects 本页仍不直接新增 Books 生成项目写操作。
 - 底部“项目作品集”会为已完成项目展示可复制的 `导出 Portfolio Markdown` 文本区，并提供 `/projects/portfolio` 独立页入口。
 - `/projects/portfolio` 保留 `回到项目实践` 入口，复用同一 portfolio panel 和 Markdown 导出文本，不新增写 action。
 - `Portfolio Markdown` 包含项目标题、项目总结、完成里程碑、代码片段数、反思/笔记数、项目卡片数、相关知识和代表代码片段。

@@ -10,6 +10,7 @@ const PROTECTED_PREFIXES = [
   "/progress",
   "/settings",
   "/projects",
+  "/books",
   "/mistakes",
   "/coach",
   "/voice",

@@ -167,7 +167,7 @@
 - Transcript cleanup 应能把 `chain of thought`、`swe bench/swebench`、`rag`、`lora`、`mmlu`、`gpqa` 归一化为稳定写法
 - `60 秒反思模板` 应显示 `今日理解`、`代码思路`、`错题复述`、`术语解释`、`项目复盘`、`读书疑问`、`论文阅读`、`行业观察`
 - 每个反思模板都应显示同一组提示：`我今天学的是...`、`我理解为...`、`我卡住的是...`、`我想让 Coach 检查...`
-- 从未来 `/books` 进入 Voice 时，`mode=book_question` 应被保留为 `读书疑问`，转写文本 placeholder 应显示 `我正在读第 X 页，我不理解的是...`
+- 从 `/books` 进入 Voice 时，`mode=book_question` 应被保留为 `读书疑问`，转写文本 placeholder 应显示 `我正在读第 X 页，我不理解的是...`
 - 每个反思模板入口在手机端应满足 44px 触控高度，至少包含 `min-h-11`
 - 语音学习流水线的 `当前最优动作`、`送 Coach 检查`、`整理成笔记`、`生成复习卡片`、`去复习` CTA 在手机端应为全宽大按钮，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 语音学习流水线步骤标题应显示 `Coach 检查`、`整理笔记`、`复习卡片`，不应单独显示 `Coach`、`Note`、`Cards`
@@ -181,7 +181,7 @@
 ## PWA / 移动安装
 
 - 移动端底部导航应包含 `今日`、`复习`、`Coach`、`路径`、`更多`，把学习主线优先于单个工具入口。
-- `更多` Sheet 应包含 `/voice`、`/map`、`/library`、`/notes`、`/glossary`、`/radar`、`/projects`、`/progress`、`/settings` 等核心学习入口
+- `更多` Sheet 应包含 `/voice`、`/map`、`/library`、`/notes`、`/glossary`、`/radar`、`/projects`、`/books`、`/progress`、`/settings` 等核心学习入口
 - `更多` Sheet 的每个入口在手机端应满足 44px 触控高度，至少包含 `min-h-11`
 - `/manifest.webmanifest` 应包含 `name`、`short_name`、`start_url=/today`、`display=standalone`、`theme_color`
 - 未登录访问 `/manifest.webmanifest` 应返回 manifest JSON，不应被重定向到 `/login`
@@ -463,8 +463,19 @@
 - `项目作品集` 区域应提供 `打开作品集`，进入 `/projects/portfolio`
 - `项目作品集` 中每个 `复习项目卡片` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`，卡片 header 手机端应使用单列 `grid` 避免标题和按钮互相挤压
 - `/projects/portfolio` 页头 `回到项目实践` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`，页头 action 区手机端应使用单列 `grid`
-- Books 联动在本阶段只显示 `从《xxx》第 2 章生成一个小项目` 的预留文案，不应新增 `/books` 入口或链接
+- Projects 的 Books 联动应保留 `从《xxx》第 2 章生成一个小项目` 的预留文案；全局导航已提供 `/books`，但 `/projects` 页面本身不应新增直接 `/books` 链接
 - Preview 下创建或提交项目动作应被拒绝
+
+## Books Companion `/books`
+
+- 页面标题应为 `同读书籍`，不应显示 `PDF 管理`
+- `/books` 应显示 `最近阅读`、`我的书架`、`继续阅读` 和 disabled `上传 PDF`
+- 上传区域应明确当前版本不会把本地 PDF 上传到服务器
+- `/books/ai-engineering` 应显示 `PDF Viewer`、`当前页文本提取`、`文本选择` 和 `AI 伴读`
+- AI 伴读应提供 `解释选区`、`总结当前页`、`保存为 Note`、`生成 Flashcards` 和 `送 Coach`
+- 移动端阅读应提供底部 Sheet 入口 `打开 AI 伴读`
+- Books 应接入 `Coach`、`Note`、`Flashcard`、`Mistake`、`Weekly`、`Project`、`Glossary`、`Radar`、`Current Mission` 和 `Path`
+- Current Mission 有活跃读书任务时应推荐 `今天继续读《AI Engineering》第 12-14 页`，并把今日闭环扩展为 5 步
 
 ## Project Portfolio `/projects/portfolio`
 

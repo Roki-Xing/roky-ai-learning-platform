@@ -2,6 +2,7 @@ import { prisma } from "@/server/db";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import { buildReviewableFlashcardWhere } from "@/server/review/filter";
 import { localDateInTimeZone } from "@/server/time/day";
+import { getActiveBookSession } from "@/server/books/base";
 import {
   buildNextBestAction,
   type NextBestAction,
@@ -44,6 +45,7 @@ export function buildCurrentMissionProgress(
     input.dueFlashcardsCount === 0,
     Boolean(input.todayLessonId && input.todayNoteCount > 0),
     Boolean(input.todayLessonId && input.todayVoiceNoteCount > 0),
+    Boolean(input.activeBookSession),
   ];
 
   return {
@@ -87,6 +89,14 @@ export function buildCurrentMissionSignals(
       label: "项目",
       value: input.activeProject.title,
       tone: "info",
+    });
+  }
+
+  if (input.activeBookSession?.title) {
+    signals.push({
+      label: "同读书籍",
+      value: `${input.activeBookSession.title} ${input.activeBookSession.progressPercent}%`,
+      tone: "success",
     });
   }
 
@@ -182,6 +192,7 @@ export async function getCurrentMissionData(
     todayLessonId: todayPlan?.lessonId ?? null,
     todayNoteCount,
     todayVoiceNoteCount,
+    activeBookSession: getActiveBookSession(),
   };
 
   return {

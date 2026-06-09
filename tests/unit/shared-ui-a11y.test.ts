@@ -42,7 +42,7 @@ test("app route groups organize navigation around the daily learning flow", () =
   );
   assert.deepEqual(
     APP_ROUTE_GROUPS[1]?.routes.map((route) => route.href),
-    ["/coach", "/mistakes", "/voice", "/projects"],
+    ["/coach", "/mistakes", "/voice", "/books", "/projects"],
   );
   assert.deepEqual(
     APP_ROUTE_GROUPS[2]?.routes.map((route) => route.href),
@@ -50,6 +50,7 @@ test("app route groups organize navigation around the daily learning flow", () =
   );
 
   assert.equal(APP_ROUTE_GROUPS[1]?.routes.find((route) => route.href === "/voice")?.label, "说出理解");
+  assert.equal(APP_ROUTE_GROUPS[1]?.routes.find((route) => route.href === "/books")?.label, "同读书籍");
   assert.equal(APP_ROUTE_GROUPS[1]?.routes.find((route) => route.href === "/projects")?.label, "项目任务");
   assert.equal(APP_ROUTE_GROUPS[2]?.routes.find((route) => route.href === "/glossary")?.label, "术语路径");
 });
@@ -65,7 +66,7 @@ test("mobile bottom nav prioritizes the learning path and keeps More sheet route
   assert.doesNotMatch(source, /\{ href: "\/voice", label: "语音"/);
   assert.match(source, /\{ href: "\/path", label: "路径"/);
 
-  for (const href of ["/voice", "/map", "/library", "/notes", "/glossary", "/radar", "/projects", "/progress", "/settings"]) {
+  for (const href of ["/voice", "/books", "/map", "/library", "/notes", "/glossary", "/radar", "/projects", "/progress", "/settings"]) {
     assert.match(source, new RegExp(`"${href}"`));
   }
 

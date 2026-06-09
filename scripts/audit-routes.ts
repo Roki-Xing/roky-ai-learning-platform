@@ -56,6 +56,7 @@ const expectedCoreRoutes = [
   "/review",
   "/coach",
   "/voice",
+  "/books",
   "/map",
   "/library",
   "/notes",
@@ -81,6 +82,7 @@ const audit = {
   pagesWithoutNavigation: pageRoutes.filter(
     (route) =>
       !navHrefs.has(route) &&
+      !route.startsWith("/books/") &&
       !["/", "/admin", "/login"].includes(route) &&
       !intentionalSubpages.includes(route),
   ),

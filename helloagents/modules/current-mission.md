@@ -2,7 +2,7 @@
 
 ## 状态
 
-已接入首页、`/progress`、`/projects`、`/today`、`/weekly` 和 `/path`。
+已接入首页、`/progress`、`/projects`、`/today`、`/weekly`、`/path` 和 `/books`。
 
 ## 目标
 
@@ -23,7 +23,8 @@
 5. 今日没有笔记 → `/notes`
 6. 今日没有语音复盘 → `/voice`
 7. 有 active project → `/projects`
-8. 其他情况 → `/radar` 轻量广度探索
+8. 有 active book session → `/books/:id`
+9. 其他情况 → `/radar` 轻量广度探索
 
 ## 代码位置
 
@@ -35,7 +36,7 @@
 
 - 首页：替换原“现在最值得做”块，直接显示 `当前任务`
 - 首页 Current Mission 卡片现在显示轻量元信息：`推荐/重要/轻量`、预计分钟数和陪练/Coach/项目等 companion 标签。
-- 首页 Current Mission 卡片接入 `buildCurrentMissionProgress()`，显示 `今日闭环 X/4` 与可访问进度条；闭环步骤为今日学习完成、到期复习清空、今日笔记、语音复盘。
+- 首页 Current Mission 卡片接入 `buildCurrentMissionProgress()`，显示 `今日闭环 X/5` 与可访问进度条；闭环步骤为今日学习完成、到期复习清空、今日笔记、语音复盘、同读书籍。
 - 首页首屏现在是 `首页主任务` 区，只保留 `CurrentMissionCard`、`LearningMomentumStrip` 和补弱焦点，避免与 `今日能量`、`今日三件事`、`常用入口` 等多入口模块竞争。
 - 首页次级动作默认折叠到 `今天还可以`，保留写笔记、说出理解、推进项目和查看当前路径入口；这些入口仍使用 `min-h-11 w-full sm:w-auto` 触控目标。
 - 首页 Current Mission 下方新增 `LearningMomentumStrip`，将 XP、Daily Quest、streak 和周目标转换为：
@@ -54,6 +55,7 @@
 - `/today`：在右侧栏顶部显示，和“今日复习入口 / 今日概览”并列
 - `/weekly`：在周复盘顶部显示，标题为 `当前任务`
 - `/path`：在学习路径顶部显示，标题为 `当前任务`
+- `/books`：在书架和阅读详情页顶部显示，活跃阅读任务可回到当前任务。
 - CTA 按钮在移动端使用 `min-h-11 w-full`，桌面端使用 `sm:w-auto`，确保首页和各主流程页的当前任务入口满足 44px 触控目标。
 - 共享组件默认标题使用中文 `当前任务`，不再把 `Current Mission / 当前任务` 作为学习者可见标题；`/today`、`/weekly`、`/path` 的显式 title 接线同样使用 `当前任务`。
 - 未解决误区无具体 focus summary 时，原因文案显示 `N 个未解决误区`，不再把内部英文 `open misconception` 暴露给学习者；有 focus summary 时继续显示具体误区并保留中文数量说明。
@@ -61,6 +63,8 @@
 ## 兜底探索
 
 - 当今日学习、复习、误区、代码反馈、笔记、语音复盘和项目任务都没有更高优先级动作时，`buildNextBestAction()` 推荐 `今天轻量探索：认识 SWE-bench`。
+- 当今日学习、复习、误区、代码反馈、笔记、语音复盘和项目任务都完成，且存在 active book session 时，`buildNextBestAction()` 推荐 `今天继续读《AI Engineering》第 12-14 页`，指向 `/books/ai-engineering`。
+- 当没有 active book session 时，`buildNextBestAction()` 推荐 `今天轻量探索：认识 SWE-bench`。
 - 该兜底指向 `/radar?entity=swe-bench`，把轻量探索固定到 SWE-bench，连接 Agent、真实工程任务和后续项目练习。
 
 ## 习惯目标
@@ -91,6 +95,7 @@
 - 误区数量
 - 代码反馈数量
 - active project 标题
+- active book session 标题和进度
 
 如果当前没有这些高优先信号，但今天已有 lesson，则回退显示：
 
@@ -107,6 +112,7 @@
 - Phase E Current Mission Misconception Fallback Localization related regression：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-motivation.test.ts tests/unit/today-code-exercise.test.ts tests/unit/coach-workspace.test.ts` 41 项通过。
 - Sprint Learning Desire Homepage Momentum Strip：`npm test -- tests/unit/learning-motivation.test.ts` RED 首次失败于缺少 `@/server/learning/momentum`，GREEN 后 12 项通过；相关回归 `npm test -- tests/unit/learning-motivation.test.ts tests/unit/current-mission.test.ts tests/unit/learning-ui-components.test.ts tests/unit/home-page-labels.test.ts` 46 项通过。
 - Reduce Chaos Homepage Command Center：`npm test -- tests/unit/home-page-labels.test.ts` RED 首次失败于首页仍存在 `今日能量`、`今日三件事`、`常用入口` 和旧 `QUICK_ACTIONS`；GREEN 后 4 项通过，覆盖首页首屏只保留 Current Mission/进度，次级动作折叠到 `今天还可以`。
+- Reduce Chaos Book Companion MVP：`npm test -- tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts tests/unit/auth-policy.test.ts` 覆盖 Books seed、`/books` 和 `/books/[id]` 页面契约、Current Mission active reading、导航和鉴权保护。
 - `npm run lint`
 - `npm run build`
 

@@ -112,6 +112,32 @@ test("next best action asks for a voice reflection before project work", () => {
   assert.match(action.reason, /语音/);
 });
 
+test("next best action recommends active book reading before lightweight breadth exploration", () => {
+  const action = buildNextBestAction({
+    ...baseInput,
+    todayPlanStatus: "completed",
+    dueFlashcardsCount: 0,
+    openMisconceptionCount: 0,
+    codeFeedbackNeedsAttentionCount: 0,
+    todayVoiceNoteCount: 1,
+    activeProject: null,
+    activeBookSession: {
+      documentId: "ai-engineering",
+      title: "AI Engineering",
+      currentPage: 12,
+      nextPage: 14,
+      progressPercent: 36,
+    },
+  });
+
+  assert.equal(action.href, "/books/ai-engineering");
+  assert.equal(action.title, "今天继续读《AI Engineering》第 12-14 页");
+  assert.equal(action.ctaLabel, "去同读");
+  assert.equal(action.priorityLabel, "轻量");
+  assert.equal(action.companionLabel, "Book Companion");
+  assert.match(action.reason, /生成 3 张卡片/);
+});
+
 test("next best action recommends lightweight breadth exploration when learning chores are clear", () => {
   const action = buildNextBestAction({
     ...baseInput,

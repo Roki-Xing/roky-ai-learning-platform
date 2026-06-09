@@ -60,7 +60,7 @@ test("current mission progress summarizes the daily learning loop", async () => 
 
   assert.equal(progress.label, "今日闭环");
   assert.equal(progress.completed, 2);
-  assert.equal(progress.total, 4);
+  assert.equal(progress.total, 5);
 });
 
 test("current mission routes unresolved misconceptions to coach with focus copy", async () => {
@@ -99,6 +99,40 @@ test("current mission recommends SWE-bench light exploration after main tasks ar
   assert.equal(mission.href, "/radar?entity=swe-bench");
   assert.equal(mission.ctaLabel, "认识 SWE-bench");
   assert.match(mission.reason, /SWE-bench/);
+});
+
+test("current mission recommends active book reading before light exploration", async () => {
+  const { buildCurrentMission, buildCurrentMissionSignals, buildCurrentMissionProgress } = await loadCurrentMission();
+  const input = {
+    ...baseInput,
+    todayPlanStatus: "completed",
+    dueFlashcardsCount: 0,
+    openMisconceptionCount: 0,
+    codeFeedbackNeedsAttentionCount: 0,
+    activeProject: null,
+    todayNoteCount: 1,
+    todayVoiceNoteCount: 1,
+    activeBookSession: {
+      documentId: "ai-engineering",
+      title: "AI Engineering",
+      currentPage: 12,
+      nextPage: 14,
+      progressPercent: 36,
+    },
+  };
+
+  const mission = buildCurrentMission(input);
+  const signals = buildCurrentMissionSignals(input);
+  const progress = buildCurrentMissionProgress(input);
+
+  assert.equal(mission.title, "今天继续读《AI Engineering》第 12-14 页");
+  assert.equal(mission.href, "/books/ai-engineering");
+  assert.equal(mission.ctaLabel, "去同读");
+  assert.equal(mission.priorityLabel, "轻量");
+  assert.equal(mission.estimatedMinutes, 15);
+  assert.match(mission.reason, /读完后生成 3 张卡片/);
+  assert.equal(signals.find((signal) => signal.label === "同读书籍")?.value, "AI Engineering 36%");
+  assert.equal(progress.total, 5);
 });
 
 test("current mission localizes unresolved misconception fallback copy", async () => {

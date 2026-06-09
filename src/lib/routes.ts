@@ -25,6 +25,7 @@ export const APP_ROUTE_GROUPS: AppRouteGroup[] = [
       { href: "/coach", label: "思路评审" },
       { href: "/mistakes", label: "错题误区" },
       { href: "/voice", label: "说出理解" },
+      { href: "/books", label: "同读书籍" },
       { href: "/projects", label: "项目任务" },
     ],
   },

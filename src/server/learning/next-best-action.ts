@@ -20,6 +20,13 @@ export type NextBestActionInput = {
     title: string;
     activeMilestoneTitle: string | null;
   };
+  activeBookSession?: null | {
+    documentId: string;
+    title: string;
+    currentPage: number;
+    nextPage: number;
+    progressPercent: number;
+  };
   todayLessonId: string | null;
   todayNoteCount: number;
   todayVoiceNoteCount: number;
@@ -135,6 +142,19 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       priorityLabel: "推荐",
       estimatedMinutes: 15,
       companionLabel: "项目",
+    };
+  }
+
+  if (input.activeBookSession) {
+    return {
+      title: `今天继续读《${input.activeBookSession.title}》第 ${input.activeBookSession.currentPage}-${input.activeBookSession.nextPage} 页`,
+      reason: "有活跃读书任务。今天只读一个短页段，读完后生成 3 张卡片，并把疑问送到 Coach。",
+      href: `/books/${encodeURIComponent(input.activeBookSession.documentId)}`,
+      ctaLabel: "去同读",
+      tone: "success",
+      priorityLabel: "轻量",
+      estimatedMinutes: 15,
+      companionLabel: "Book Companion",
     };
   }
 

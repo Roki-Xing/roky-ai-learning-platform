@@ -100,12 +100,15 @@ npm run db:migrate:manual:code-submission
 
 如果当前服务器还没配置 Supabase，登录页会直接提示“当前服务器未启用邮箱 Magic Link”；此时应通过 Demo 模式或 Preview 链接体验，而不是继续输入邮箱。
 
-## 部署（两台服务器建议）
+## 部署（当前生产拓扑）
 
-- 网关机（118.89.119.107）：Nginx 网关 + Next.js 应用容器
-- 应用机（118.25.15.72）：Postgres（docker compose）+（可选）worker/cron
+- 公网入口：`https://learn.roky.chat`
+- 公网 HTTPS 网关：`198.10.0.92`
+- 应用机：`118.25.15.72`
+- 应用目录：`/home/ubuntu/ai-learning-platform`
+- 应用容器：`ai-learning-platform`，运行 Next.js，内部监听 `127.0.0.1:3102`
 
-最终通过子域名访问（例如 `learn.roky.chat`）。HTTPS 证书需要包含该子域名（推荐 wildcard `*.roky.chat`，走 DNS-01）。
+旧文档里出现的 `118.89.119.107` 属于历史拓扑，不要在未重新验证前当作当前真实承载机。
 
 部署和页面验收请参考：
 

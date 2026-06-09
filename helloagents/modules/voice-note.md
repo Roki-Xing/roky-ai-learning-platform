@@ -42,7 +42,7 @@
 26. 8 个反思模板入口在手机端使用显式 `min-h-11`，避免“今日理解 / 代码思路 / 错题复述 / 术语解释 / 项目复盘 / 读书疑问 / 论文阅读 / 行业观察”退回小触控卡片。
 27. `/voice`、Voice 捕获状态、Voice 表单、语音学习流水线、Coach 来源面板、Weekly 7 天总览、Weekly Markdown、Notes 当前笔记 badge 和学习徽章统一使用 `语音笔记`，不向学习者显示 `Voice Note` / `Voice Notes` / `来自 Voice 的当前笔记`。
 28. 最近语音笔记列表每条回看入口复用 `voiceRecentNoteLinkClassName = "min-h-11 rounded-md border px-3 py-2 text-sm transition-colors"`，手机端满足 44px 触控高度。
-29. `book_question` 作为未来 `/books` 进入 Voice 的预留模式，表单默认显示 `读书疑问`，转写文本 placeholder 显示 `我正在读第 X 页，我不理解的是...`；该预留不创建 `/books` 页面。
+29. `book_question` 作为 `/books` 进入 Voice/Coach 的读书疑问模式，表单默认显示 `读书疑问`，转写文本 placeholder 显示 `我正在读第 X 页，我不理解的是...`。
 
 ## 首页推荐
 
@@ -148,7 +148,7 @@
 - Reduce Chaos Voice Learning Upgrade：
   - `npm test -- tests/unit/voice-note.test.ts`：RED/GREEN 后 18 项通过；覆盖 `/voice` 页头学习化、8 个反思模板、新四句 prompt、`mistake_retell` / `book_question` 模式、Books 预留 placeholder 和 Voice → Coach 模式映射。
   - `npm test -- tests/unit/voice-note.test.ts tests/unit/voice-transcription.test.ts tests/unit/voice-capture-status.test.ts tests/unit/voice-submit.test.ts tests/unit/learning-ui-components.test.ts`：65 项通过，覆盖 Voice 页面、转写术语保护、录音状态、Voice 服务链路和共享学习 UI。
-  - 该切片未创建 `/books` 页面，`book_question` 仅作为 Voice 预留入口。
+  - 后续 Book Companion MVP 已创建 `/books` 页面，`book_question` 继续作为读书疑问 handoff 模式。
 - Phase E Voice Recent Note Link Mobile Touch Targets：
   - `npm test -- tests/unit/voice-note.test.ts`：RED 后 GREEN，15 项通过；覆盖最近语音笔记列表入口复用 `voiceRecentNoteLinkClassName`，并防止退回旧 `rounded-md border px-3 py-2 text-sm transition-colors` 小触控模板。
   - `npm test -- tests/unit/voice-note.test.ts tests/unit/voice-capture-status.test.ts tests/unit/voice-transcription.test.ts tests/unit/coach-workspace.test.ts tests/unit/review-filter.test.ts tests/unit/learning-ui-components.test.ts`：75 项通过，覆盖 Voice 页面、录音状态、转写服务、Coach handoff、Review queue 和共享学习 UI。

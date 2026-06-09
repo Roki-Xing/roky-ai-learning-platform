@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.352.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Books Companion MVP]** 按指导文件第 14 节新增 `/books` 同读书籍伴学阅读，并接入学习主线。
+  - 新增 `/books` 书架页，包含 `最近阅读`、`我的书架`、`继续阅读` 和 disabled `上传 PDF`；MVP 明确不会把本地 PDF 上传到服务器。
+  - 新增 `/books/[id]` 阅读页，包含 `PDF Viewer`、`当前页文本提取`、`文本选择`、桌面侧栏 `AI 伴读` 和移动端底部 Sheet `打开 AI 伴读`。
+  - 新增 `src/server/books/base.ts` 静态 Books 数据源，保持 MVP 边界：不新增 Prisma migration、不做真实 PDF 上传持久化、不做 OCR。
+  - Books 产出接入 `Coach / Note / Flashcard / Mistake / Weekly / Project / Glossary / Radar / Current Mission / Path`，避免变成新的资料孤岛。
+  - Current Mission 新增 active book session，主线可推荐 `今天继续读《AI Engineering》第 12-14 页`，并把今日闭环从 4 步扩展到 5 步。
+  - 桌面导航和移动端 More Sheet 加入 `/books`，鉴权策略、路由审计和学习系统审计同步纳入 `/books` 与 `/books/[id]`。
+  - `docs/ui-review-checklist.md` 新增 Books Companion 验收清单，并更新旧的 `/books` 未来预留文案。
+
+### Verified
+
+- 本地定向回归：`npm test -- tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts tests/unit/auth-policy.test.ts` 35 项通过。
+- 本地门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 458 项通过，Next 生产构建生成 31 个静态页面。
+- 路由审计：Pages 21，Navigation entries 16，缺失核心页、无导航页面、无页面导航入口均为 none；路由包含 `/books` 和 `/books/[id]`。
+- 生产部署：`learn.roky.chat` 当前 HTTPS 网关为 `198.10.0.92`，实际反代到应用机 `118.25.15.72`；已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.352.0-20260610-005347.tar.gz`，rsync 同步并重启 `ai-learning-platform` 容器。
+- 远端门禁：容器内 `npm ci --include=dev`、`npm run prisma:generate`、Books 定向测试 35 项、`npm run build` 通过，随后 `npm prune --omit=dev`。
+- 生产验收：`https://learn.roky.chat/api/health` 返回 200；密码登录后访问 `https://learn.roky.chat/books` 可见 `同读书籍`、`AI Engineering`、`继续阅读`，访问 `https://learn.roky.chat/books/ai-engineering` 可见 `PDF Viewer`、`AI 伴读`、`解释选区`、`保存为 Note`。
+
+### Not Covered
+
+- 未执行真实移动端截图、完整 Playwright 矩阵或真实写入型生产 smoke。
+
 ## [0.351.0] - 2026-06-09
 
 ### Changed

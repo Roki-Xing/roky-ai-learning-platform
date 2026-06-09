@@ -18,11 +18,15 @@ Roky Learn 是一个面向 AI、算法、代码能力和行业广度的每日学
 - Sprint 51：Map Insights，`/map` 顶部展示偏弱领域、复习欠账、代码练习少和下一步补哪里。
 - Sprint 12：Planner Map Weakness，Planner 消费知识地图弱点补弱。
 - Sprint 13：Planner Explanation UX，`/today` 和 `/admin` 展示“为什么今天学这个”。
+- Reduce Chaos：`/books` 作为 Book Companion 进入学习动作区，连接 Current Mission、Notes、Flashcards、Coach、Mistakes、Weekly、Projects、Glossary、Radar 和 Path。
 
 ## 生产环境
 
 - 线上入口：`https://learn.roky.chat`
-- 应用服务：`ai-learning-platform.service`
+- 公网 HTTPS 网关：`198.10.0.92`
+- 应用机：`118.25.15.72`
+- 应用目录：`/home/ubuntu/ai-learning-platform`
+- 应用容器：`ai-learning-platform`
 - 内部监听：`127.0.0.1:3102`
 
 不要在知识库、README、提交信息或代码中记录 API Key、Admin Secret、数据库连接串或其他密钥。

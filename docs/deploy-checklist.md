@@ -9,9 +9,11 @@
 
 - 确认本次要上线的 commit 已 push 到目标分支。
 - 确认目标机器和域名映射：
-  - 网关/应用入口：`118.89.119.107`
-  - 备用机：`118.25.15.72`
-  - 公网 DNS 应该指向当前准备承接流量的那台机器。
+  - 公网 HTTPS 网关：`198.10.0.92`，`learn.roky.chat` 当前 DNS 指向这里。
+  - 应用机：`118.25.15.72`，运行 Docker 容器 `ai-learning-platform`。
+  - 应用目录：`/home/ubuntu/ai-learning-platform`，容器挂载为 `/app`。
+  - 内部监听：`127.0.0.1:3102`。
+  - `118.89.119.107` 是旧拓扑/历史机器，部署前不要优先当作当前真实承载机。
 - 确认服务环境变量已存在且没有占位值：
   - 必需：`DATABASE_URL`、`CRON_SECRET`
   - 常用：`ADMIN_SECRET`、`DEEPSEEK_API_KEY`、`LOGIN_PASSWORD`、`ALLOW_DEMO_USER`、`PREVIEW_TOKEN`
@@ -35,9 +37,8 @@
 8. `npm test`
 9. `npm run build`
 10. 如果生产承载机是 Docker：
-   - `docker stop ai-learning-platform`
-   - 必要时 `docker rm ai-learning-platform`
-   - 用原始挂载、网络和 env 重建容器
+   - 当前常用方式是在 `118.25.15.72` 的现有容器内构建，再 `docker restart ai-learning-platform`
+   - 修改登录类 env 后必须用原始挂载、网络和 env 重建容器，单纯 restart 不会刷新旧 env
 11. `curl https://learn.roky.chat/api/health`
 12. 打开 `https://learn.roky.chat/login`
 

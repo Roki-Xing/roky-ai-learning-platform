@@ -22,6 +22,7 @@ const MOBILE_PRIMARY_ROUTES = [
 const MORE_ROUTE_ORDER = [
   "/",
   "/voice",
+  "/books",
   "/map",
   "/library",
   "/notes",

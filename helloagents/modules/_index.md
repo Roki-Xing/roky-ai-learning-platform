@@ -19,6 +19,7 @@
 - [Curriculum Planner](curriculum-planner.md)
 - [Code Feedback](code-feedback.md)
 - [Review Center](review.md)
+- [Book Companion](books-companion.md)
 - [Library](library.md)
 - [Notes](notes.md)
 - [Settings](settings.md)
