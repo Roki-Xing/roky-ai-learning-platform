@@ -1,5 +1,21 @@
 # Evidence
 
+## Reduce Chaos Voice Mobile Sticky Capture
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/voice-note.test.ts` | fail then pass, 19 tests | RED first failed because Voice capture lacked `aria-label="语音录音移动操作"` and the sticky mobile action area. GREEN passed after wrapping the recording controls in a mobile sticky action area and restoring static desktop layout. |
+| `npm test -- tests/unit/voice-note.test.ts tests/unit/voice-capture-status.test.ts tests/unit/voice-transcription.test.ts tests/unit/coach-workspace.test.ts tests/unit/learning-ui-components.test.ts` | pass, 76 tests | Related regression after Voice Mobile Sticky Capture; covers Voice page, recording status, transcription service, Voice to Coach handoff, and shared learning UI. |
+| `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates after Voice Mobile Sticky Capture; full unit suite passed 465 tests, route audit still reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
+
+Changed surface:
+
+- Voice mobile sticky capture layer: `src/app/voice/ui/voice-capture.tsx`, `tests/unit/voice-note.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/voice-note.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered yet:
+
+- GitHub push, production deployment, and authenticated mobile production smoke.
+
 ## Phase E Library Flashcard Metadata Label Localization
 
 | Evidence | Result | Notes |

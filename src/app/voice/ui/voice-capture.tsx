@@ -212,7 +212,10 @@ export function VoiceCapture(props: {
         </div>
       </div>
 
-      <div className="grid gap-2 sm:flex sm:items-center sm:justify-between">
+      <div
+        aria-label="语音录音移动操作"
+        className="sticky bottom-16 z-20 grid gap-2 rounded-lg border bg-background/95 p-2 shadow-sm backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none sm:flex sm:items-center sm:justify-between"
+      >
         <div className="grid gap-2 sm:flex sm:items-center">
           <Button
             type="button"

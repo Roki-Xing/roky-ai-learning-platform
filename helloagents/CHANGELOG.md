@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.356.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Voice Mobile Sticky Capture]** 按指导文件第 10 节和第 16 节继续优化 `/voice` 移动端录音体验，让“说出你的理解”成为手机端低摩擦主操作。
+  - 将 `一键录音` / `停止并转写` 录音主操作包入 `aria-label="语音录音移动操作"` 的 sticky 操作区。
+  - 移动端使用 `sticky bottom-16 z-20`、`bg-background/95` 和 `backdrop-blur`，固定在底部导航上方；桌面端恢复 `sm:static`、`sm:border-0`、透明背景和无 blur。
+  - 保留原有浏览器录音、停止后自动转写、上传音频、保存语音笔记、Voice → Coach handoff、Preview 写保护、数据库和 provider 密钥边界，不新增迁移或后端配置。
+
+### Verified
+
+- RED：`npm test -- tests/unit/voice-note.test.ts` 首次失败于 Voice 捕获区缺少 `aria-label="语音录音移动操作"` 和 sticky 底部操作区。
+- GREEN：`npm test -- tests/unit/voice-note.test.ts` 19 项通过，覆盖 `一键录音`、`停止并转写`、`bg-background/95`、`backdrop-blur`、`sm:static` 和 `sm:border-0`。
+- 相关回归：`npm test -- tests/unit/voice-note.test.ts tests/unit/voice-capture-status.test.ts tests/unit/voice-transcription.test.ts tests/unit/coach-workspace.test.ts tests/unit/learning-ui-components.test.ts` 76 项通过，覆盖 Voice 页面、录音状态、转写服务、Voice → Coach handoff 和共享学习 UI。
+- 本地最终门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 465 项通过，Next 生产构建生成 31 个静态页面。
+
+### Not Covered
+
+- GitHub push、生产部署和生产移动端 smoke 待本切片后续收尾补证。
+
 ## [0.355.0] - 2026-06-10
 
 ### Changed

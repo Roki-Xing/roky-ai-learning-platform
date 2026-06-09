@@ -133,6 +133,25 @@ test("voice capture renders one-tap mobile recording controls with automatic tra
   assert.match(markup, /自动转写到转写文本/);
 });
 
+test("voice capture keeps recording controls in a sticky mobile action area", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(VoiceCapture, {
+      getMode: () => "today_lesson",
+      onTranscript: () => undefined,
+    }),
+  );
+
+  assert.match(markup, /aria-label="语音录音移动操作"/);
+  assert.match(markup, /sticky bottom-16 z-20/);
+  assert.match(markup, /bg-background\/95/);
+  assert.match(markup, /backdrop-blur/);
+  assert.match(markup, /sm:static/);
+  assert.match(markup, /sm:border-0/);
+  assert.match(markup, /一键录音/);
+  assert.match(markup, /停止并转写/);
+  assert.match(markup, /min-h-12 w-full sm:w-auto/);
+});
+
 test("voice capture result badge localizes transcription status labels", () => {
   const source = readFileSync("src/app/voice/ui/voice-capture.tsx", "utf8");
 

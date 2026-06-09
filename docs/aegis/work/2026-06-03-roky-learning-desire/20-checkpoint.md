@@ -1,5 +1,28 @@
 # Todo Checkpoint
 
+## Current Slice: Reduce Chaos Voice Mobile Sticky Capture
+
+- [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 10 节 `/voice` 学习化和第 16 节移动端专项优化。
+- [√] RED：新增 Voice 移动端 sticky 录音操作测试，先失败于缺少 `aria-label="语音录音移动操作"`。
+- [√] GREEN：`VoiceCapture` 录音主操作进入 sticky 移动操作区，桌面端恢复静态布局。
+- [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/voice-note.md` 和 `helloagents/CHANGELOG.md` 初始记录。
+- [√] 运行相关回归与本地完整门禁。
+- [ ] 提交并推送 GitHub。
+- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 移动端 smoke。
+- [ ] 补生产证据并清理临时 SSH key。
+
+## Current Resume State Hint
+
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.356.0 Reduce Chaos Voice Mobile Sticky Capture`：只改 `/voice` 读侧展示层，让 `一键录音` / `停止并转写` 在手机端固定到底部导航上方；不要改浏览器录音、自动转写、上传音频、保存语音笔记、Voice → Coach handoff、Preview 写保护、数据库、生产 env、provider 密钥或迁移。已完成定向 RED/GREEN、相关回归、本地完整门禁和 build，下一步是提交推送、生产部署和 smoke。
+
+## Current Drift Check
+
+- Scope：仍服务 Roky Learn reduce-chaos 主线，把 `/voice` 从“功能很多”收束为手机端低摩擦的“说出你的理解”行动。
+- Compatibility：不新增迁移，不触碰录音、转写、上传、保存、Coach handoff、Preview 写保护、数据库、密钥或后端配置。
+- New fallback/owner：未新增外部 owner、adapter 或 fallback；移动 sticky 归 `VoiceCapture` 展示层负责。
+- Retirement：旧的移动端普通文档流录音操作已退役；桌面端通过 `sm:static` 回到原布局。
+- Decision：continue; 本地 RED/GREEN、相关回归和完整门禁已完成，仍需 GitHub push、生产部署和生产 smoke 才能闭环。
+
 ## Current Todo
 
 - [√] 读取指导文档与项目规则。
