@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.358.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Weekly Mistake Repair Queue]** 按指导文件第 7.4 继续优化 `/weekly`，把周复盘里的错题信号收束成可执行的修复队列。
+  - `WeeklyMistakeHighlight` 增加 `id`、`href` 和 `status`，`WeeklyReviewData` 新增 `mistakeRepairQueue`。
+  - `getWeeklyReviewData()` 查询 Misconception `id`，并将本周误区转成最多 3 条待修复队列；`resolved` / `ignored` 不进入修复队列。
+  - `/weekly` 将旧的单条 `错题最多的概念` 卡片替换为 `本周最值得修复的 3 个误区`，每条直接链接 `/mistakes?focus=<id>`。
+  - 导出的 Weekly Markdown 新增 `本周最值得修复的 3 个误区` 小节，列出中文来源和出现次数。
+  - 修复入口复用 `weeklyMistakeRepairLinkClassName`，手机端保持至少 44px 触控高度。
+  - 保留 `topMistake` 兼容字段、Weekly 统计口径、`buildWeeklyRemediationPlan()`、数据库 schema、Preview 写保护、生产 env/provider 密钥和其他学习模块行为边界。
+
+### Verified
+
+- RED/GREEN：`npm test -- tests/unit/weekly-review.test.ts` 7 项通过，覆盖 Top 3 误区修复队列、`/mistakes?focus=<id>` href、已解决误区过滤、Markdown Top 3 小节、页面 Top 3 入口和手机端 `min-h-11` 触控目标。
+- 相关回归：`npm test -- tests/unit/weekly-review.test.ts tests/unit/mistakes-view.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/progress-analytics.test.ts tests/unit/learning-ui-components.test.ts` 92 项通过，覆盖 Weekly、Mistakes、Current Mission、Next Best Action、Progress 和共享学习 UI。
+- 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 469 项通过，Next 生产构建生成 31 个静态页面。
+
+### Not Covered
+
+- GitHub push、生产部署、远端门禁和生产 smoke 将在本切片后续证据提交中补齐。
+
 ## [0.357.0] - 2026-06-10
 
 ### Changed

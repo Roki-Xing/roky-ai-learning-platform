@@ -43,10 +43,17 @@ export type WeeklyDomainHighlight = {
 };
 
 export type WeeklyMistakeHighlight = {
+  id: string;
   summary: string;
   source: string;
   occurrenceCount: number;
   lessonTitle: string | null;
+  status?: string;
+  href: string;
+};
+
+export type WeeklyMistakeHighlightInput = Omit<WeeklyMistakeHighlight, "href"> & {
+  href?: string;
 };
 
 export type WeeklyCodePractice = {
@@ -101,6 +108,7 @@ export type WeeklyReviewData = {
   strongestDomain: WeeklyDomainHighlight | null;
   weakestDomain: ProgressWeakDomainSummary | null;
   topMistake: WeeklyMistakeHighlight | null;
+  mistakeRepairQueue: WeeklyMistakeHighlight[];
   codePractice: WeeklyCodePractice;
   reviewRetention: WeeklyReviewRetention;
   nextWeekPlan: WeeklyRemediationPlan;
@@ -114,7 +122,8 @@ export type WeeklySnapshotInput = {
   windowLabel: string;
   lessons: WeeklyLessonSummary[];
   domains: WeeklyDomainStat[];
-  topMistake: WeeklyMistakeHighlight | null;
+  topMistake: WeeklyMistakeHighlightInput | null;
+  mistakeRepairQueue?: WeeklyMistakeHighlightInput[];
   codePractice: WeeklyCodePractice;
   reviewRetention: WeeklyReviewRetention;
   dueFlashcardsCount: number;
@@ -203,6 +212,21 @@ export function weeklyCodeIssueTypeLabel(type: string | null | undefined) {
   return "一般问题";
 }
 
+function weeklyMistakeHref(id: string) {
+  return `/mistakes?focus=${encodeURIComponent(id)}`;
+}
+
+function normalizeWeeklyMistake(mistake: WeeklyMistakeHighlightInput): WeeklyMistakeHighlight {
+  return {
+    ...mistake,
+    href: mistake.href || weeklyMistakeHref(mistake.id),
+  };
+}
+
+function isRepairableWeeklyMistake(mistake: WeeklyMistakeHighlightInput) {
+  return mistake.status !== "resolved" && mistake.status !== "ignored";
+}
+
 function buildWeeklyAiSummary(args: {
   strongestDomain: WeeklyDomainHighlight | null;
   weakestDomain: ProgressWeakDomainSummary | null;
@@ -237,6 +261,7 @@ function buildWeeklyReportMarkdown(args: {
   strongestDomain: WeeklyDomainHighlight | null;
   weakestDomain: ProgressWeakDomainSummary | null;
   topMistake: WeeklyMistakeHighlight | null;
+  mistakeRepairQueue: WeeklyMistakeHighlight[];
   codePractice: WeeklyCodePractice;
   reviewRetention: WeeklyReviewRetention;
   aiSummary: WeeklyAiSummary;
@@ -253,6 +278,14 @@ function buildWeeklyReportMarkdown(args: {
         .map((step, index) => `${index + 1}. ${step.title}：${step.description}`)
         .join("\n")
     : "1. 先恢复每日主课和复习节奏。";
+  const mistakeRepairLines = args.mistakeRepairQueue.length
+    ? args.mistakeRepairQueue
+        .map(
+          (mistake, index) =>
+            `${index + 1}. ${mistake.summary}（${weeklyMistakeSourceLabel(mistake.source)}，${mistake.occurrenceCount} 次）`,
+        )
+        .join("\n")
+    : "本周还没有需要优先修复的误区。";
 
   return [
     "# Roky Learn 每周复盘",
@@ -282,6 +315,10 @@ function buildWeeklyReportMarkdown(args: {
     `- 最强领域：${args.strongestDomain ? `${args.strongestDomain.label}（${args.strongestDomain.summary}）` : "暂无足够数据"}`,
     `- 最弱领域：${args.weakestDomain ? `${args.weakestDomain.label}（${args.weakestDomain.reason}）` : "暂无明显弱项"}`,
     `- 错题最多：${args.topMistake ? `${args.topMistake.summary}（${weeklyMistakeSourceLabel(args.topMistake.source)}，${args.topMistake.occurrenceCount} 次）` : "暂无新错题"}`,
+    "",
+    "## 本周最值得修复的 3 个误区",
+    "",
+    mistakeRepairLines,
     "",
     "## 代码与复习",
     "",
@@ -336,6 +373,16 @@ export function buildWeeklyReviewSnapshot(
       }
     : null;
   const weakestDomain = weakDomains[0] ?? null;
+  const rawMistakeRepairQueue = input.mistakeRepairQueue?.length
+    ? input.mistakeRepairQueue
+    : input.topMistake
+      ? [input.topMistake]
+      : [];
+  const mistakeRepairQueue = rawMistakeRepairQueue
+    .map(normalizeWeeklyMistake)
+    .filter(isRepairableWeeklyMistake)
+    .slice(0, 3);
+  const topMistake = mistakeRepairQueue[0] ?? (input.topMistake ? normalizeWeeklyMistake(input.topMistake) : null);
   const nextWeekPlan = buildWeeklyRemediationPlan({
     weakDomains,
     dueFlashcardsCount: input.dueFlashcardsCount,
@@ -346,7 +393,7 @@ export function buildWeeklyReviewSnapshot(
   const aiSummary = buildWeeklyAiSummary({
     strongestDomain,
     weakestDomain,
-    topMistake: input.topMistake,
+    topMistake,
     nextWeekPlan,
   });
 
@@ -362,7 +409,8 @@ export function buildWeeklyReviewSnapshot(
       lessons: input.lessons,
       strongestDomain,
       weakestDomain,
-      topMistake: input.topMistake,
+      topMistake,
+      mistakeRepairQueue,
       codePractice: input.codePractice,
       reviewRetention: input.reviewRetention,
       aiSummary,
@@ -371,7 +419,8 @@ export function buildWeeklyReviewSnapshot(
     lessons: input.lessons,
     strongestDomain,
     weakestDomain,
-    topMistake: input.topMistake,
+    topMistake,
+    mistakeRepairQueue,
     codePractice: input.codePractice,
     reviewRetention: input.reviewRetention,
     nextWeekPlan,
@@ -554,6 +603,7 @@ export async function getWeeklyReviewData(userId: string) {
       },
       orderBy: [{ occurrenceCount: "desc" }, { lastAttemptAt: "desc" }],
       select: {
+        id: true,
         summary: true,
         source: true,
         occurrenceCount: true,
@@ -712,14 +762,26 @@ export async function getWeeklyReviewData(userId: string) {
     domains: [...domainStats.values()],
     topMistake: misconceptions[0]
       ? {
+          id: misconceptions[0].id,
           summary: misconceptions[0].summary,
           source: misconceptions[0].source,
           occurrenceCount: misconceptions[0].occurrenceCount,
           lessonTitle: misconceptions[0].lessonId
             ? (lessonTitleById.get(misconceptions[0].lessonId) ?? null)
             : null,
+          status: misconceptions[0].status,
         }
       : null,
+    mistakeRepairQueue: misconceptions.map((misconception) => ({
+      id: misconception.id,
+      summary: misconception.summary,
+      source: misconception.source,
+      occurrenceCount: misconception.occurrenceCount,
+      lessonTitle: misconception.lessonId
+        ? (lessonTitleById.get(misconception.lessonId) ?? null)
+        : null,
+      status: misconception.status,
+    })),
     codePractice: {
       submissionCount: codeSubmissions.length,
       feedbackCount: codeFeedback.length,

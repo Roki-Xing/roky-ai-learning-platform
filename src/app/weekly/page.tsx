@@ -14,6 +14,7 @@ import {
 } from "@/server/learning/weekly";
 
 const weeklyNextStepLinkClassName = "min-h-11 rounded-md border px-3 py-3 text-sm transition-colors hover:bg-muted/40";
+const weeklyMistakeRepairLinkClassName = "min-h-11 rounded-md border px-3 py-3 text-sm transition-colors hover:bg-muted/40";
 
 function pct(value: number) {
   return `${value}%`;
@@ -177,24 +178,33 @@ export default async function WeeklyPage() {
 
           <Card className="rounded-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">错题最多的概念</CardTitle>
+              <CardTitle className="text-base">本周最值得修复的 3 个误区</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2 text-sm">
-              {weekly.topMistake ? (
-                <>
-                  <LearningStatusBadge tone="danger">
-                    {weeklyMistakeSourceLabel(weekly.topMistake.source)}
-                  </LearningStatusBadge>
-                  <div className="text-lg font-semibold">{weekly.topMistake.summary}</div>
-                  <div className="text-muted-foreground">
-                    出现次数：{weekly.topMistake.occurrenceCount}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    关联课程：{weekly.topMistake.lessonTitle ?? "未关联课程"}
-                  </div>
-                </>
+              {weekly.mistakeRepairQueue.length ? (
+                weekly.mistakeRepairQueue.map((mistake, index) => (
+                  <a
+                    key={mistake.id}
+                    href={mistake.href}
+                    className={weeklyMistakeRepairLinkClassName}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <LearningStatusBadge tone="danger">
+                        {weeklyMistakeSourceLabel(mistake.source)}
+                      </LearningStatusBadge>
+                      <Badge variant="outline">第 {index + 1} 条</Badge>
+                    </div>
+                    <div className="mt-2 font-semibold leading-6">{mistake.summary}</div>
+                    <div className="mt-1 text-xs leading-5 text-muted-foreground">
+                      出现次数：{mistake.occurrenceCount}
+                    </div>
+                    <div className="text-xs leading-5 text-muted-foreground">
+                      关联课程：{mistake.lessonTitle ?? "未关联课程"}
+                    </div>
+                  </a>
+                ))
               ) : (
-                <div className="text-muted-foreground">这周没有新错题，或者还没有记录到误区表里。</div>
+                <div className="text-muted-foreground">这周还没有需要优先修复的误区。</div>
               )}
             </CardContent>
           </Card>

@@ -14,7 +14,7 @@
    - 本周学了什么
    - 最强领域
    - 最弱领域
-   - 错题最多的概念
+   - 本周最值得修复的 3 个误区
    - 代码练习情况
    - 复习保持情况
    - `AI 周总结`
@@ -43,6 +43,7 @@
    - 7 天总览
    - 本周课程
    - 领域与错题
+   - 本周最值得修复的 3 个误区
    - 代码与复习
    - AI 周总结
    - 下周建议
@@ -53,6 +54,8 @@
 14. 下周建议步骤链接复用 `weeklyNextStepLinkClassName`，手机端保持至少 44px 触控高度。
 15. 代码练习高频问题使用 `weeklyCodeIssueTypeLabel()` 显示中文业务标签，例如 `edge_case` 显示为 `边界条件`，未知历史值兜底为 `一般问题`，空值显示 `暂无`；页面和导出的 Markdown 都不能直出 raw `topIssueType`。
 16. 7 天总览和导出的 Weekly Markdown 使用 `语音笔记`，不显示 `Voice Note`。
+17. `mistakeRepairQueue` 从本周 Misconception 中选出最多 3 条待修复误区，过滤 `resolved` / `ignored`，并为每条生成 `/mistakes?focus=<id>`。
+18. `/weekly` 页面用 `weeklyMistakeRepairLinkClassName` 渲染误区修复入口，手机端保持至少 44px 触控高度。
 
 ## Data Sources
 
@@ -62,7 +65,7 @@
 - `Flashcard` for current due debt
 - `ReviewLog` over standalone glossary/radar flashcards for knowledge coverage
 - `CodeSubmission` and `CodeFeedback` for weekly coding practice
-- `Misconception` for top weekly mistake
+- `Misconception` for the weekly top mistake and top 3 mistake repair queue
 - `VoiceNote` for weekly voice learning activity
 - `ThoughtReview` for Coach review count
 - `ProjectMilestone` for completed project milestones
@@ -85,6 +88,7 @@
 - Phase E Weekly Markdown Title Localization：`npm test -- tests/unit/weekly-review.test.ts` RED 首次失败于 `weeklyReportMarkdown` 仍输出 `# Roky Learn Weekly Report`；GREEN 后 5 项通过，覆盖有数据和空数据周报标题中文化。
 - Phase E Weekly Markdown Title Localization related regression：`npm test -- tests/unit/weekly-review.test.ts tests/unit/progress-analytics.test.ts tests/unit/learning-ui-components.test.ts tests/unit/home-page-labels.test.ts` 56 项通过，覆盖 Weekly、Progress、共享学习 UI 和首页标签。
 - Phase E Weekly Markdown Title Localization final gates：`git diff --check`、`npm run lint`、`npm test`、`npm run build` 通过；全量单测 430 项通过，Next 构建生成 28 个页面且路由表包含 `/weekly`。
+- Reduce Chaos Weekly Mistake Repair Queue：`npm test -- tests/unit/weekly-review.test.ts` RED/GREEN 后 7 项通过，覆盖 `mistakeRepairQueue`、`/mistakes?focus=<id>`、过滤已解决误区、Markdown Top 3 列表、页面 Top 3 修复入口和手机端 `min-h-11` 触控目标。
 - Aegis helper：`bundle` / `check` 仍失败于历史 Markdown-only 结构债，缺 `task-intent-draft.json` 且多个 work markdown 未索引；该结果不是 Weekly 产品 UI 验证失败。
 - `npm run lint`
 - `git diff --check`
@@ -96,10 +100,13 @@
   - `小测验正确率` visible and `quiz 正确率` absent
   - `本周学了什么` visible
   - `最强` and `待补强` badges visible when corresponding domain data exists
+  - `本周最值得修复的 3 个误区` visible
+  - 每条误区修复入口链接到 `/mistakes?focus=<id>`，并满足 `min-h-11`
   - `AI 周总结` visible
   - 下周建议步骤徽章显示 `第 n 步`
   - 下周建议步骤链接满足 `min-h-11`
   - `导出 Weekly Markdown` visible
+  - `导出 Weekly Markdown` 内容包含 `本周最值得修复的 3 个误区`
   - `导出 Weekly Markdown` 内容标题显示 `# Roky Learn 每周复盘`，不显示 `# Roky Learn Weekly Report`
   - `语音笔记` visible，`Voice Note` absent
   - `术语/Radar 覆盖` visible

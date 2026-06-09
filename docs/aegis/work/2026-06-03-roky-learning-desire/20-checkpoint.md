@@ -1,6 +1,30 @@
 # Todo Checkpoint
 
-## Current Slice: Reduce Chaos Mistakes Focus Repair
+## Current Slice: Reduce Chaos Weekly Mistake Repair Queue
+
+- [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 7.4 节 Weekly 联动：显示 `本周最值得修复的 3 个误区`，并延续第 7.3 节 `/mistakes?focus=<id>`。
+- [√] RED：新增 Weekly Review 测试，先失败于 `WeeklyReviewData` 缺少 `mistakeRepairQueue`、Markdown 缺少 Top 3 修复小节、页面仍显示旧的 `错题最多的概念` 单条卡片。
+- [√] GREEN：`WeeklyMistakeHighlight` 增加 `id/href/status`，`getWeeklyReviewData()` 查询误区 id 并生成最多 3 条 `/mistakes?focus=<id>` 修复队列。
+- [√] GREEN：`/weekly` 改为 `本周最值得修复的 3 个误区`，每条展示来源、次数、关联课程并链接到具体误区。
+- [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/weekly.md` 和 `helloagents/CHANGELOG.md` 初始记录。
+- [√] 运行相关回归与本地完整门禁。
+- [ ] 提交并推送 GitHub。
+- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
+- [ ] 补生产证据并清理临时 SSH key。
+
+## Current Resume State Hint
+
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.358.0 Reduce Chaos Weekly Mistake Repair Queue`：只改 `/weekly` 读侧数据合约、Markdown 导出和页面展示，让本周误区形成最多 3 条 `/mistakes?focus=<id>` 修复入口；不要改 Misconception schema/migration、错题写入 action、Preview 写保护、生产 env/provider 密钥或其他页面主流程。已完成 RED/GREEN、相关回归和完整本地门禁；后续需要提交推送、生产部署和 smoke。
+
+## Current Drift Check
+
+- Scope：仍服务 Roky Learn reduce-chaos 主线，把 Weekly 的错题信号从“报告里看一眼”收束成可点击的 Top 3 修复任务。
+- Compatibility：保留 `topMistake` 兼容字段，不新增迁移，不触碰错题写入 action、Preview 写保护、生产 env 或 provider 密钥。
+- New fallback/owner：没有新增外部 owner、adapter 或兼容层；无可修复误区时显示空态，`resolved` / `ignored` 不进入队列。
+- Retirement：旧的页面单条 `错题最多的概念` 展示已退役；Markdown 仍保留 `错题最多` 摘要并新增 Top 3 修复小节。
+- Decision：continue; 定向 RED/GREEN、相关回归和完整本地门禁已完成，仍需 GitHub push、生产部署和 smoke。
+
+## Previous Slice: Reduce Chaos Mistakes Focus Repair
 
 - [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 7.3 节 `/mistakes?focus=<id>` 和第 16 节移动端关键 CTA sticky。
 - [√] RED：新增/调整 Next Best Action、Current Mission 和 Mistakes View 测试，先失败于未解决误区仍跳 `/coach`、Learning Session 用 summary 当 focus、`/mistakes` 缺聚焦修复 sticky 主操作。

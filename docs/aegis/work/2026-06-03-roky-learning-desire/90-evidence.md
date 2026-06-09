@@ -1,5 +1,21 @@
 # Evidence
 
+## Reduce Chaos Weekly Mistake Repair Queue
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/weekly-review.test.ts` | fail then pass, 7 tests | RED first failed because Weekly lacked `mistakeRepairQueue`, Markdown lacked `本周最值得修复的 3 个误区`, and `/weekly` still rendered the old single `错题最多的概念` card. GREEN covers Top 3 repair queue, `/mistakes?focus=<id>` hrefs, filtering `resolved` mistakes, Markdown Top 3 section, page Top 3 links, and `weeklyMistakeRepairLinkClassName` with `min-h-11`. |
+| `npm test -- tests/unit/weekly-review.test.ts tests/unit/mistakes-view.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/progress-analytics.test.ts tests/unit/learning-ui-components.test.ts` | pass, 92 tests | Related regression after Weekly Mistake Repair Queue; covers Weekly, Mistakes view, Current Mission, Next Best Action, Progress analytics, and shared learning UI. |
+| `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates before push; full unit suite passed 469 tests, route audit reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
+
+Changed surface:
+
+- Weekly mistake repair queue layer: `src/server/learning/weekly.ts`, `src/app/weekly/page.tsx`, `tests/unit/weekly-review.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/weekly.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered yet:
+
+- GitHub push, production deploy, remote gates, and production smoke are still pending for this slice.
+
 ## Reduce Chaos Mistakes Focus Repair
 
 | Evidence | Result | Notes |

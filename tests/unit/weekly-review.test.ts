@@ -52,10 +52,13 @@ test("weekly review snapshot highlights strongest weakest and next week plan", (
       },
     ],
     topMistake: {
+      id: "mistake-binary-search",
       summary: "二分搜索边界条件",
       source: "quiz",
       occurrenceCount: 3,
       lessonTitle: "二分搜索",
+      status: "open",
+      href: "/mistakes?focus=mistake-binary-search",
     },
     codePractice: {
       submissionCount: 2,
@@ -97,6 +100,21 @@ test("weekly review snapshot highlights strongest weakest and next week plan", (
   assert.equal(snapshot.strongestDomain?.label, "LLM / RAG / Agent");
   assert.equal(snapshot.weakestDomain?.label, "算法设计");
   assert.equal(snapshot.topMistake?.summary, "二分搜索边界条件");
+  assert.equal(snapshot.topMistake?.href, "/mistakes?focus=mistake-binary-search");
+  assert.deepEqual(
+    snapshot.mistakeRepairQueue.map((mistake) => ({
+      id: mistake.id,
+      summary: mistake.summary,
+      href: mistake.href,
+    })),
+    [
+      {
+        id: "mistake-binary-search",
+        summary: "二分搜索边界条件",
+        href: "/mistakes?focus=mistake-binary-search",
+      },
+    ],
+  );
   assert.equal(snapshot.codePractice.topIssueType, "edge_case");
   assert.equal(snapshot.reviewRetention.retentionRate, 63);
   assert.match(snapshot.aiSummary.mostImportantGain, /LLM \/ RAG \/ Agent/);
@@ -112,6 +130,8 @@ test("weekly review snapshot highlights strongest weakest and next week plan", (
   assert.match(snapshot.weeklyReportMarkdown, /- 语音笔记：2/);
   assert.doesNotMatch(snapshot.weeklyReportMarkdown, /Voice Note/);
   assert.match(snapshot.weeklyReportMarkdown, /错题最多：二分搜索边界条件（小测验，3 次）/);
+  assert.match(snapshot.weeklyReportMarkdown, /本周最值得修复的 3 个误区/);
+  assert.match(snapshot.weeklyReportMarkdown, /1\. 二分搜索边界条件（小测验，3 次）/);
   assert.match(snapshot.weeklyReportMarkdown, /高频问题：边界条件/);
   assert.doesNotMatch(snapshot.weeklyReportMarkdown, /Quiz 正确率/);
   assert.doesNotMatch(snapshot.weeklyReportMarkdown, /（quiz，3 次）/);
@@ -120,6 +140,97 @@ test("weekly review snapshot highlights strongest weakest and next week plan", (
   assert.match(snapshot.weeklyReportMarkdown, /## 下周建议/);
   assert.match(snapshot.nextWeekPlan.summary, /算法设计/);
   assert.equal(snapshot.nextWeekPlan.steps.length, 3);
+});
+
+test("weekly review snapshot exposes top three mistake repair links", () => {
+  const snapshot = buildWeeklyReviewSnapshot({
+    mission: {
+      title: "先修复本周误区",
+      reason: "这周有三类错误重复出现。",
+      href: "/mistakes?focus=mistake-a",
+      ctaLabel: "修复误区",
+      tone: "danger",
+    },
+    missionSignals: [],
+    windowLabel: "2026-05-27 ~ 2026-06-02",
+    lessons: [],
+    domains: [],
+    topMistake: null,
+    mistakeRepairQueue: [
+      {
+        id: "mistake-a",
+        summary: "二分搜索边界条件",
+        source: "quiz",
+        occurrenceCount: 5,
+        lessonTitle: "二分搜索",
+        status: "open",
+      },
+      {
+        id: "mistake-b",
+        summary: "RAG 召回与排序混在一起",
+        source: "coach",
+        occurrenceCount: 3,
+        lessonTitle: "RAG 检索链路",
+        status: "active",
+      },
+      {
+        id: "mistake-c",
+        summary: "复杂度只看一层循环",
+        source: "code",
+        occurrenceCount: 2,
+        lessonTitle: null,
+        status: "open",
+      },
+      {
+        id: "mistake-d",
+        summary: "已解决的历史误区不应挤进前三",
+        source: "review",
+        occurrenceCount: 20,
+        lessonTitle: null,
+        status: "resolved",
+      },
+    ],
+    codePractice: {
+      submissionCount: 0,
+      feedbackCount: 0,
+      issueCount: 0,
+      topIssueType: null,
+      latestFeedbackSummary: null,
+    },
+    reviewRetention: {
+      reviewedCount: 0,
+      retainedCount: 0,
+      retentionRate: 0,
+    },
+    dueFlashcardsCount: 0,
+    openMisconceptionsCount: 3,
+    codeFeedbackNeedsAttentionCount: 0,
+    activity: {
+      voiceNotes: 0,
+      coachReviews: 0,
+      completedProjectMilestones: 0,
+      newMisconceptions: 3,
+      resolvedMisconceptions: 1,
+      glossaryReviewed: 0,
+      radarReviewed: 0,
+    },
+  });
+
+  assert.equal(snapshot.mistakeRepairQueue.length, 3);
+  assert.deepEqual(
+    snapshot.mistakeRepairQueue.map((mistake) => mistake.href),
+    [
+      "/mistakes?focus=mistake-a",
+      "/mistakes?focus=mistake-b",
+      "/mistakes?focus=mistake-c",
+    ],
+  );
+  assert.equal(snapshot.topMistake?.id, "mistake-a");
+  assert.match(snapshot.weeklyReportMarkdown, /## 本周最值得修复的 3 个误区/);
+  assert.match(snapshot.weeklyReportMarkdown, /1\. 二分搜索边界条件（小测验，5 次）/);
+  assert.match(snapshot.weeklyReportMarkdown, /2\. RAG 召回与排序混在一起（Coach，3 次）/);
+  assert.match(snapshot.weeklyReportMarkdown, /3\. 复杂度只看一层循环（代码反馈，2 次）/);
+  assert.doesNotMatch(snapshot.weeklyReportMarkdown, /已解决的历史误区不应挤进前三/);
 });
 
 test("weekly code issue type labels stay learner-friendly", () => {
@@ -175,6 +286,7 @@ test("weekly review snapshot tolerates empty weekly data", () => {
   assert.equal(snapshot.strongestDomain, null);
   assert.equal(snapshot.weakestDomain, null);
   assert.equal(snapshot.topMistake, null);
+  assert.deepEqual(snapshot.mistakeRepairQueue, []);
   assert.match(snapshot.aiSummary.mostImportantGain, /还没有足够数据/);
   assert.match(snapshot.weeklyReportMarkdown, /# Roky Learn 每周复盘/);
   assert.doesNotMatch(snapshot.weeklyReportMarkdown, /# Roky Learn Weekly Report/);
@@ -220,6 +332,12 @@ test("weekly page renders overview and fallback AI summary labels", () => {
   assert.doesNotMatch(source, /aria-label="weekly report markdown"/);
   assert.match(source, /aria-label="导出 Weekly Markdown 周报"/);
   assert.match(source, /复习留存率/);
+  assert.match(source, /本周最值得修复的 3 个误区/);
+  assert.match(source, /weekly\.mistakeRepairQueue\.map/);
+  assert.match(source, /href=\{mistake\.href\}/);
+  assert.match(source, /weeklyMistakeRepairLinkClassName/);
+  assert.match(source, /关联课程：\{mistake\.lessonTitle \?\? "未关联课程"\}/);
+  assert.doesNotMatch(source, /错题最多的概念/);
 });
 
 test("weekly next week plan links keep mobile touch targets", () => {
@@ -231,6 +349,19 @@ test("weekly next week plan links keep mobile touch targets", () => {
   );
   assert.equal(
     (source.match(/className=\{weeklyNextStepLinkClassName\}/g) ?? []).length,
+    1,
+  );
+});
+
+test("weekly mistake repair links keep mobile touch targets", () => {
+  const source = readFileSync("src/app/weekly/page.tsx", "utf8");
+
+  assert.match(
+    source,
+    /const weeklyMistakeRepairLinkClassName = "min-h-11 rounded-md border px-3 py-3 text-sm transition-colors hover:bg-muted\/40";/,
+  );
+  assert.equal(
+    (source.match(/className=\{weeklyMistakeRepairLinkClassName\}/g) ?? []).length,
     1,
   );
 });
