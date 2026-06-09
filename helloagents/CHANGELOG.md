@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.359.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Weekly Ritual Summary and Reflection Note]** 按指导文件第 9.1、9.2 和 9.4 继续优化 `/weekly`，让周复盘先给出可感知的学习总结、称号和可保存周记。
+  - `WeeklyReviewData` 新增 `weeklyRitualSummary`，稳定生成本周一句话总结、`本周称号`、称号原因和周记模板。
+  - `/weekly` 在当前任务后新增 `本周学习总结`，展示学习天数、完成课程、复习卡片、修复误区和本周称号。
+  - 导出的 Weekly Markdown 新增 `本周学习总结`、`本周称号` 和 `周记草稿`。
+  - 新增 `saveWeeklyReflectionAction()`，将周记保存为无课程绑定的 standalone Note，并跳转到 `/notes?noteId=<id>`。
+  - `saveWeeklyReflectionAction()` 继续调用 `assertWritableRequest()`、`requireUserId()` 和 `createScopedNote()`；`auth-policy` 通用扫描已纳入 `src/app/weekly/actions.ts`。
+  - `保存到笔记` CTA 复用 `weeklyReflectionButtonClassName`，手机端保持至少 44px 触控高度和全宽布局。
+  - 保留 Weekly 统计口径、`mistakeRepairQueue`、`topMistake` 兼容字段、数据库 schema、Preview 写保护、生产 env/provider 密钥和其他学习模块行为边界。
+
+### Verified
+
+- RED：`npm test -- tests/unit/weekly-review.test.ts` 首次失败于 `weeklyRitualSummary` 缺失、页面缺 `saveWeeklyReflectionAction` 和 `src/app/weekly/actions.ts` 不存在。
+- GREEN：`npm test -- tests/unit/weekly-review.test.ts` 9 项通过，覆盖 `weeklyRitualSummary`、`本周学习总结`、`本周称号`、Weekly Markdown ritual 小节、周记表单、`saveWeeklyReflectionAction()`、Preview 写保护和手机端 `保存到笔记` CTA。
+- 相关回归：`npm test -- tests/unit/weekly-review.test.ts tests/unit/notes-create.test.ts tests/unit/notes-template.test.ts tests/unit/notes-page-ui.test.ts tests/unit/auth-policy.test.ts tests/unit/learning-ui-components.test.ts` 56 项通过，覆盖 Weekly、Notes standalone note、Preview 写保护、Auth 和共享学习 UI。
+- 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 471 项通过，Next 生产构建生成 31 个静态页面。
+
+### Not Covered
+
+- 生产部署、生产 Nginx/DNS/database/secrets、真实生产写入型周记 smoke 和完整 Playwright 移动端截图矩阵尚未在本地功能提交前执行；本轮后续部署证据会单独追加。
+
 ## [0.358.0] - 2026-06-10
 
 ### Changed

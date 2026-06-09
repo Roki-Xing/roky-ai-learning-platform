@@ -1,5 +1,21 @@
 # Evidence
 
+## Reduce Chaos Weekly Ritual Summary and Reflection Note
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/weekly-review.test.ts` | fail then pass, 9 tests | RED first failed because `weeklyRitualSummary` did not exist, `/weekly` lacked `saveWeeklyReflectionAction`, and `src/app/weekly/actions.ts` did not exist. GREEN passed after adding deterministic weekly ritual summary data, the `/weekly` ritual card, the reflection form, and the standalone note action. |
+| `npm test -- tests/unit/weekly-review.test.ts tests/unit/notes-create.test.ts tests/unit/notes-template.test.ts tests/unit/notes-page-ui.test.ts tests/unit/auth-policy.test.ts tests/unit/learning-ui-components.test.ts` | pass, 56 tests | Related regression covers Weekly, Notes standalone note creation, Notes UI, Preview write protection, Auth and shared learning UI. |
+| `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates before push; full unit suite passed 471 tests, route audit reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
+
+Changed surface:
+
+- Reduce Chaos Weekly Ritual Summary and Reflection Note layer: `src/server/learning/weekly.ts`, `src/app/weekly/page.tsx`, `src/app/weekly/actions.ts`, `tests/unit/weekly-review.test.ts`, `tests/unit/auth-policy.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/weekly.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered yet:
+
+- GitHub push, production deployment, production smoke, and production deploy evidence are still pending for this slice. Production smoke will avoid write-type weekly reflection submission to keep production Notes clean.
+
 ## Reduce Chaos Weekly Mistake Repair Queue
 
 | Evidence | Result | Notes |

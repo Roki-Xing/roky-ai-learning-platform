@@ -143,6 +143,7 @@ test("preview write protection covers quiz, code, admin, and settings actions", 
     "src/app/admin/actions.ts",
     "src/app/settings/actions.ts",
     "src/app/mistakes/actions.ts",
+    "src/app/weekly/actions.ts",
   ]) {
     const source = readFileSync(file, "utf8");
     assert.match(source, /assertWritableRequest/);

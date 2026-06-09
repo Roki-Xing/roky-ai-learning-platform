@@ -10,6 +10,9 @@
 1. `/weekly` is a weekly recap page built from real learning data.
 2. The page header badge displays `每周复盘`, not English `Weekly`.
 3. The page shows:
+   - `本周学习总结`
+   - `本周称号`
+   - 周记保存到 Notes
    - `7 天总览`
    - 本周学了什么
    - 最强领域
@@ -38,8 +41,18 @@
    - 主要薄弱点
    - 下周建议
    - 推荐下一阶段
-9. `weeklyReportMarkdown` 是可复制周报，覆盖：
+9. `weeklyRitualSummary` 是 deterministic weekly ritual summary，覆盖：
+   - 本周一句话总结：学习天数、完成课程、复习卡片、修复误区
+   - 本周称号：`复习守住者`、`主线推进者`、`误区修复者`、`节奏保持者` 或 `学习节奏重启者`
+   - 称号原因
+   - 周记模板：`我这周最大的收获是...` / `我下周想重点学...`
+10. `/weekly` 的 `周记` 表单调用 `saveWeeklyReflectionAction()`，创建无课程绑定的 standalone Note，写入后跳转到 `/notes?noteId=<id>`。
+11. `saveWeeklyReflectionAction()` 必须继续调用 `assertWritableRequest()`、`requireUserId()` 和 `createScopedNote()`；Preview Mode 下不能绕过写保护。
+12. `保存到笔记` CTA 复用 `weeklyReflectionButtonClassName`，手机端保持至少 44px 触控高度和全宽布局。
+13. `weeklyReportMarkdown` 是可复制周报，覆盖：
    - Markdown 标题为 `# Roky Learn 每周复盘`，不显示英文 `# Roky Learn Weekly Report`
+   - 本周学习总结
+   - 本周称号
    - 7 天总览
    - 本周课程
    - 领域与错题
@@ -47,15 +60,16 @@
    - 代码与复习
    - AI 周总结
    - 下周建议
-10. `/weekly` 的 `导出 Weekly Markdown` 是只读文本区；它不写数据库、不生成文件、不调用 AI。
-11. 页面和导出的 Markdown 会把 raw learning source 本地化，例如 `quiz` 显示为 `小测验`，`voice` 显示为 `语音笔记`。
-12. 最弱领域细项使用中文业务标签：`掌握分`、`薄弱分`、`测验正确率`。
-13. 下周建议步骤徽章使用中文 `第 n 步`，不显示英文 `Step n`。
-14. 下周建议步骤链接复用 `weeklyNextStepLinkClassName`，手机端保持至少 44px 触控高度。
-15. 代码练习高频问题使用 `weeklyCodeIssueTypeLabel()` 显示中文业务标签，例如 `edge_case` 显示为 `边界条件`，未知历史值兜底为 `一般问题`，空值显示 `暂无`；页面和导出的 Markdown 都不能直出 raw `topIssueType`。
-16. 7 天总览和导出的 Weekly Markdown 使用 `语音笔记`，不显示 `Voice Note`。
-17. `mistakeRepairQueue` 从本周 Misconception 中选出最多 3 条待修复误区，过滤 `resolved` / `ignored`，并为每条生成 `/mistakes?focus=<id>`。
-18. `/weekly` 页面用 `weeklyMistakeRepairLinkClassName` 渲染误区修复入口，手机端保持至少 44px 触控高度。
+   - 周记草稿
+14. `/weekly` 的 `导出 Weekly Markdown` 是只读文本区；它不写数据库、不生成文件、不调用 AI。
+15. 页面和导出的 Markdown 会把 raw learning source 本地化，例如 `quiz` 显示为 `小测验`，`voice` 显示为 `语音笔记`。
+16. 最弱领域细项使用中文业务标签：`掌握分`、`薄弱分`、`测验正确率`。
+17. 下周建议步骤徽章使用中文 `第 n 步`，不显示英文 `Step n`。
+18. 下周建议步骤链接复用 `weeklyNextStepLinkClassName`，手机端保持至少 44px 触控高度。
+19. 代码练习高频问题使用 `weeklyCodeIssueTypeLabel()` 显示中文业务标签，例如 `edge_case` 显示为 `边界条件`，未知历史值兜底为 `一般问题`，空值显示 `暂无`；页面和导出的 Markdown 都不能直出 raw `topIssueType`。
+20. 7 天总览和导出的 Weekly Markdown 使用 `语音笔记`，不显示 `Voice Note`。
+21. `mistakeRepairQueue` 从本周 Misconception 中选出最多 3 条待修复误区，过滤 `resolved` / `ignored`，并为每条生成 `/mistakes?focus=<id>`。
+22. `/weekly` 页面用 `weeklyMistakeRepairLinkClassName` 渲染误区修复入口，手机端保持至少 44px 触控高度。
 
 ## Data Sources
 
@@ -73,6 +87,9 @@
 ## Verification
 
 - `npm test -- tests/unit/weekly-review.test.ts`
+- `npm test -- tests/unit/weekly-review.test.ts tests/unit/notes-create.test.ts tests/unit/notes-template.test.ts tests/unit/notes-page-ui.test.ts tests/unit/auth-policy.test.ts tests/unit/learning-ui-components.test.ts`
+- Reduce Chaos Weekly Ritual Summary and Reflection Note：`npm test -- tests/unit/weekly-review.test.ts` RED/GREEN 后 9 项通过，覆盖 `weeklyRitualSummary`、`本周学习总结`、`本周称号`、Weekly Markdown ritual 小节、周记表单、`saveWeeklyReflectionAction()`、Preview 写保护和手机端 `保存到笔记` CTA。
+- Reduce Chaos Weekly Ritual Summary and Reflection Note related regression：`npm test -- tests/unit/weekly-review.test.ts tests/unit/notes-create.test.ts tests/unit/notes-template.test.ts tests/unit/notes-page-ui.test.ts tests/unit/auth-policy.test.ts tests/unit/learning-ui-components.test.ts` 56 项通过，覆盖 Weekly、Notes standalone note、Preview 写保护、Auth 和共享学习 UI。
 - `npm test -- tests/unit/weekly-review.test.ts tests/unit/progress-analytics.test.ts tests/unit/learning-ui-components.test.ts tests/unit/home-page-labels.test.ts`
 - `npm test -- tests/unit/weekly-review.test.ts tests/unit/progress-analytics.test.ts tests/unit/learning-ui-components.test.ts`
 - `npm test -- tests/unit/weekly-review.test.ts tests/unit/progress-analytics.test.ts tests/unit/today-completion-next-actions.test.ts`

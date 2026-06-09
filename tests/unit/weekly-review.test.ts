@@ -117,6 +117,14 @@ test("weekly review snapshot highlights strongest weakest and next week plan", (
   );
   assert.equal(snapshot.codePractice.topIssueType, "edge_case");
   assert.equal(snapshot.reviewRetention.retentionRate, 63);
+  assert.equal(
+    snapshot.weeklyRitualSummary.summary,
+    "你学习了 1 天，完成 1 节课，复习 8 张卡，修复 1 个误区。",
+  );
+  assert.equal(snapshot.weeklyRitualSummary.badgeTitle, "误区修复者");
+  assert.match(snapshot.weeklyRitualSummary.badgeReason, /修复了 1 个误区/);
+  assert.match(snapshot.weeklyRitualSummary.reflectionTemplate, /我这周最大的收获是\.\.\./);
+  assert.match(snapshot.weeklyRitualSummary.reflectionTemplate, /我下周想重点学\.\.\./);
   assert.match(snapshot.aiSummary.mostImportantGain, /LLM \/ RAG \/ Agent/);
   assert.match(snapshot.aiSummary.mainWeakness, /算法设计/);
   assert.match(snapshot.aiSummary.nextWeekSuggestion, /算法设计/);
@@ -124,6 +132,9 @@ test("weekly review snapshot highlights strongest weakest and next week plan", (
   assert.match(snapshot.weeklyReportMarkdown, /# Roky Learn 每周复盘/);
   assert.doesNotMatch(snapshot.weeklyReportMarkdown, /# Roky Learn Weekly Report/);
   assert.match(snapshot.weeklyReportMarkdown, /2026-05-27 ~ 2026-06-02/);
+  assert.match(snapshot.weeklyReportMarkdown, /## 本周学习总结/);
+  assert.match(snapshot.weeklyReportMarkdown, /本周称号：误区修复者/);
+  assert.match(snapshot.weeklyReportMarkdown, /你学习了 1 天，完成 1 节课，复习 8 张卡，修复 1 个误区。/);
   assert.match(snapshot.weeklyReportMarkdown, /## 7 天总览/);
   assert.match(snapshot.weeklyReportMarkdown, /- 学习天数：1/);
   assert.match(snapshot.weeklyReportMarkdown, /- 小测验正确率：60%/);
@@ -287,6 +298,11 @@ test("weekly review snapshot tolerates empty weekly data", () => {
   assert.equal(snapshot.weakestDomain, null);
   assert.equal(snapshot.topMistake, null);
   assert.deepEqual(snapshot.mistakeRepairQueue, []);
+  assert.equal(
+    snapshot.weeklyRitualSummary.summary,
+    "你学习了 0 天，完成 0 节课，复习 0 张卡，修复 0 个误区。",
+  );
+  assert.equal(snapshot.weeklyRitualSummary.badgeTitle, "学习节奏重启者");
   assert.match(snapshot.aiSummary.mostImportantGain, /还没有足够数据/);
   assert.match(snapshot.weeklyReportMarkdown, /# Roky Learn 每周复盘/);
   assert.doesNotMatch(snapshot.weeklyReportMarkdown, /# Roky Learn Weekly Report/);
@@ -338,6 +354,42 @@ test("weekly page renders overview and fallback AI summary labels", () => {
   assert.match(source, /weeklyMistakeRepairLinkClassName/);
   assert.match(source, /关联课程：\{mistake\.lessonTitle \?\? "未关联课程"\}/);
   assert.doesNotMatch(source, /错题最多的概念/);
+});
+
+test("weekly page renders ritual summary badge and reflection note form", () => {
+  const source = readFileSync("src/app/weekly/page.tsx", "utf8");
+
+  assert.match(source, /saveWeeklyReflectionAction/);
+  assert.match(source, /本周学习总结/);
+  assert.match(source, /本周称号/);
+  assert.match(source, /weekly\.weeklyRitualSummary\.summary/);
+  assert.match(source, /weekly\.weeklyRitualSummary\.badgeTitle/);
+  assert.match(source, /weekly\.weeklyRitualSummary\.badgeReason/);
+  assert.match(source, /action=\{saveWeeklyReflectionAction\}/);
+  assert.match(source, /name="title"/);
+  assert.match(source, /name="windowLabel"/);
+  assert.match(source, /name="content"/);
+  assert.match(source, /defaultValue=\{weekly\.weeklyRitualSummary\.reflectionTemplate\}/);
+  assert.match(source, /我这周最大的收获是\.\.\./);
+  assert.match(source, /我下周想重点学\.\.\./);
+  assert.match(
+    source,
+    /const weeklyReflectionButtonClassName = "min-h-11 w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary\/90 sm:w-auto";/,
+  );
+});
+
+test("weekly reflection action writes standalone notes behind preview guard", () => {
+  const source = readFileSync("src/app/weekly/actions.ts", "utf8");
+
+  assert.match(source, /"use server"/);
+  assert.match(source, /assertWritableRequest/);
+  assert.match(source, /requireUserId/);
+  assert.match(source, /createScopedNote/);
+  assert.match(source, /lessonId: null/);
+  assert.match(source, /每周复盘：/);
+  assert.match(source, /revalidatePath\("\/weekly"\)/);
+  assert.match(source, /revalidatePath\("\/notes"\)/);
+  assert.match(source, /redirect\(`\/notes\?noteId=\$\{encodeURIComponent\(note\.id\)\}`\)/);
 });
 
 test("weekly next week plan links keep mobile touch targets", () => {

@@ -97,12 +97,20 @@ export type WeeklyAiSummary = {
   recommendedNextStage: string;
 };
 
+export type WeeklyRitualSummary = {
+  summary: string;
+  badgeTitle: string;
+  badgeReason: string;
+  reflectionTemplate: string;
+};
+
 export type WeeklyReviewData = {
   mission: CurrentMission;
   missionSignals: CurrentMissionSignal[];
   missionProgress: CurrentMissionProgress;
   windowLabel: string;
   weeklyOverview: WeeklyOverviewMetrics;
+  weeklyRitualSummary: WeeklyRitualSummary;
   weeklyReportMarkdown: string;
   lessons: WeeklyLessonSummary[];
   strongestDomain: WeeklyDomainHighlight | null;
@@ -254,9 +262,45 @@ function buildWeeklyAiSummary(args: {
   };
 }
 
+function buildWeeklyRitualSummary(args: {
+  weeklyOverview: WeeklyOverviewMetrics;
+  reviewRetention: WeeklyReviewRetention;
+}): WeeklyRitualSummary {
+  const overview = args.weeklyOverview;
+  const summary = `你学习了 ${overview.studyDays} 天，完成 ${overview.completedLessons} 节课，复习 ${overview.reviewedCards} 张卡，修复 ${overview.resolvedMisconceptions} 个误区。`;
+  let badgeTitle = "学习节奏重启者";
+  let badgeReason = "这周先把学习循环重新接上，下一步重点守住每日主线。";
+
+  if (args.reviewRetention.retentionRate >= 70 && overview.reviewedCards > 0) {
+    badgeTitle = "复习守住者";
+    badgeReason = `复习留存率达到 ${args.reviewRetention.retentionRate}%，你把已经学过的内容留住了。`;
+  } else if (overview.completedLessons >= 4) {
+    badgeTitle = "主线推进者";
+    badgeReason = `完成了 ${overview.completedLessons} 节课，本周主线推进很清楚。`;
+  } else if (overview.resolvedMisconceptions > 0) {
+    badgeTitle = "误区修复者";
+    badgeReason = `修复了 ${overview.resolvedMisconceptions} 个误区，你在把错误转成可复习的资产。`;
+  } else if (overview.studyDays >= 5) {
+    badgeTitle = "节奏保持者";
+    badgeReason = `学习覆盖 ${overview.studyDays} 天，本周节奏比较稳定。`;
+  }
+
+  return {
+    summary,
+    badgeTitle,
+    badgeReason,
+    reflectionTemplate: [
+      "我这周最大的收获是...",
+      "",
+      "我下周想重点学...",
+    ].join("\n"),
+  };
+}
+
 function buildWeeklyReportMarkdown(args: {
   windowLabel: string;
   weeklyOverview: WeeklyOverviewMetrics;
+  weeklyRitualSummary: WeeklyRitualSummary;
   lessons: WeeklyLessonSummary[];
   strongestDomain: WeeklyDomainHighlight | null;
   weakestDomain: ProgressWeakDomainSummary | null;
@@ -291,6 +335,14 @@ function buildWeeklyReportMarkdown(args: {
     "# Roky Learn 每周复盘",
     "",
     `周窗口：${args.windowLabel}`,
+    "",
+    "## 本周学习总结",
+    "",
+    args.weeklyRitualSummary.summary,
+    "",
+    `本周称号：${args.weeklyRitualSummary.badgeTitle}`,
+    "",
+    args.weeklyRitualSummary.badgeReason,
     "",
     "## 7 天总览",
     "",
@@ -337,6 +389,10 @@ function buildWeeklyReportMarkdown(args: {
     "## 下周建议",
     "",
     nextStepLines,
+    "",
+    "## 周记草稿",
+    "",
+    args.weeklyRitualSummary.reflectionTemplate,
     "",
   ].join("\n");
 }
@@ -396,6 +452,10 @@ export function buildWeeklyReviewSnapshot(
     topMistake,
     nextWeekPlan,
   });
+  const weeklyRitualSummary = buildWeeklyRitualSummary({
+    weeklyOverview,
+    reviewRetention: input.reviewRetention,
+  });
 
   return {
     mission: input.mission,
@@ -403,9 +463,11 @@ export function buildWeeklyReviewSnapshot(
     missionProgress: input.missionProgress,
     windowLabel: input.windowLabel,
     weeklyOverview,
+    weeklyRitualSummary,
     weeklyReportMarkdown: buildWeeklyReportMarkdown({
       windowLabel: input.windowLabel,
       weeklyOverview,
+      weeklyRitualSummary,
       lessons: input.lessons,
       strongestDomain,
       weakestDomain,

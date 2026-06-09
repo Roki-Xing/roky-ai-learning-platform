@@ -1,5 +1,31 @@
 # Todo Checkpoint
 
+## Current Slice: Reduce Chaos Weekly Ritual Summary and Reflection Note
+
+- [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 9.1、9.2 和 9.4：`/weekly` 首屏学习总结、本周称号和可保存周记。
+- [√] RED：新增 Weekly Review 测试，先失败于 `weeklyRitualSummary` 缺失、页面缺 `saveWeeklyReflectionAction`、`src/app/weekly/actions.ts` 不存在。
+- [√] GREEN：`WeeklyReviewData` 新增 `weeklyRitualSummary`，稳定生成本周一句话总结、称号、称号原因和周记模板。
+- [√] GREEN：`/weekly` 在 `当前任务` 后新增 `本周学习总结`，展示 `本周称号` 和周记表单。
+- [√] GREEN：新增 `saveWeeklyReflectionAction()`，通过 `assertWritableRequest()`、`requireUserId()` 和 `createScopedNote()` 创建 standalone Note，写入后跳转 `/notes?noteId=<id>`。
+- [√] 将 `src/app/weekly/actions.ts` 纳入 `auth-policy` Preview 写保护通用扫描。
+- [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/weekly.md` 和 `helloagents/CHANGELOG.md` 初始记录。
+- [√] 运行本地完整门禁。
+- [ ] 提交并推送 GitHub。
+- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
+- [ ] 补生产部署证据并清理临时 SSH key。
+
+## Current Resume State Hint
+
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.359.0 Reduce Chaos Weekly Ritual Summary and Reflection Note`：只改 `/weekly` 读侧数据合约、页面首屏总结/称号、周记保存到 Notes 的 standalone action、源码级测试和文档记录；不要改数据库 schema/migration、Notes 列表行为、生产 env/provider 密钥、Preview 写保护语义或其他页面主流程。已完成 RED/GREEN 和相关回归；下一步执行本地完整门禁、提交推送、生产部署和读侧 smoke。生产 smoke 不做真实周记写入，避免污染生产 Notes。
+
+## Current Drift Check
+
+- Scope：仍服务 Roky Learn reduce-chaos 主线，把 `/weekly` 从“统计页”收束成周末可理解、可命名、可沉淀的复盘仪式。
+- Compatibility：不新增迁移，不触碰生产 env、provider 密钥、数据库 schema、Notes 列表行为或其他学习模块；新增写入口继续走现有 Preview 写保护和 `createScopedNote()`。
+- New fallback/owner：未新增外部 owner、adapter 或兼容层；Weekly ritual summary 归 `src/server/learning/weekly.ts`，周记写入复用 Notes owner。
+- Retirement：旧的 `/weekly` 首屏从任务卡直接进入本周窗口/指标的弱仪式感布局已退役；原有 7 天总览、Top 3 误区修复队列、AI 周总结和 Markdown 导出继续保留。
+- Decision：continue; RED/GREEN、相关回归和完整本地门禁已完成，下一步提交推送并进入部署流程。
+
 ## Current Slice: Reduce Chaos Weekly Mistake Repair Queue
 
 - [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 7.4 节 Weekly 联动：显示 `本周最值得修复的 3 个误区`，并延续第 7.3 节 `/mistakes?focus=<id>`。

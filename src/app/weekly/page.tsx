@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { saveWeeklyReflectionAction } from "@/app/weekly/actions";
 import { requireUserId } from "@/server/auth/user";
 import {
   getWeeklyReviewData,
@@ -15,6 +16,8 @@ import {
 
 const weeklyNextStepLinkClassName = "min-h-11 rounded-md border px-3 py-3 text-sm transition-colors hover:bg-muted/40";
 const weeklyMistakeRepairLinkClassName = "min-h-11 rounded-md border px-3 py-3 text-sm transition-colors hover:bg-muted/40";
+const weeklyReflectionButtonClassName = "min-h-11 w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto";
+const weeklyReflectionPlaceholder = ["我这周最大的收获是...", "", "我下周想重点学..."].join("\n");
 
 function pct(value: number) {
   return `${value}%`;
@@ -39,6 +42,58 @@ export default async function WeeklyPage() {
           progress={weekly.missionProgress}
           title="当前任务"
         />
+
+        <Card className="rounded-lg">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">本周学习总结</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+            <div className="grid gap-3">
+              <div className="rounded-md border px-3 py-3">
+                <div className="text-sm font-medium">本周称号</div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <LearningStatusBadge tone="success">
+                    {weekly.weeklyRitualSummary.badgeTitle}
+                  </LearningStatusBadge>
+                  <Badge variant="outline">{weekly.windowLabel}</Badge>
+                </div>
+                <div className="mt-3 text-xl font-semibold leading-7">
+                  {weekly.weeklyRitualSummary.summary}
+                </div>
+                <div className="mt-2 text-sm leading-6 text-muted-foreground">
+                  {weekly.weeklyRitualSummary.badgeReason}
+                </div>
+              </div>
+            </div>
+
+            <form action={saveWeeklyReflectionAction} className="grid gap-3 rounded-md border px-3 py-3">
+              <input
+                type="hidden"
+                name="title"
+                value={`每周复盘：${weekly.windowLabel}`}
+              />
+              <input type="hidden" name="windowLabel" value={weekly.windowLabel} />
+              <div className="grid gap-1">
+                <label htmlFor="weekly-reflection" className="text-sm font-medium">
+                  周记
+                </label>
+                <Textarea
+                  id="weekly-reflection"
+                  name="content"
+                  aria-label="保存每周复盘周记"
+                  className="min-h-36 resize-y"
+                  defaultValue={weekly.weeklyRitualSummary.reflectionTemplate}
+                  placeholder={weeklyReflectionPlaceholder}
+                />
+              </div>
+              <div className="flex justify-end">
+                <button type="submit" className={weeklyReflectionButtonClassName}>
+                  保存到笔记
+                </button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
 
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
