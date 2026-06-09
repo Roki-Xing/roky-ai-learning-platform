@@ -15,10 +15,15 @@
 
 - RED：`npm test -- tests/unit/learning-ui-components.test.ts` 首次失败于会话条仍显示说明型文案 `用户看到的是会话，不是分散页面。`
 - GREEN：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` 43 项通过，覆盖会话类型、统一字段、首页接线、组件渲染、移动端 CTA 和说明型文案防回退。
+- 本地最终门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 462 项通过，Next 生产构建生成 31 个静态页面。
+- GitHub：代码提交 `91e5424 feat: add Roky Learn learning sessions` 已推送到 `origin/main`。
+- 生产部署：`learn.roky.chat` 当前 HTTPS 网关为 `198.10.0.92`，实际应用机为 `118.25.15.72`；已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.353.0-20260610-012425.tar.gz`，rsync 同步后重启 `ai-learning-platform` 容器。
+- 远端门禁：容器内 `npm ci --include=dev`、`npm run prisma:generate`、Learning Session 定向测试 43 项、`npm run build` 通过，随后 `npm prune --omit=dev`。
+- 生产验收：`https://learn.roky.chat/api/health` 返回 200/ok；密码登录后访问首页可见 `Roky Learn`、`学习会话`、`当前会话`、`下一会话`、`本周会话`。
 
 ### Not Covered
 
-- 本切片未新增数据库持久化 session、真实 session 开始/完成时间写入、完整 Playwright 矩阵、真实移动端截图或生产写入型 smoke。
+- 本切片未新增数据库持久化 session、真实 session 开始/完成时间写入、完整 Playwright 矩阵、真实移动端截图或生产写入型 smoke；`npm audit` 仍报告既有 3 个 moderate 依赖告警，未纳入本轮范围。
 
 ## [0.352.0] - 2026-06-10
 

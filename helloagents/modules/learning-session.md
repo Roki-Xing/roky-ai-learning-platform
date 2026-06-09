@@ -78,6 +78,10 @@
 - RED：`npm test -- tests/unit/learning-ui-components.test.ts` 首次失败于会话条仍出现说明型功能文案。
 - GREEN：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` 43 项通过。
 - 项目门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、`npm test`、`npm run build`。
+- 2026-06-10 本地最终门禁通过：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test` 462 项、`npm run build`。
+- 2026-06-10 GitHub：`91e5424 feat: add Roky Learn learning sessions` 已推送到 `origin/main`。
+- 2026-06-10 生产上线：已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.353.0-20260610-012425.tar.gz`，同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，容器内定向测试 43 项和 `npm run build` 通过，随后重启 `ai-learning-platform`。
+- 2026-06-10 生产 smoke：`https://learn.roky.chat/api/health` 返回 200/ok；密码登录后首页可见 `Roky Learn`、`学习会话`、`当前会话`、`下一会话`、`本周会话`。
 
 ## 后续方向
 
