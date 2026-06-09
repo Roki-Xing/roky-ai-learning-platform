@@ -152,6 +152,7 @@
   - 后续 Book Companion MVP 已创建 `/books` 页面，`book_question` 继续作为读书疑问 handoff 模式。
 - Reduce Chaos Voice Mobile Sticky Capture：
   - `npm test -- tests/unit/voice-note.test.ts`：RED 首次失败于 Voice 捕获区缺少 `aria-label="语音录音移动操作"` 和 sticky 底部操作区；GREEN 后 19 项通过，覆盖 `一键录音`、`停止并转写`、`bg-background/95`、`backdrop-blur` 和桌面端 `sm:static` / `sm:border-0` 回退。
+  - 远端部署验收：提交 `df9f291 feat: improve voice mobile capture` 已推送并部署到 `118.25.15.72` 容器 `ai-learning-platform`；容器内 Voice 定向回归 76 项、route/learning audit、lint 和 build 通过；`https://learn.roky.chat/api/health` 返回 200/ok；390px 登录 `/voice` 可见 `语音录音移动操作` sticky 区、`一键录音`、`停止并转写` 和 `录音计时`。
   - 本切片只改 `VoiceCapture` 展示层，不改变浏览器录音、自动转写、上传音频、保存语音笔记、Preview 写保护、数据库或 provider 密钥。
 - Phase E Voice Recent Note Link Mobile Touch Targets：
   - `npm test -- tests/unit/voice-note.test.ts`：RED 后 GREEN，15 项通过；覆盖最近语音笔记列表入口复用 `voiceRecentNoteLinkClassName`，并防止退回旧 `rounded-md border px-3 py-2 text-sm transition-colors` 小触控模板。

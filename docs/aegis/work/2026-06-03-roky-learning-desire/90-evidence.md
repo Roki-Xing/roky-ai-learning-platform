@@ -7,14 +7,18 @@
 | `npm test -- tests/unit/voice-note.test.ts` | fail then pass, 19 tests | RED first failed because Voice capture lacked `aria-label="语音录音移动操作"` and the sticky mobile action area. GREEN passed after wrapping the recording controls in a mobile sticky action area and restoring static desktop layout. |
 | `npm test -- tests/unit/voice-note.test.ts tests/unit/voice-capture-status.test.ts tests/unit/voice-transcription.test.ts tests/unit/coach-workspace.test.ts tests/unit/learning-ui-components.test.ts` | pass, 76 tests | Related regression after Voice Mobile Sticky Capture; covers Voice page, recording status, transcription service, Voice to Coach handoff, and shared learning UI. |
 | `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates after Voice Mobile Sticky Capture; full unit suite passed 465 tests, route audit still reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
+| `git push origin main` | pass | Code commit `df9f291 feat: improve voice mobile capture` pushed to `origin/main`. |
+| Production backup and deploy | pass | Created `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.356.0-20260610-022350.tar.gz`, rsynced code to `118.25.15.72:/home/ubuntu/ai-learning-platform`, pruned dev dependencies after validation, and restarted container `ai-learning-platform`. |
+| Remote container gates | pass | In container: `npm ci --include=dev`, `npm run prisma:generate`, Voice related regression 76 tests, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, and `npm run build` passed. |
+| `curl https://learn.roky.chat/api/health` and 390px Playwright login smoke | pass | Health returned 200/ok. Mobile smoke logged in to `/voice`, saw `说出你的理解`, `语音录音移动操作`, `一键录音`, `停止并转写`, `录音计时`, and sticky classes `sticky bottom-16 z-20`, `bg-background/95`, `backdrop-blur`. |
 
 Changed surface:
 
 - Voice mobile sticky capture layer: `src/app/voice/ui/voice-capture.tsx`, `tests/unit/voice-note.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/voice-note.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
 
-Not covered yet:
+Not covered:
 
-- GitHub push, production deployment, and authenticated mobile production smoke.
+- Full Playwright mobile screenshot matrix and production write-type real recording/upload smoke were not run. `npm audit` still reports existing 3 moderate dependency advisories and was not part of this slice.
 
 ## Phase E Library Flashcard Metadata Label Localization
 
