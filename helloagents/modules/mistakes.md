@@ -2,7 +2,7 @@
 
 ## 状态
 
-已上线 `/mistakes` 页面，并完成生产入口验收。本轮 Phase 5.2 在本地补齐“错题修复中心”的类型筛选和修复动作闭环，未重新执行生产部署。
+已上线 `/mistakes` 页面，并完成生产入口验收。本轮 `0.357.0 Reduce Chaos Mistakes Focus Repair` 在本地补齐 Current Mission 聚焦错题修复和移动端 sticky 主操作，待完成生产部署。
 
 ## 目标
 
@@ -16,6 +16,8 @@
 ## 当前行为
 
 - `/mistakes` 默认先展示未解决误区。
+- Current Mission / Next Best Action 如果推荐未解决误区，有具体误区 id 时进入 `/mistakes?focus=<id>`，缺少 id 时回退 `/mistakes`，不再直接跳 `/coach`。
+- `/mistakes?focus=<id>` 会在清单前展示 `当前先修这一条`，优先呈现当前最该修的误区。
 - 页头 badge 显示中文 `错题修复`，不显示英文 `Mistakes`。
 - 支持按状态筛选：`未解决 / 已解决 / 全部`。
 - 支持按来源筛选：`小测验 / 代码反馈 / Coach / 项目实践`。
@@ -33,6 +35,7 @@
 - “生成复习卡”会把误区转成稳定 `mistake-card:{id}` 复习卡，并刷新 `/review`。
 - “标记已解决”会把开放误区更新为 `resolved`，并刷新 `/mistakes`、`/progress`、`/map`、`/path` 和 `/weekly`。
 - 页面级 `打开 Coach`、修复策略卡 `去复习`、筛选表单 `搜索错题` CTA 在手机端复用 `mistakePageCtaClassName = "min-h-11 w-full sm:w-auto"`，桌面端保持自适应宽度。
+- 聚焦误区的 `让 Coach 解释`、`生成复习卡`、`标记已解决` 位于 `aria-label="错题修复移动操作"` 的 sticky 操作区；手机端固定在底部导航上方，使用 `sticky bottom-16 z-20`、`bg-background/95` 和 `backdrop-blur`，桌面端恢复 `sm:static` / `sm:border-0`。
 - 每条误区的 `让 Coach 解释`、`生成复习卡`、`标记已解决`、`回到课程` 修复动作在手机端使用单列 `grid gap-2`，CTA 复用 `mistakeRepairActionCtaClassName = "min-h-11 w-full sm:w-auto"`，桌面端保持 `sm:flex sm:flex-wrap`。
 - 误区解决完成态复用 `LearningCelebrationCue` 时，成就徽章显示中文 `掌握证据`，不显示英文 `Mastery signal`。
 
@@ -56,6 +59,7 @@
 - `npm test -- tests/unit/mistakes-view.test.ts tests/unit/auth-policy.test.ts`
 - `npm test -- tests/unit/mistakes-view.test.ts tests/unit/auth-policy.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/learning-ui-components.test.ts`
 - `npm test -- tests/unit/mistakes-view.test.ts tests/unit/learning-ui-components.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts`
+- Reduce Chaos Mistakes Focus Repair RED/GREEN：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/mistakes-view.test.ts` 34 项通过，覆盖 `/mistakes?focus=<id>`、Learning Session 误区修复 href、`当前先修这一条` 和 `错题修复移动操作` sticky 操作区。
 - Phase E Mistakes Header Badge Localization：`npm test -- tests/unit/mistakes-view.test.ts` RED/GREEN 后 11 项通过，覆盖 `badge="错题修复"`，并防止 `badge="Mistakes"` 回退。
 - Phase E Mistakes Header Badge Localization 回归：`npm test -- tests/unit/mistakes-view.test.ts tests/unit/auth-policy.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/learning-ui-components.test.ts` 51 项通过。
 - Phase E Mistakes Header Badge Localization 覆盖扫描：`rg -n 'Mistakes Header Badge|badge="错题修复"|badge="Mistakes"|0\\.248\\.0|错题修复页头|Mistakes Header Badge Localization' ...` 确认 Mistakes 源码和测试接入页头 badge 中文化要求，且生产页面没有 `badge="Mistakes"`。

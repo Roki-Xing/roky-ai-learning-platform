@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.357.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Mistakes Focus Repair]** 按指导文件第 7.3 和第 16 节继续优化 `/mistakes`，让 Current Mission 的未解决误区任务进入具体修复对象。
+  - Next Best Action / Current Mission 如果拿到未解决误区 id，会跳到 `/mistakes?focus=<id>`；缺少 id 时回退 `/mistakes`，不再直接跳 `/coach`。
+  - Learning Sessions 的 `mistake_repair` 当前会话同步使用误区 id 作为 focus 参数，避免用 summary 当路由焦点。
+  - `/mistakes` 新增 `当前先修这一条` 聚焦修复区，优先展示 focus 误区，并复用现有 Coach 解释、生成复习卡、标记已解决动作。
+  - 手机端聚焦修复动作进入 `aria-label="错题修复移动操作"` 的 sticky 操作区，使用 `sticky bottom-16 z-20`、`bg-background/95`、`backdrop-blur`，桌面端恢复 `sm:static` / `sm:border-0`。
+  - 保留 `generateMistakeReviewCardAction`、`markMistakeResolvedAction`、Preview 写保护、数据库 schema、生产 env/provider 密钥和其他学习模块行为边界。
+
+### Verified
+
+- RED/GREEN：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/mistakes-view.test.ts` 34 项通过，覆盖 `/mistakes?focus=<id>`、fallback `/mistakes`、Learning Session 误区修复 href、`当前先修这一条` 和移动端 sticky 操作区。
+- 相关回归：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/mistakes-view.test.ts tests/unit/auth-policy.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/learning-ui-components.test.ts` 77 项通过，覆盖 Current Mission、Mistakes、Auth/Preview、Review 补弱、Today 补弱和共享学习 UI。
+- 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 467 项通过，Next 生产构建生成 31 个静态页面。
+
+### Not Covered
+
+- 尚未执行 GitHub 推送、生产部署和生产 smoke；后续收尾继续补齐。
+
 ## [0.356.0] - 2026-06-10
 
 ### Changed

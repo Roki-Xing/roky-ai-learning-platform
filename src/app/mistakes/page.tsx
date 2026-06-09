@@ -33,14 +33,31 @@ function filterHref(args: {
   source: MistakeSourceFilter;
   kind: MistakeKindFilter;
   q: string;
+  focus?: string;
 }) {
   const query = new URLSearchParams();
   if (args.status !== "open") query.set("status", args.status);
   if (args.source !== "all") query.set("source", args.source);
   if (args.kind !== "all") query.set("kind", args.kind);
   if (args.q) query.set("q", args.q);
+  if (args.focus) query.set("focus", args.focus);
   const suffix = query.toString();
   return suffix ? `/mistakes?${suffix}` : "/mistakes";
+}
+
+function buildMistakeCoachHref(mistake: {
+  lessonId: string;
+  summary?: string | null;
+  prompt?: string | null;
+  explanation?: string | null;
+  userAnswer?: unknown;
+}) {
+  const query = new URLSearchParams({
+    mode: "concept_question",
+    draft: buildCoachDraftForMistake(mistake),
+  });
+  if (mistake.lessonId) query.set("lessonId", mistake.lessonId);
+  return `/coach?${query.toString()}`;
 }
 
 function toneForStatus(status: string) {
@@ -66,7 +83,7 @@ const mistakeSearchInputClassName = "min-h-11";
 export default async function MistakesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; source?: string; kind?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; source?: string; kind?: string; q?: string; focus?: string }>;
 }) {
   const sp = await searchParams;
   const userId = await requireUserId();
@@ -74,6 +91,7 @@ export default async function MistakesPage({
   const source = parseMistakeSourceFilter(sp.source);
   const kind = parseMistakeKindFilter(sp.kind);
   const q = (sp.q ?? "").trim();
+  const focusMistakeId = (sp.focus ?? "").trim();
 
   const filteredWhere = {
     userId,
@@ -165,6 +183,9 @@ export default async function MistakesPage({
     if (!card.lessonId) continue;
     lessonCardCount.set(card.lessonId, (lessonCardCount.get(card.lessonId) ?? 0) + 1);
   }
+  const focusedMistake = focusMistakeId
+    ? mistakes.find((item) => item.id === focusMistakeId) ?? null
+    : mistakes[0] ?? null;
 
   const statusOptions: Array<{ value: MistakeStatusFilter; label: string }> = [
     { value: "open", label: "未解决" },
@@ -263,7 +284,7 @@ export default async function MistakesPage({
                   variant={status === option.value ? "default" : "outline"}
                   className={mistakeFilterCtaClassName}
                 >
-                  <Link href={filterHref({ status: option.value, source, kind, q })}>{option.label}</Link>
+                  <Link href={filterHref({ status: option.value, source, kind, q, focus: focusMistakeId })}>{option.label}</Link>
                 </Button>
               ))}
             </div>
@@ -277,7 +298,7 @@ export default async function MistakesPage({
                   variant={source === option.value ? "default" : "outline"}
                   className={mistakeFilterCtaClassName}
                 >
-                  <Link href={filterHref({ status, source: option.value, kind, q })}>{option.label}</Link>
+                  <Link href={filterHref({ status, source: option.value, kind, q, focus: focusMistakeId })}>{option.label}</Link>
                 </Button>
               ))}
             </div>
@@ -291,13 +312,70 @@ export default async function MistakesPage({
                   variant={kind === option.value ? "default" : "outline"}
                   className={mistakeFilterCtaClassName}
                 >
-                  <Link href={filterHref({ status, source, kind: option.value, q })}>{option.label}</Link>
+                  <Link href={filterHref({ status, source, kind: option.value, q, focus: focusMistakeId })}>{option.label}</Link>
                 </Button>
               ))}
             </div>
           </div>
         </LearningSectionCard>
       </div>
+
+      {focusedMistake ? (
+        <LearningSectionCard
+          title="当前先修这一条"
+          description="先解释，再生成复习卡；修完后再回到清单。"
+          action={<LearningStatusBadge tone="danger">重点修复</LearningStatusBadge>}
+        >
+          <div className="grid gap-3">
+            <div className="rounded-lg border bg-muted/20 p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline">{formatMistakeSourceLabel(focusedMistake.source)}</Badge>
+                <Badge variant="outline">{inferMistakeKind(focusedMistake)}</Badge>
+                <LearningStatusBadge tone={toneForStatus(focusedMistake.status)}>
+                  {formatMistakeStatusLabel(focusedMistake.status)}
+                </LearningStatusBadge>
+              </div>
+              <div className="mt-3 text-lg font-semibold leading-snug">{focusedMistake.summary}</div>
+              <div className="mt-2 text-sm text-muted-foreground">
+                {focusedMistake.prompt}
+              </div>
+            </div>
+
+            <div
+              aria-label="错题修复移动操作"
+              className="sticky bottom-16 z-20 grid gap-2 rounded-lg border bg-background/95 p-2 shadow-sm backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none sm:flex sm:flex-wrap"
+            >
+              <Button asChild size="sm" className={mistakeRepairActionCtaClassName}>
+                <Link href={buildMistakeCoachHref(focusedMistake)}>让 Coach 解释</Link>
+              </Button>
+              <form action={generateMistakeReviewCardAction}>
+                <input type="hidden" name="mistakeId" value={focusedMistake.id} />
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="secondary"
+                  className={mistakeRepairActionCtaClassName}
+                >
+                  生成复习卡
+                </Button>
+              </form>
+              {focusedMistake.status === "resolved" ? null : (
+                <form action={markMistakeResolvedAction}>
+                  <input type="hidden" name="mistakeId" value={focusedMistake.id} />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    variant="outline"
+                    className={mistakeRepairActionCtaClassName}
+                  >
+                    标记已解决
+                  </Button>
+                </form>
+              )}
+            </div>
+          </div>
+        </LearningSectionCard>
+      ) : null}
 
       <LearningSectionCard
         title="误区清单"
@@ -310,14 +388,7 @@ export default async function MistakesPage({
               const kind = inferMistakeKind(mistake);
               const lessonTitle = lessonTitleById.get(mistake.lessonId) ?? "未知课程";
               const topicTitle = mistake.topicId ? topicTitleById.get(mistake.topicId) ?? "未关联主题" : "未关联主题";
-              const coachHref = (() => {
-                const query = new URLSearchParams({
-                  mode: "concept_question",
-                  draft: buildCoachDraftForMistake(mistake),
-                });
-                if (mistake.lessonId) query.set("lessonId", mistake.lessonId);
-                return `/coach?${query.toString()}`;
-              })();
+              const coachHref = buildMistakeCoachHref(mistake);
 
               return (
                 <div key={mistake.id} className="rounded-lg border bg-card p-4 shadow-sm">

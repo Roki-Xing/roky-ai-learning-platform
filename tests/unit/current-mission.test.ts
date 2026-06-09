@@ -63,19 +63,21 @@ test("current mission progress summarizes the daily learning loop", async () => 
   assert.equal(progress.total, 5);
 });
 
-test("current mission routes unresolved misconceptions to coach with focus copy", async () => {
+test("current mission routes unresolved misconceptions to focused mistake repair", async () => {
   const { buildCurrentMission } = await loadCurrentMission();
   const mission = buildCurrentMission({
     ...baseInput,
     openMisconceptionCount: 2,
     openMisconceptionFocus: {
+      id: "mistake-1",
       summary: "把 attention 当成简单平均",
       source: "quiz",
       occurrenceCount: 3,
     },
   });
 
-  assert.equal(mission.href, "/coach");
+  assert.equal(mission.href, "/mistakes?focus=mistake-1");
+  assert.equal(mission.ctaLabel, "去修复");
   assert.equal(mission.tone, "danger");
   assert.match(mission.title, /attention/);
   assert.match(mission.reason, /2 个未解决误区/);
@@ -226,6 +228,26 @@ test("learning sessions cover all reduce-chaos session types with learner-facing
   }
 });
 
+test("learning sessions route active mistake repair to a focused mistake page", async () => {
+  const { buildLearningSessions } = await loadCurrentMission();
+
+  const sessions = buildLearningSessions({
+    input: {
+      ...baseInput,
+      openMisconceptionCount: 1,
+      openMisconceptionFocus: {
+        id: "mistake-1",
+        summary: "RAG 评估边界",
+      },
+    },
+    completedDaysThisWeek: 4,
+  });
+
+  assert.equal(sessions.current.type, "mistake_repair");
+  assert.equal(sessions.current.href, "/mistakes?focus=mistake-1");
+  assert.match(sessions.current.title, /RAG 评估边界/);
+});
+
 test("current mission localizes unresolved misconception fallback copy", async () => {
   const { buildCurrentMission } = await loadCurrentMission();
   const mission = buildCurrentMission({
@@ -234,8 +256,9 @@ test("current mission localizes unresolved misconception fallback copy", async (
     openMisconceptionFocus: null,
   });
 
-  assert.equal(mission.href, "/coach");
-  assert.equal(mission.title, "让 Coach 处理未解决误区");
+  assert.equal(mission.href, "/mistakes");
+  assert.equal(mission.title, "修复一个未解决误区");
+  assert.equal(mission.ctaLabel, "去修复");
   assert.match(mission.reason, /2 个未解决误区/);
   assert.doesNotMatch(mission.reason, /open misconception/);
 });

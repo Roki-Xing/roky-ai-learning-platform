@@ -1,5 +1,21 @@
 # Evidence
 
+## Reduce Chaos Mistakes Focus Repair
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/mistakes-view.test.ts` | fail then pass, 34 tests | RED first failed because unresolved misconception missions still used `/coach`, Learning Session focus was based on summary, and `/mistakes` lacked `focusMistakeId` plus the sticky focused repair action area. GREEN covers `/mistakes?focus=<id>`, fallback `/mistakes`, `当前先修这一条`, `aria-label="错题修复移动操作"`, `sticky bottom-16 z-20`, `bg-background/95`, `backdrop-blur`, `sm:static`, and `sm:border-0`. |
+| `npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/mistakes-view.test.ts tests/unit/auth-policy.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/learning-ui-components.test.ts` | pass, 77 tests | Related regression after Mistakes Focus Repair; covers Current Mission, Mistakes view, Auth/Preview policy, Review remediation, Today remediation, and shared learning UI. |
+| `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates after Mistakes Focus Repair; full unit suite passed 467 tests, route audit reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
+
+Changed surface:
+
+- Mistakes focus repair layer: `src/server/learning/next-best-action.ts`, `src/server/learning/current-mission.ts`, `src/app/mistakes/page.tsx`, `tests/unit/next-best-action.test.ts`, `tests/unit/current-mission.test.ts`, `tests/unit/mistakes-view.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/mistakes.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered yet:
+
+- GitHub push, production deploy, and production smoke are still pending for this slice.
+
 ## Reduce Chaos Voice Mobile Sticky Capture
 
 | Evidence | Result | Notes |

@@ -324,6 +324,9 @@
 - 来源筛选应包含 `小测验`、`代码反馈`、`Coach`、`项目实践`
 - 类型筛选应包含 `全部类型`、`概念`、`代码`、`算法`、`术语`、`事实`
 - 每条误区应显示来源、类型、出现次数、关联课程/主题和关联卡片数
+- Current Mission / Next Best Action 推荐未解决误区时，有具体误区 id 应跳到 `/mistakes?focus=<id>`，缺少 id 时才回退到 `/mistakes`，不应直接跳 `/coach`
+- 带 `focus` 参数进入 `/mistakes` 时，应在清单前显示 `当前先修这一条`，先展示最该修的误区和主修复动作
+- `当前先修这一条` 的手机端主修复动作应位于 `aria-label="错题修复移动操作"` 的 sticky 操作区，至少包含 `sticky bottom-16 z-20`、`bg-background/95`、`backdrop-blur`，并在桌面端恢复 `sm:static` / `sm:border-0`
 - 关键词搜索输入框在手机端应满足 44px 触控高度，至少包含 `min-h-11`
 - 状态、来源、类型三组筛选 chips 在手机端应是单列全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 页面级 `打开 Coach`、修复策略卡 `去复习`、筛选表单 `搜索错题` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`

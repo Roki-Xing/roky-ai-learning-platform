@@ -5,6 +5,7 @@ export type NextBestActionInput = {
   dueFlashcardsCount: number;
   openMisconceptionCount: number;
   openMisconceptionFocus?: {
+    id?: string | null;
     summary: string;
     source?: string | null;
     occurrenceCount?: number | null;
@@ -74,17 +75,18 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
 
   if (input.openMisconceptionCount > 0) {
     const focus = input.openMisconceptionFocus?.summary?.trim();
+    const focusId = input.openMisconceptionFocus?.id?.trim();
     return {
-      title: focus ? `让 Coach 澄清：${focus}` : "让 Coach 处理未解决误区",
+      title: focus ? `修复误区：${focus}` : "修复一个未解决误区",
       reason: focus
-        ? `当前最需要澄清的是：${focus}。你还有 ${input.openMisconceptionCount} 个未解决误区，先交给 Coach 复盘。`
-        : `你还有 ${input.openMisconceptionCount} 个未解决误区，先把模糊点说清楚。`,
-      href: "/coach",
-      ctaLabel: "打开 Coach",
+        ? `当前最需要修复的是：${focus}。你还有 ${input.openMisconceptionCount} 个未解决误区，先处理这一条。`
+        : `你还有 ${input.openMisconceptionCount} 个未解决误区，先修复最该处理的一条。`,
+      href: focusId ? `/mistakes?focus=${encodeURIComponent(focusId)}` : "/mistakes",
+      ctaLabel: "去修复",
       tone: "danger",
       priorityLabel: "重要",
       estimatedMinutes: 12,
-      companionLabel: "Coach",
+      companionLabel: "错题修复",
     };
   }
 

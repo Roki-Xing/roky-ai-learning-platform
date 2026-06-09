@@ -239,9 +239,10 @@ export function buildLearningSessions(args: {
     });
   } else if (input.openMisconceptionCount > 0) {
     const focus = input.openMisconceptionFocus?.summary?.trim();
+    const focusId = input.openMisconceptionFocus?.id?.trim();
     current = sessionBlueprint("mistake_repair", {
       title: focus ? `修复误区：${focus}` : "修复一个误区",
-      href: focus ? `/mistakes?focus=${encodeURIComponent(focus)}` : "/mistakes",
+      href: focusId ? `/mistakes?focus=${encodeURIComponent(focusId)}` : "/mistakes",
     });
   } else if (input.codeFeedbackNeedsAttentionCount > 0) {
     const focus = input.codeFeedbackFocus?.summary?.trim();
@@ -400,7 +401,7 @@ export async function getCurrentMissionData(
     prisma.misconception.count({ where: { userId, status: "open" } }),
     prisma.misconception.findFirst({
       where: { userId, status: "open" },
-      select: { summary: true, source: true, occurrenceCount: true },
+      select: { id: true, summary: true, source: true, occurrenceCount: true },
       orderBy: [{ lastAttemptAt: "desc" }],
     }),
     prisma.codeFeedback.count({

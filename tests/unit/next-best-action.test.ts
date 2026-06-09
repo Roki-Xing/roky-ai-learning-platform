@@ -34,13 +34,13 @@ test("next best action prioritizes due review after daily completion", () => {
   assert.match(action.title, /5/);
 });
 
-test("next best action routes open misconceptions to coach", () => {
+test("next best action routes open misconceptions to the focused repair task", () => {
   const action = buildNextBestAction({
     ...baseInput,
     openMisconceptionCount: 2,
   });
 
-  assert.equal(action.href, "/coach");
+  assert.equal(action.href, "/mistakes");
   assert.equal(action.tone, "danger");
   assert.match(action.reason, /2 个未解决误区/);
   assert.doesNotMatch(action.reason, /open misconception/);
@@ -51,13 +51,15 @@ test("next best action names the active misconception focus", () => {
     ...baseInput,
     openMisconceptionCount: 2,
     openMisconceptionFocus: {
+      id: "mistake-1",
       summary: "把 attention 当成简单平均",
       source: "quiz",
       occurrenceCount: 3,
     },
   });
 
-  assert.equal(action.href, "/coach");
+  assert.equal(action.href, "/mistakes?focus=mistake-1");
+  assert.equal(action.ctaLabel, "去修复");
   assert.match(action.title, /attention/);
   assert.match(action.reason, /把 attention 当成简单平均/);
   assert.match(action.reason, /2 个/);

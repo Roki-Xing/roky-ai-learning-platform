@@ -134,9 +134,24 @@ test("mistakes page exposes type filters and repair actions", () => {
   const source = readFileSync("src/app/mistakes/page.tsx", "utf8");
 
   assert.match(source, /parseMistakeKindFilter/);
+  assert.match(source, /focusMistakeId/);
+  assert.match(source, /当前先修这一条/);
   assert.match(source, /项目实践/);
   assert.match(source, /生成复习卡/);
   assert.match(source, /标记已解决/);
+});
+
+test("mistakes page keeps the focused repair action sticky on mobile", () => {
+  const source = readFileSync("src/app/mistakes/page.tsx", "utf8");
+
+  assert.match(source, /aria-label="错题修复移动操作"/);
+  assert.match(source, /sticky bottom-16 z-20/);
+  assert.match(source, /bg-background\/95/);
+  assert.match(source, /backdrop-blur/);
+  assert.match(source, /sm:static/);
+  assert.match(source, /sm:border-0/);
+  assert.match(source, /让 Coach 解释/);
+  assert.match(source, /生成复习卡/);
 });
 
 test("mistakes header badge is localized for learners", () => {
@@ -152,8 +167,10 @@ test("mistakes repair actions keep mobile touch targets", () => {
   assert.match(source, /const mistakeRepairActionCtaClassName = "min-h-11 w-full sm:w-auto";/);
   assert.match(source, /<div className="grid gap-2 sm:flex sm:flex-wrap">/);
 
+  const listIndex = source.indexOf('title="误区清单"');
+  assert.notEqual(listIndex, -1);
   for (const label of ["让 Coach 解释", "生成复习卡", "标记已解决"]) {
-    const labelIndex = source.indexOf(label);
+    const labelIndex = source.indexOf(label, listIndex);
     assert.notEqual(labelIndex, -1);
     const ctaWindow = source.slice(Math.max(0, labelIndex - 260), labelIndex + label.length);
     assert.match(ctaWindow, /className=\{mistakeRepairActionCtaClassName\}/);
