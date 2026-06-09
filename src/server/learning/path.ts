@@ -1,6 +1,7 @@
 import {
   getCurrentMissionData,
   type CurrentMission,
+  type CurrentMissionProgress,
   type CurrentMissionSignal,
 } from "@/server/learning/current-mission";
 import { prisma } from "@/server/db";
@@ -104,6 +105,7 @@ export type LearningPathFocus = {
 export type LearningPathData = {
   mission: CurrentMission;
   missionSignals: CurrentMissionSignal[];
+  missionProgress: CurrentMissionProgress;
   currentStage: LearningPathStage;
   nextStage: LearningPathStage | null;
   todayFocus: LearningPathFocus;
@@ -113,6 +115,7 @@ export type LearningPathData = {
 export type LearningPathSnapshotInput = {
   mission: CurrentMission;
   missionSignals: CurrentMissionSignal[];
+  missionProgress: CurrentMissionProgress;
   todayFocus: {
     lessonTitle: string | null;
     domainSlug: string | null;
@@ -591,6 +594,7 @@ export function buildLearningPathSnapshot(
   return {
     mission: input.mission,
     missionSignals: input.missionSignals,
+    missionProgress: input.missionProgress,
     currentStage,
     nextStage,
     todayFocus: buildTodayFocus(input, currentStage),
@@ -803,6 +807,7 @@ export async function getLearningPathData(userId: string) {
   return buildLearningPathSnapshot({
     mission: currentMission.mission,
     missionSignals: currentMission.signals,
+    missionProgress: currentMission.progress,
     todayFocus: {
       lessonTitle: todayPlan?.lesson.title ?? null,
       domainSlug: todayPlan?.selectedDomain ?? todayPlan?.lesson.topic.domain.slug ?? null,

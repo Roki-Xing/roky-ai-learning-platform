@@ -11,6 +11,9 @@ import {
   calculateLearningXp,
   getLearningLevel,
 } from "@/server/learning/xp";
+import {
+  buildLearningMomentum,
+} from "@/server/learning/momentum";
 import { buildLearningBadges } from "@/server/learning/badges";
 import {
   buildLearningHabitGoal,
@@ -20,6 +23,7 @@ import { DailyQuestCard } from "@/components/learning/daily-quest-card";
 import { XpLevelCard } from "@/components/learning/xp-level-card";
 import { BadgeShelf } from "@/components/learning/badge-shelf";
 import { LearningHabitGoalCard } from "@/components/learning/learning-habit-goal-card";
+import { LearningMomentumStrip } from "@/components/learning/learning-momentum-strip";
 
 const questInput: DailyQuestInput = {
   todayPlanStatus: "completed",
@@ -356,6 +360,70 @@ test("motivation components render compact learning progress", () => {
   assert.match(markup, /已解锁 \d+ 个/);
   assert.doesNotMatch(markup, />\d+ earned</);
   assert.match(markup, /首次提交代码/);
+});
+
+test("learning momentum turns homepage signals into next unlock guidance", () => {
+  const quests = buildDailyQuests(questInput);
+  const xp = calculateLearningXp({
+    completedLessons: 8,
+    reviewedCards: 21,
+    correctQuizAttempts: 12,
+    codeSubmissions: 3,
+    resolvedMisconceptions: 2,
+    notes: 5,
+    voiceNotes: 4,
+    completedProjectMilestones: 2,
+  });
+  const momentum = buildLearningMomentum({
+    xp,
+    quests,
+    streakDays: 6,
+    completedDaysThisWeek: 3,
+    weeklyTargetDays: 5,
+  });
+
+  assert.equal(momentum.stageLabel, "算法思考者");
+  assert.equal(momentum.nextUnlockLabel, "LLM 实践者");
+  assert.equal(momentum.nextUnlockProgress, "26%");
+  assert.equal(momentum.weeklyLabel, "3/5 天");
+  assert.equal(momentum.dailyLoopLabel, "4/5");
+  assert.equal(momentum.encouragement, "今天还差 1 步，把语音复盘补上就能收尾。");
+});
+
+test("learning momentum strip renders compact desktop and mobile status", () => {
+  const quests = buildDailyQuests(questInput);
+  const xp = calculateLearningXp({
+    completedLessons: 8,
+    reviewedCards: 21,
+    correctQuizAttempts: 12,
+    codeSubmissions: 3,
+    resolvedMisconceptions: 2,
+    notes: 5,
+    voiceNotes: 4,
+    completedProjectMilestones: 2,
+  });
+  const momentum = buildLearningMomentum({
+    xp,
+    quests,
+    streakDays: 6,
+    completedDaysThisWeek: 3,
+    weeklyTargetDays: 5,
+  });
+  const markup = renderToStaticMarkup(
+    React.createElement(LearningMomentumStrip, { momentum }),
+  );
+
+  assert.match(markup, /学习状态/);
+  assert.match(markup, /算法思考者/);
+  assert.match(markup, /下一步解锁/);
+  assert.match(markup, /LLM 实践者/);
+  assert.match(markup, /本周目标/);
+  assert.match(markup, /3\/5 天/);
+  assert.match(markup, /今日闭环/);
+  assert.match(markup, /4\/5/);
+  assert.match(markup, /aria-label="下一步解锁进度"/);
+  assert.match(markup, /今天还差 1 步/);
+  assert.doesNotMatch(markup, /Algorithm Thinker|LLM Practitioner/);
 });
 
 test("daily quest card actions use full-width mobile touch targets", () => {

@@ -5,6 +5,7 @@ import { LearningStatusBadge } from "@/components/learning/learning-status-badge
 import { cn } from "@/lib/utils";
 import type {
   CurrentMission,
+  CurrentMissionProgress,
   CurrentMissionSignal,
 } from "@/server/learning/current-mission";
 
@@ -23,13 +24,31 @@ function missionToneClass(tone: CurrentMission["tone"]) {
   }
 }
 
+function clampProgress(progress: CurrentMissionProgress) {
+  const total = Math.max(progress.total, 1);
+  const completed = Math.min(Math.max(progress.completed, 0), total);
+
+  return {
+    completed,
+    total,
+    percent: Math.round((completed / total) * 100),
+  };
+}
+
 export function CurrentMissionCard(props: {
   mission: CurrentMission;
   signals?: CurrentMissionSignal[];
+  progress?: CurrentMissionProgress;
   title?: string;
   className?: string;
 }) {
   const title = props.title ?? "当前任务";
+  const metaBadges = [
+    props.mission.priorityLabel,
+    props.mission.estimatedMinutes ? `${props.mission.estimatedMinutes} 分钟` : null,
+    props.mission.companionLabel,
+  ].filter(Boolean);
+  const progress = props.progress ? clampProgress(props.progress) : null;
 
   return (
     <div
@@ -58,6 +77,41 @@ export function CurrentMissionCard(props: {
           <div className="mt-1 text-sm leading-6 text-muted-foreground">
             {props.mission.reason}
           </div>
+          {metaBadges.length > 0 ? (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {metaBadges.map((badge) => (
+                <span
+                  key={badge}
+                  className="rounded-full border bg-background/70 px-2.5 py-1 text-xs font-medium text-foreground"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {props.progress && progress ? (
+            <div className="mt-3 grid max-w-md gap-1.5">
+              <div className="flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
+                <span>{props.progress.label}</span>
+                <span className="tabular-nums">
+                  {progress.completed}/{progress.total}
+                </span>
+              </div>
+              <div
+                role="progressbar"
+                aria-label={props.progress.label}
+                aria-valuemin={0}
+                aria-valuemax={progress.total}
+                aria-valuenow={progress.completed}
+                className="h-1.5 overflow-hidden rounded-full bg-background/80"
+              >
+                <div
+                  className="h-full rounded-full bg-primary"
+                  style={{ width: `${progress.percent}%` }}
+                />
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <Button asChild size="sm" className="min-h-11 w-full sm:w-auto shrink-0">

@@ -14,12 +14,14 @@ import { CurrentMissionCard } from "@/components/learning/current-mission-card";
 import { BadgeShelf } from "@/components/learning/badge-shelf";
 import { DailyQuestCard } from "@/components/learning/daily-quest-card";
 import { LearningHabitGoalCard } from "@/components/learning/learning-habit-goal-card";
+import { LearningMomentumStrip } from "@/components/learning/learning-momentum-strip";
 import { LearningMissionCard } from "@/components/learning/learning-mission-card";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { XpLevelCard } from "@/components/learning/xp-level-card";
 import {
   buildCurrentMission,
+  buildCurrentMissionProgress,
   buildCurrentMissionSignals,
 } from "@/server/learning/current-mission";
 import { buildLearningBadges } from "@/server/learning/badges";
@@ -31,6 +33,7 @@ import {
   buildLearningHabitGoalFromQuests,
   countCompletedDaysInLocalWeek,
 } from "@/server/learning/habit-goal";
+import { buildLearningMomentum } from "@/server/learning/momentum";
 import { calculateLearningXp } from "@/server/learning/xp";
 import { ProjectDailyRhythmCard } from "@/app/projects/ui/project-mission-workspace";
 import {
@@ -288,6 +291,7 @@ export default async function HomePage() {
   };
   const currentMission = buildCurrentMission(currentMissionInput);
   const currentMissionSignals = buildCurrentMissionSignals(currentMissionInput);
+  const currentMissionProgress = buildCurrentMissionProgress(currentMissionInput);
   const dailyQuests = buildDailyQuests({
     todayPlanStatus: todayPlan?.status ?? null,
     dueFlashcardsCount,
@@ -326,6 +330,12 @@ export default async function HomePage() {
     glossaryCards: glossaryCardsCount,
     radarCards: radarCardsCount,
   });
+  const learningMomentum = buildLearningMomentum({
+    xp: learningXp,
+    quests: dailyQuests,
+    streakDays: streak,
+    completedDaysThisWeek,
+  });
   const remediationFocus = openMisconceptionFocus
     ? {
         label: "误区补弱",
@@ -358,8 +368,10 @@ export default async function HomePage() {
             <CurrentMissionCard
               mission={currentMission}
               signals={currentMissionSignals}
+              progress={currentMissionProgress}
               className="p-4 md:p-5"
             />
+            <LearningMomentumStrip momentum={learningMomentum} />
             {remediationFocus ? (
               <div className="rounded-lg border bg-muted/20 p-3">
                 <div className="flex flex-wrap items-center gap-2">

@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.345.0] - 2026-06-08
+
+### Added
+
+- **[Sprint Learning Desire Homepage Momentum Strip]** 首页新增学习状态条，把既有 XP、Daily Quest、streak 和周目标信号收口成“当前阶段 / 下一步解锁 / 本周目标 / 今日闭环 / 连续学习”。
+  - `src/server/learning/momentum.ts` 新增 `buildLearningMomentum()`，只读计算学习阶段称号、下一步解锁进度、今日闭环进度和短鼓励语，不新增数据库字段或持久化。
+  - `src/components/learning/learning-momentum-strip.tsx` 新增紧凑状态条，使用中文学习者文案和 `LearningProgressBar` 的可访问进度语义。
+  - `src/app/page.tsx` 在首页 Current Mission 下方接入 `LearningMomentumStrip`，让首屏直接回答“我现在处于什么阶段、下一步解锁什么、今天还差哪一步”。
+  - `tests/unit/learning-motivation.test.ts` 新增服务层与组件渲染回归，覆盖中文阶段标签、下一步解锁进度、今日闭环、周目标、鼓励语和英文等级名防回退。
+  - 该切片只改读侧首页学习欲望体验，不改 XP 阈值、Daily Quest 口径、数据库、Preview 写保护、生产配置或密钥。
+
+### Verified
+
+- 本地 RED/GREEN：`npm test -- tests/unit/learning-motivation.test.ts` 首次失败于缺少 `@/server/learning/momentum`；GREEN 后 12 项通过。
+- 本地相关回归：`npm test -- tests/unit/learning-motivation.test.ts tests/unit/current-mission.test.ts tests/unit/learning-ui-components.test.ts tests/unit/home-page-labels.test.ts` 46 项通过，覆盖首页动机组件、Current Mission、共享学习 UI 和首页展示标签。
+
+### Not Covered
+
+- 未执行生产部署、Nginx/DNS/数据库迁移/密钥变更或真实生产登录后首页视觉 smoke。
+
 ## [0.344.0] - 2026-06-08
 
 ### Fixed

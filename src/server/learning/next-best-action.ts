@@ -31,6 +31,9 @@ export type NextBestAction = {
   href: string;
   ctaLabel: string;
   tone: NextBestActionTone;
+  priorityLabel?: string;
+  estimatedMinutes?: number;
+  companionLabel?: string;
 };
 
 export function buildNextBestAction(input: NextBestActionInput): NextBestAction {
@@ -43,6 +46,9 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       href: "/today",
       ctaLabel: "继续今日学习",
       tone: "info",
+      priorityLabel: "推荐",
+      estimatedMinutes: 20,
+      companionLabel: "AI 陪练",
     };
   }
 
@@ -53,6 +59,9 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       href: "/review",
       ctaLabel: "开始复习",
       tone: "warning",
+      priorityLabel: "重要",
+      estimatedMinutes: 10,
+      companionLabel: "推荐",
     };
   }
 
@@ -66,6 +75,9 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       href: "/coach",
       ctaLabel: "打开 Coach",
       tone: "danger",
+      priorityLabel: "重要",
+      estimatedMinutes: 12,
+      companionLabel: "Coach",
     };
   }
 
@@ -79,6 +91,9 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       href: input.activeProject ? `/projects?projectId=${encodeURIComponent(input.activeProject.id)}` : "/review",
       ctaLabel: input.activeProject ? "继续项目" : "复习反馈",
       tone: "info",
+      priorityLabel: "推荐",
+      estimatedMinutes: 15,
+      companionLabel: "Coach",
     };
   }
 
@@ -89,6 +104,9 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       href: `/notes?lessonId=${encodeURIComponent(input.todayLessonId)}`,
       ctaLabel: "写今日笔记",
       tone: "success",
+      priorityLabel: "轻量",
+      estimatedMinutes: 5,
+      companionLabel: "沉淀",
     };
   }
 
@@ -99,6 +117,9 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       href: "/voice",
       ctaLabel: "去说一遍",
       tone: "info",
+      priorityLabel: "轻量",
+      estimatedMinutes: 5,
+      companionLabel: "AI 陪练",
     };
   }
 
@@ -111,6 +132,9 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       href: `/projects?projectId=${encodeURIComponent(input.activeProject.id)}`,
       ctaLabel: "继续项目",
       tone: "info",
+      priorityLabel: "推荐",
+      estimatedMinutes: 15,
+      companionLabel: "项目",
     };
   }
 
@@ -120,5 +144,8 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
     href: "/radar",
     ctaLabel: "探索 Radar",
     tone: "success",
+    priorityLabel: "轻量",
+    estimatedMinutes: 8,
+    companionLabel: "探索",
   };
 }

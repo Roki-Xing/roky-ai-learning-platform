@@ -35,6 +35,7 @@ export default async function WeeklyPage() {
         <CurrentMissionCard
           mission={weekly.mission}
           signals={weekly.missionSignals}
+          progress={weekly.missionProgress}
           title="当前任务"
         />
 

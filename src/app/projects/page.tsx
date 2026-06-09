@@ -220,6 +220,7 @@ export default async function ProjectsPage({
         <CurrentMissionCard
           mission={currentMission.mission}
           signals={currentMission.signals}
+          progress={currentMission.progress}
         />
       }
       actions={

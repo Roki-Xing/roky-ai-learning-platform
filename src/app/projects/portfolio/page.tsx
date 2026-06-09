@@ -38,6 +38,7 @@ export default async function ProjectPortfolioPage() {
         <CurrentMissionCard
           mission={currentMission.mission}
           signals={currentMission.signals}
+          progress={currentMission.progress}
         />
       }
     >

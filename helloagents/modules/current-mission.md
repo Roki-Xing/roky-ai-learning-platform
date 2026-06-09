@@ -34,6 +34,15 @@
 ## 页面接入
 
 - 首页：替换原“现在最值得做”块，直接显示 `当前任务`
+- 首页 Current Mission 卡片现在显示轻量元信息：`推荐/重要/轻量`、预计分钟数和陪练/Coach/项目等 companion 标签。
+- 首页 Current Mission 卡片接入 `buildCurrentMissionProgress()`，显示 `今日闭环 X/4` 与可访问进度条；闭环步骤为今日学习完成、到期复习清空、今日笔记、语音复盘。
+- 首页 Current Mission 下方新增 `LearningMomentumStrip`，将 XP、Daily Quest、streak 和周目标转换为：
+  - 当前阶段称号
+  - 下一步解锁阶段与进度
+  - 本周目标
+  - 今日闭环
+  - 连续学习
+  - 一句下一步鼓励语
 - 首页今日学习状态和补弱焦点 meta 通过 `src/app/_lib/home-labels.ts` 做展示层本地化：
   - DailyPlan status 显示 `已完成`、`待完成`、`未生成`，不直出 `planned` / `completed`。
   - 代码反馈 overall 显示 `部分正确`、`需要重写`、`需要更多信息` 等中文业务标签。
@@ -94,6 +103,7 @@
 - Phase E Current Mission Heading Localization related regression：`npm test -- tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts tests/unit/weekly-review.test.ts tests/unit/learning-path.test.ts tests/unit/today-activity-labels.test.ts` 51 项通过。
 - Phase E Current Mission Misconception Fallback Localization：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts` RED/GREEN 后 13 项通过；覆盖无 focus 未解决误区兜底显示 `N 个未解决误区`，并防止 `open misconception` 回退到学习者可见 reason。
 - Phase E Current Mission Misconception Fallback Localization related regression：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-motivation.test.ts tests/unit/today-code-exercise.test.ts tests/unit/coach-workspace.test.ts` 41 项通过。
+- Sprint Learning Desire Homepage Momentum Strip：`npm test -- tests/unit/learning-motivation.test.ts` RED 首次失败于缺少 `@/server/learning/momentum`，GREEN 后 12 项通过；相关回归 `npm test -- tests/unit/learning-motivation.test.ts tests/unit/current-mission.test.ts tests/unit/learning-ui-components.test.ts tests/unit/home-page-labels.test.ts` 46 项通过。
 - `npm run lint`
 - `npm run build`
 

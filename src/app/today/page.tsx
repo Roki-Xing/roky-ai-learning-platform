@@ -654,6 +654,7 @@ export default async function TodayPage({ searchParams }: TodayPageProps = {}) {
         <CurrentMissionCard
           mission={currentMission.mission}
           signals={currentMission.signals}
+          progress={currentMission.progress}
           title="当前任务"
         />
       }
@@ -897,6 +898,7 @@ export default async function TodayPage({ searchParams }: TodayPageProps = {}) {
             <CurrentMissionCard
               mission={currentMission.mission}
               signals={currentMission.signals}
+              progress={currentMission.progress}
               title="当前任务"
             />
             <Card className="rounded-lg shadow-sm">

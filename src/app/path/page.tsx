@@ -158,6 +158,7 @@ export default async function PathPage() {
         <CurrentMissionCard
           mission={path.mission}
           signals={path.missionSignals}
+          progress={path.missionProgress}
           title="当前任务"
         />
 

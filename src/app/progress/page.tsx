@@ -637,6 +637,7 @@ export default async function ProgressPage() {
         <CurrentMissionCard
           mission={currentMission.mission}
           signals={currentMission.signals}
+          progress={currentMission.progress}
         />
       }
     >

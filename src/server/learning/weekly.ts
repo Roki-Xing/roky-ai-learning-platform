@@ -9,6 +9,7 @@ import { prisma } from "@/server/db";
 import {
   getCurrentMissionData,
   type CurrentMission,
+  type CurrentMissionProgress,
   type CurrentMissionSignal,
 } from "@/server/learning/current-mission";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
@@ -92,6 +93,7 @@ export type WeeklyAiSummary = {
 export type WeeklyReviewData = {
   mission: CurrentMission;
   missionSignals: CurrentMissionSignal[];
+  missionProgress: CurrentMissionProgress;
   windowLabel: string;
   weeklyOverview: WeeklyOverviewMetrics;
   weeklyReportMarkdown: string;
@@ -108,6 +110,7 @@ export type WeeklyReviewData = {
 export type WeeklySnapshotInput = {
   mission: CurrentMission;
   missionSignals: CurrentMissionSignal[];
+  missionProgress: CurrentMissionProgress;
   windowLabel: string;
   lessons: WeeklyLessonSummary[];
   domains: WeeklyDomainStat[];
@@ -350,6 +353,7 @@ export function buildWeeklyReviewSnapshot(
   return {
     mission: input.mission,
     missionSignals: input.missionSignals,
+    missionProgress: input.missionProgress,
     windowLabel: input.windowLabel,
     weeklyOverview,
     weeklyReportMarkdown: buildWeeklyReportMarkdown({
@@ -695,6 +699,7 @@ export async function getWeeklyReviewData(userId: string) {
   return buildWeeklyReviewSnapshot({
     mission: currentMission.mission,
     missionSignals: currentMission.signals,
+    missionProgress: currentMission.progress,
     windowLabel: `${weekStartLocalDate} ~ ${todayLocalDate}`,
     lessons: plans
       .filter((plan) => plan.status === "completed")

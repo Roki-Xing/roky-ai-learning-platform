@@ -36,6 +36,33 @@ test("current mission prioritizes today's lesson before every other queue", asyn
   assert.equal(mission.ctaLabel, "继续今日学习");
 });
 
+test("current mission exposes compact priority and time metadata", async () => {
+  const { buildCurrentMission } = await loadCurrentMission();
+  const mission = buildCurrentMission({
+    ...baseInput,
+    dueFlashcardsCount: 5,
+  });
+
+  assert.equal(mission.priorityLabel, "重要");
+  assert.equal(mission.estimatedMinutes, 10);
+  assert.equal(mission.companionLabel, "推荐");
+});
+
+test("current mission progress summarizes the daily learning loop", async () => {
+  const { buildCurrentMissionProgress } = await loadCurrentMission();
+  const progress = buildCurrentMissionProgress({
+    ...baseInput,
+    todayPlanStatus: "completed",
+    dueFlashcardsCount: 3,
+    todayNoteCount: 1,
+    todayVoiceNoteCount: 0,
+  });
+
+  assert.equal(progress.label, "今日闭环");
+  assert.equal(progress.completed, 2);
+  assert.equal(progress.total, 4);
+});
+
 test("current mission routes unresolved misconceptions to coach with focus copy", async () => {
   const { buildCurrentMission } = await loadCurrentMission();
   const mission = buildCurrentMission({
@@ -78,11 +105,19 @@ test("current mission card renders heading, signal summary, and action", () => {
         href: "/today",
         ctaLabel: "继续今日学习",
         tone: "info",
+        priorityLabel: "推荐",
+        estimatedMinutes: 20,
+        companionLabel: "AI 陪练",
       },
       signals: [
         { label: "误区", value: "2", tone: "danger" },
         { label: "代码反馈", value: "1", tone: "info" },
       ],
+      progress: {
+        label: "今日闭环",
+        completed: 2,
+        total: 4,
+      },
     }),
   );
 
@@ -96,6 +131,12 @@ test("current mission card renders heading, signal summary, and action", () => {
   assert.match(markup, /继续今日学习/);
   assert.match(markup, /min-h-11/);
   assert.match(markup, /w-full sm:w-auto/);
+  assert.match(markup, /推荐/);
+  assert.match(markup, /20 分钟/);
+  assert.match(markup, /AI 陪练/);
+  assert.match(markup, /今日闭环/);
+  assert.match(markup, /2\/4/);
+  assert.match(markup, /role="progressbar"/);
 });
 
 test("current mission page wiring uses localized learner-facing headings", () => {

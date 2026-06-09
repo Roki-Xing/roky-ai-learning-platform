@@ -18,15 +18,39 @@ export type CurrentMissionSignal = {
   tone?: NextBestActionTone;
 };
 
+export type CurrentMissionProgress = {
+  label: string;
+  completed: number;
+  total: number;
+};
+
 export type CurrentMissionData = {
   mission: CurrentMission;
   signals: CurrentMissionSignal[];
+  progress: CurrentMissionProgress;
   input: CurrentMissionInput;
   todayLocalDate: string;
 };
 
 export function buildCurrentMission(input: CurrentMissionInput): CurrentMission {
   return buildNextBestAction(input);
+}
+
+export function buildCurrentMissionProgress(
+  input: CurrentMissionInput,
+): CurrentMissionProgress {
+  const steps = [
+    input.todayPlanStatus === "completed",
+    input.dueFlashcardsCount === 0,
+    Boolean(input.todayLessonId && input.todayNoteCount > 0),
+    Boolean(input.todayLessonId && input.todayVoiceNoteCount > 0),
+  ];
+
+  return {
+    label: "今日闭环",
+    completed: steps.filter(Boolean).length,
+    total: steps.length,
+  };
 }
 
 export function buildCurrentMissionSignals(
@@ -163,6 +187,7 @@ export async function getCurrentMissionData(
   return {
     mission: buildCurrentMission(input),
     signals: buildCurrentMissionSignals(input),
+    progress: buildCurrentMissionProgress(input),
     input,
     todayLocalDate,
   };
