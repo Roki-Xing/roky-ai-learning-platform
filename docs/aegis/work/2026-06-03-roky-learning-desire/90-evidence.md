@@ -7,14 +7,18 @@
 | `npm test -- tests/unit/weekly-review.test.ts` | fail then pass, 9 tests | RED first failed because `weeklyRitualSummary` did not exist, `/weekly` lacked `saveWeeklyReflectionAction`, and `src/app/weekly/actions.ts` did not exist. GREEN passed after adding deterministic weekly ritual summary data, the `/weekly` ritual card, the reflection form, and the standalone note action. |
 | `npm test -- tests/unit/weekly-review.test.ts tests/unit/notes-create.test.ts tests/unit/notes-template.test.ts tests/unit/notes-page-ui.test.ts tests/unit/auth-policy.test.ts tests/unit/learning-ui-components.test.ts` | pass, 56 tests | Related regression covers Weekly, Notes standalone note creation, Notes UI, Preview write protection, Auth and shared learning UI. |
 | `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates before push; full unit suite passed 471 tests, route audit reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
+| `git push origin main` | pass | Code commit `6c938bf feat: add weekly ritual reflection` pushed to `origin/main`. |
+| Production backup and deploy | pass | Created `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.359.0-20260610-071814.tar.gz`, rsynced code to `118.25.15.72:/home/ubuntu/ai-learning-platform`, pruned dev dependencies after validation, and restarted container `ai-learning-platform`. |
+| Remote container gates | pass with DB test boundary | In container, the non DB remote gate passed: Weekly Review, Notes Template, Notes Page UI, Auth Policy, and shared Learning UI tests passed 53 tests; `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, and `npm run build` passed. `notes-create.test.ts` was not used as a remote gate because it requires a local test DB at `localhost:65432`, which is not present in the production container; the write path is covered by local regression. |
+| `curl https://learn.roky.chat/api/health` and 390px Playwright login smoke | pass | Health returned 200/ok. Mobile smoke logged in to `/weekly`, saw `本周学习总结`, `本周称号`, `周记`, `保存到笔记`, `我这周最大的收获是...`, `我下周想重点学...`, and `导出 Weekly Markdown`; exported Markdown contained `## 本周学习总结` and `## 周记草稿`. The smoke intentionally did not submit the production reflection form to avoid adding a real Note. |
 
 Changed surface:
 
 - Reduce Chaos Weekly Ritual Summary and Reflection Note layer: `src/server/learning/weekly.ts`, `src/app/weekly/page.tsx`, `src/app/weekly/actions.ts`, `tests/unit/weekly-review.test.ts`, `tests/unit/auth-policy.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/weekly.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
 
-Not covered yet:
+Not covered:
 
-- GitHub push, production deployment, production smoke, and production deploy evidence are still pending for this slice. Production smoke will avoid write-type weekly reflection submission to keep production Notes clean.
+- Real production write-type weekly reflection smoke was intentionally not run to keep production Notes clean. Full Playwright mobile screenshot matrix was not run. `npm audit` still reports existing 3 moderate dependency advisories and was not part of this slice.
 
 ## Reduce Chaos Weekly Mistake Repair Queue
 

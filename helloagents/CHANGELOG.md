@@ -19,10 +19,14 @@
 - GREEN：`npm test -- tests/unit/weekly-review.test.ts` 9 项通过，覆盖 `weeklyRitualSummary`、`本周学习总结`、`本周称号`、Weekly Markdown ritual 小节、周记表单、`saveWeeklyReflectionAction()`、Preview 写保护和手机端 `保存到笔记` CTA。
 - 相关回归：`npm test -- tests/unit/weekly-review.test.ts tests/unit/notes-create.test.ts tests/unit/notes-template.test.ts tests/unit/notes-page-ui.test.ts tests/unit/auth-policy.test.ts tests/unit/learning-ui-components.test.ts` 56 项通过，覆盖 Weekly、Notes standalone note、Preview 写保护、Auth 和共享学习 UI。
 - 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 471 项通过，Next 生产构建生成 31 个静态页面。
+- GitHub：代码提交 `6c938bf feat: add weekly ritual reflection` 已推送到 `origin/main`。
+- 生产部署：已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.359.0-20260610-071814.tar.gz`，rsync 同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，并重启 `ai-learning-platform` 容器。
+- 远端门禁：容器内非 DB 门禁通过，覆盖 Weekly、Notes Template、Notes Page UI、Auth Policy 和共享学习 UI 共 53 项；`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、`npm run build` 通过，随后 `npm prune --omit=dev`。
+- 生产验收：`https://learn.roky.chat/api/health` 返回 200/ok；390px 移动视口密码登录 `/weekly` 后可见 `本周学习总结`、`本周称号`、`周记`、`保存到笔记`、周记提示语和 `导出 Weekly Markdown`，导出 Markdown 包含 `## 本周学习总结` 与 `## 周记草稿`。
 
 ### Not Covered
 
-- 生产部署、生产 Nginx/DNS/database/secrets、真实生产写入型周记 smoke 和完整 Playwright 移动端截图矩阵尚未在本地功能提交前执行；本轮后续部署证据会单独追加。
+- 未执行真实生产写入型周记 smoke，避免污染生产 Notes；未执行完整 Playwright 移动端截图矩阵。远端 `notes-create.test.ts` 依赖本地测试库 `localhost:65432`，生产容器没有该测试 DB，因此未作为远端门禁；该写入链路已由本地相关回归覆盖。`npm audit` 仍报告既有 3 个 moderate 告警，未纳入本轮范围。
 
 ## [0.358.0] - 2026-06-10
 
