@@ -189,27 +189,32 @@ function ReviewCardStage(props: {
         )}
       </div>
 
-      {!revealed ? (
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={!isHydrated}
-          className="min-h-12 w-full sm:w-auto"
-          onClick={() => setRevealed(true)}
-        >
-          显示答案
-        </Button>
-      ) : (
-        <form
-          id="review-rate-form"
-          action={rateFlashcardAction}
-          className="grid gap-2"
-        >
-          <input type="hidden" name="flashcardId" value={card.id} />
-          <input type="hidden" name="rating" value="" />
-          <ReviewRatingControls disabled={Boolean(lastRating)} onRating={submitRating} />
-        </form>
-      )}
+      <div
+        aria-label="复习移动操作"
+        className="sticky bottom-16 z-20 rounded-lg border bg-background/95 p-3 shadow-lg backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none"
+      >
+        {!revealed ? (
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={!isHydrated}
+            className="min-h-12 w-full sm:w-auto"
+            onClick={() => setRevealed(true)}
+          >
+            显示答案
+          </Button>
+        ) : (
+          <form
+            id="review-rate-form"
+            action={rateFlashcardAction}
+            className="grid gap-2"
+          >
+            <input type="hidden" name="flashcardId" value={card.id} />
+            <input type="hidden" name="rating" value="" />
+            <ReviewRatingControls disabled={Boolean(lastRating)} onRating={submitRating} />
+          </form>
+        )}
+      </div>
     </div>
   );
 }

@@ -47,6 +47,8 @@
 13. Active review cards stay centered with a bounded width so mobile and desktop layouts share the same focused reading owner.
 14. Mobile review controls prioritize touch:
    - The page header `开始复习` CTA uses `reviewPageCtaClassName = "min-h-11 w-full sm:w-auto"` so mobile users get a full-width 44px touch target before entering the active card.
+   - Active-card primary controls are wrapped in `aria-label="复习移动操作"` and use `sticky bottom-16 z-20` on mobile so `显示答案` / rating buttons stay above the fixed bottom navigation.
+   - The same action wrapper switches back to static layout at `sm` and above with `sm:static sm:border-0`, so desktop review remains a centered card instead of a floating control surface.
    - `显示答案` is at least 48px tall and full-width on narrow screens.
    - Rating controls are large single-column buttons on mobile and four columns on desktop.
    - Rating buttons expose the label plus spacing interval as their accessible name, such as `忘了 +1d` and `很熟 +14d`; E2E locators should use these names rather than old keyboard-prefix text like `4 很熟`.
@@ -78,6 +80,7 @@
 - `npm test -- tests/unit/review-empty-state.test.ts`
 - `npm test -- tests/unit/review-session-summary.test.ts`
 - `npm test -- tests/unit/learning-ui-components.test.ts`
+- Reduce Chaos Review Mobile Sticky Actions：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/review-empty-state.test.ts tests/unit/review-rating.test.ts` RED/GREEN 后 31 项通过，覆盖移动端 sticky 操作区、Review 空态和评分幂等。
 - `npm test -- tests/unit/today-remediation-intent.test.ts`
 - `npx playwright test tests/e2e/review-interactions.spec.ts --project="Desktop Chrome"`
 - `E2E_BASE_URL=http://127.0.0.1:3000 npm run e2e:mobile-matrix`

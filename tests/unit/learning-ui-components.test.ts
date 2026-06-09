@@ -725,6 +725,33 @@ test("review trainer active card keeps mobile controls large and centered", () =
   assert.match(markup, /电脑快捷键/);
 });
 
+test("review trainer pins the primary review action near the mobile bottom nav", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(ReviewTrainer, {
+      card: {
+        id: "card-mobile-sticky",
+        front: "RAG 的检索链路为什么要先召回再重排？",
+        back: "先用召回扩大候选，再用重排提高相关性。",
+        type: "concept",
+      },
+      queueSize: 3,
+      emptyState: {
+        title: "暂无到期卡片",
+        actions: [],
+      },
+    }),
+  );
+
+  assert.match(markup, /aria-label="复习移动操作"/);
+  assert.match(markup, /sticky bottom-16 z-20/);
+  assert.match(markup, /bg-background\/95/);
+  assert.match(markup, /backdrop-blur/);
+  assert.match(markup, /sm:static/);
+  assert.match(markup, /sm:border-0/);
+  assert.match(markup, /显示答案/);
+  assert.match(markup, /min-h-12 w-full sm:w-auto/);
+});
+
 test("review trainer localizes active card type labels for learners", () => {
   const markup = renderToStaticMarkup(
     React.createElement(ReviewTrainer, {

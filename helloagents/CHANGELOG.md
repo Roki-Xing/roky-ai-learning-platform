@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.354.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Review Mobile Sticky Actions]** 按指导文件第 16 节移动端专项优化 `/review` 的主动回忆操作区，让手机端更接近“快速完成一个学习动作”。
+  - `ReviewCardStage` 的 `显示答案` 和评分表单统一进入 `aria-label="复习移动操作"` 的 sticky 操作容器。
+  - 移动端操作区固定在底部导航上方，使用 `sticky bottom-16 z-20`、半透明背景和 blur；桌面端恢复普通静态布局。
+  - 保留原有 `rateFlashcardAction`、隐藏答案流程、键盘快捷键和评分间隔，不改复习排程或服务端写入逻辑。
+
+### Verified
+
+- RED：`npm test -- tests/unit/learning-ui-components.test.ts` 首次失败于 Review 活动卡片缺少 `aria-label="复习移动操作"` 和 `sticky bottom-16`。
+- GREEN：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/review-empty-state.test.ts tests/unit/review-rating.test.ts` 31 项通过，覆盖 sticky 操作区、Review 空态和评分幂等。
+
+### Not Covered
+
+- 未执行完整移动端截图矩阵、Playwright 交互 smoke、生产部署或生产写入型评分 smoke。
+
 ## [0.353.0] - 2026-06-10
 
 ### Changed
