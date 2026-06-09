@@ -535,15 +535,16 @@ test("knowledge path explorer renders viewed card reviewed weak and next states"
               hasCard: true,
               reviewed: false,
               weak: true,
-              statusLabel: "未掌握",
+              statusLabel: "已生成卡片",
             },
           ],
           viewedCount: 2,
           cardCount: 2,
           reviewedCount: 1,
           weakCount: 1,
+          masteredCount: 1,
           nextSlug: "react",
-          nextStatusLabel: "未掌握",
+          nextStatusLabel: "已生成卡片",
         },
       ],
       hrefForSlug: (slug) => `/glossary?term=${slug}`,
@@ -556,7 +557,7 @@ test("knowledge path explorer renders viewed card reviewed weak and next states"
   assert.match(markup, /<div>已看<\/div><div class="[^"]*">2\/2<\/div>/);
   assert.match(markup, /<div>已生成卡片<\/div><div class="[^"]*">2\/2<\/div>/);
   assert.match(markup, /<div>已复习<\/div><div class="[^"]*">1\/2<\/div>/);
-  assert.match(markup, /<div>未掌握<\/div><div class="[^"]*">1<\/div>/);
+  assert.match(markup, /<div>掌握<\/div><div class="[^"]*">1\/2<\/div>/);
   assert.match(markup, /aria-label="路径进度：Agent 基础链路"/);
   assert.doesNotMatch(markup, /aria-label="已看 2\/2"/);
   assert.doesNotMatch(markup, /aria-label="已生成卡片 2\/2"/);
@@ -565,6 +566,7 @@ test("knowledge path explorer renders viewed card reviewed weak and next states"
   assert.match(markup, /下一项/);
   assert.match(markup, /react/);
   assert.doesNotMatch(markup, />Path Mode</);
+  assert.doesNotMatch(markup, /未看过|已看过|已制卡|未掌握/);
 });
 
 test("review trainer completion summary highlights retention and next action", () => {

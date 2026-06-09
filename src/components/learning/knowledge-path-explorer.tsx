@@ -14,13 +14,15 @@ export type KnowledgePathExplorerPath = {
   cardCount: number;
   reviewedCount: number;
   weakCount: number;
+  masteredCount: number;
   nextSlug: string | null;
   nextStatusLabel: string | null;
 };
 
 function statusTone(item: KnowledgePathItemStatus): LearningStatusTone {
   if (item.weak) return "danger";
-  if (item.reviewed) return "success";
+  if (item.mastered) return "success";
+  if (item.reviewed) return "info";
   if (item.hasCard) return "info";
   if (item.viewed) return "warning";
   return "neutral";
@@ -71,7 +73,7 @@ export function KnowledgePathExplorer(props: {
                 <PathMetric label="已看" value={`${path.viewedCount}/${total}`} />
                 <PathMetric label="已生成卡片" value={`${path.cardCount}/${total}`} />
                 <PathMetric label="已复习" value={`${path.reviewedCount}/${total}`} />
-                <PathMetric label="未掌握" value={path.weakCount} />
+                <PathMetric label="掌握" value={`${path.masteredCount}/${total}`} />
               </div>
 
               <div className="mt-3">

@@ -59,7 +59,7 @@ test("today completion next actions carry lesson context into voice and coach @i
 
   await completion.getByRole("link", { name: /说出今天的理解|继续语音复盘/ }).click();
   await expect(page).toHaveURL(/\/voice\?lessonId=.+&mode=today_lesson/);
-  await expect(page.getByRole("heading", { name: "语音学习捕获" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "说出你的理解" })).toBeVisible();
   await expect(page.locator('select[name="mode"]')).toHaveValue("today_lesson");
   expect(new URL(page.url()).searchParams.get("lessonId")).toBeTruthy();
 
@@ -72,8 +72,8 @@ test("today completion next actions carry lesson context into voice and coach @i
   await expect(refreshedCompletion).toBeVisible();
 
   await refreshedCompletion.getByRole("link", { name: /让 Coach 检查|继续 Coach 检查/ }).click();
-  await expect(page).toHaveURL(/\/coach\?lessonId=.+&mode=today_lesson/);
+  await expect(page).toHaveURL(/\/coach\?lessonId=.+&mode=concept_question/);
   await expect(page.getByRole("heading", { name: "思路评审" })).toBeVisible();
-  await expect(page.locator('select[name="mode"]')).toHaveValue("today_lesson");
+  await expect(page.locator('select[name="mode"]')).toHaveValue("concept_question");
   expect(new URL(page.url()).searchParams.get("lessonId")).toBeTruthy();
 });

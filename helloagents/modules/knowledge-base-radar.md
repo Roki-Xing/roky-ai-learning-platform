@@ -15,7 +15,7 @@
 7. 点击“生成复习卡片”，卡片进入 `/review`。
 8. 在 `/today` 的今日术语和今日广度小卡中跳转到对应详情页。
 9. 在 `/map` 查看术语库覆盖、Radar 覆盖、类型分布和复习队列状态。
-10. 在 `/glossary` 和 `/radar` 使用学习路径查看 `已看 / 已生成卡片 / 已复习 / 未掌握 / 下一项`。
+10. 在 `/glossary` 和 `/radar` 使用学习路径查看 `已看 / 已生成卡片 / 已复习 / 掌握 / 下一项`，节点状态只显示 `未看 / 已查看 / 已生成卡片 / 已复习 / 掌握`。
 
 ## 每日广度轮转
 
@@ -238,12 +238,12 @@
 
 - 当前路径由 `src/server/knowledge/paths.ts` 定义，不新增表结构。
 - Glossary 路径：
-  - Agent Path：`cot -> react -> reflexion -> tool-calling -> swe-bench`
+  - Agent Path：`cot -> react -> reflexion -> agent -> swe-bench`
   - RAG Path：`embedding -> vector-database -> retriever -> reranker -> rag-evaluation`
-  - LLM Training Path：`pretraining -> sft -> rlhf -> dpo -> rft`
+  - LLM Training Path：`sft -> rlhf -> dpo -> alignment`
 - Radar 路径：
   - AI Industry Path：`openai -> anthropic -> google-deepmind -> meta-ai -> mistral -> deepseek`
-  - Benchmark Path：`humaneval -> swe-bench -> mmlu -> gpqa -> livecodebench`
+  - Benchmark Path：`humaneval -> swe-bench -> swe-agent -> tau-bench`
 - `/glossary` 必须展示全部 `kind === "glossary"` 的 curated paths，不能截断导致 `LLM Training Path` 不可见。
 - `/radar` 必须展示全部 `kind === "radar"` 的 curated paths，不能截断未来新增路径。
 - 学习路径模块的模式徽章显示 `路径模式`，不显示 `Path Mode`。
@@ -251,7 +251,8 @@
   - `glossary:<userId>:<slug>`
   - `radar:<userId>:<slug>`
 - `reviewCount > 0` 视为已复习，`hasCard` 视为已生成卡片。
-- 学习路径卡指标文案必须对齐 guidance：`已看`、`已生成卡片`、`已复习`、`未掌握`、`下一项`。
+- 学习路径卡指标文案必须对齐 guidance：`已看`、`已生成卡片`、`已复习`、`掌握`、`下一项`。
+- 学习路径节点状态必须对齐 guidance 五态：`未看`、`已查看`、`已生成卡片`、`已复习`、`掌握`；`weak` 只作为内部排序/风险信号，不作为节点状态文案展示。
 
 ## Radar 可信度治理
 

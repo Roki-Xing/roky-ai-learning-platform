@@ -14,6 +14,10 @@ const voiceFormCtaClassName = "min-h-11 w-full sm:w-auto";
 const voiceModeSelectClassName = "min-h-11 rounded-md border bg-background px-3 text-sm outline-none";
 const voiceReflectionTemplateButtonClassName =
   "min-h-11 rounded-md border bg-background px-3 py-2 text-left transition-colors hover:bg-muted/50";
+const transcriptPlaceholderByMode = new Map([
+  ["book_question", "我正在读第 X 页，我不理解的是..."],
+]);
+const defaultTranscriptPlaceholder = "我今天学的是...\n我理解为...\n我卡住的是...\n我想让 Coach 检查...";
 
 export function VoiceWorkspaceForm(props: {
   modes: Array<readonly [string, string]>;
@@ -206,7 +210,7 @@ export function VoiceWorkspaceForm(props: {
               name="transcript"
               aria-label="语音转写文本"
               className="min-h-44"
-              placeholder="录音后点“自动转写”，或者直接写下你刚才说的理解、疑问、代码思路..."
+              placeholder={transcriptPlaceholderByMode.get(mode) ?? defaultTranscriptPlaceholder}
               value={transcript}
               onChange={(e) => setTranscript(e.target.value)}
             />

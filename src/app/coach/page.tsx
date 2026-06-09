@@ -60,13 +60,11 @@ type ReviewJson = {
 };
 
 const MODES = [
-  ["today_lesson", "今日课程"],
-  ["concept_question", "概念疑问"],
-  ["code_reasoning", "代码思路"],
-  ["algorithm_design", "算法设计"],
-  ["glossary_term", "术语理解"],
-  ["industry_radar", "行业广度"],
-  ["free_thought", "自由想法"],
+  ["concept_question", "我想解释一个概念"],
+  ["code_reasoning", "我想检查一段代码思路"],
+  ["mistake_retell", "我想复述一个错题"],
+  ["book_question", "我想问一本书里的内容"],
+  ["glossary_term", "我想问某个术语/人物/Benchmark"],
 ] as const;
 
 const coachPageCtaClassName = "min-h-11 w-full sm:w-auto";
@@ -74,7 +72,15 @@ const coachReviewHistoryLinkClassName = "min-h-11 rounded-md border px-3 py-2 te
 const coachIncludeLessonLabelClassName = "flex min-h-11 items-center gap-2 rounded-md border bg-muted/20 px-3 py-2 text-sm";
 
 function normalizeCoachPageMode(value: string | undefined) {
-  return MODES.some(([mode]) => mode === value) ? value ?? "today_lesson" : "today_lesson";
+  const mode = value?.trim();
+  const matchedMode = MODES.find(([candidate]) => candidate === mode)?.[0];
+  if (matchedMode) return matchedMode;
+  if (mode === "today_lesson" || mode === "free_thought") return "concept_question";
+  if (mode === "code_debug" || mode === "algorithm_design") return "code_reasoning";
+  if (mode === "glossary_question" || mode === "industry_radar" || mode === "paper_reading") {
+    return "glossary_term";
+  }
+  return "concept_question";
 }
 
 function asReviewJson(value: unknown): ReviewJson {

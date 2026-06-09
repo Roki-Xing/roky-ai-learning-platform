@@ -12,10 +12,10 @@ function prompt(lines: string[]) {
 }
 
 const VOICE_REFLECTION_PROMPT = prompt([
-  "我今天学了什么？",
-  "我哪里还不懂？",
-  "我能举什么例子？",
-  "我希望 Coach 检查什么？",
+  "我今天学的是...",
+  "我理解为...",
+  "我卡住的是...",
+  "我想让 Coach 检查...",
 ]);
 
 export const VOICE_REFLECTION_TEMPLATES: VoiceReflectionTemplate[] = [
@@ -30,8 +30,23 @@ export const VOICE_REFLECTION_TEMPLATES: VoiceReflectionTemplate[] = [
     prompt: VOICE_REFLECTION_PROMPT,
   },
   {
+    id: "mistake_retell",
+    label: "错题复述",
+    prompt: VOICE_REFLECTION_PROMPT,
+  },
+  {
     id: "glossary_explanation",
     label: "术语解释",
+    prompt: VOICE_REFLECTION_PROMPT,
+  },
+  {
+    id: "project_retrospective",
+    label: "项目复盘",
+    prompt: VOICE_REFLECTION_PROMPT,
+  },
+  {
+    id: "book_question",
+    label: "读书疑问",
     prompt: VOICE_REFLECTION_PROMPT,
   },
   {
@@ -42,11 +57,6 @@ export const VOICE_REFLECTION_TEMPLATES: VoiceReflectionTemplate[] = [
   {
     id: "industry_observation",
     label: "行业观察",
-    prompt: VOICE_REFLECTION_PROMPT,
-  },
-  {
-    id: "project_retrospective",
-    label: "项目复盘",
     prompt: VOICE_REFLECTION_PROMPT,
   },
 ];

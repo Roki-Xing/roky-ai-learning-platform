@@ -24,11 +24,11 @@
 - 首页 `当前任务` / 当前行动提示应可见，不应显示旧标题 `Current Mission / 当前任务`
 - 首页 `当前任务` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 首页 `当前任务` 若推荐处理未解决误区，应显示 `N 个未解决误区`，不应显示英文 `open misconception`
-- 首页 `今日能量` 的 `开始今日/回到今日`、`复习`、`说出理解` 快捷 CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
-- 首页 section header action，例如 `今日学习` 和 `今日三件事` 顶部 CTA，在手机端应是全宽大触控目标，且共享 section action wrapper 不应把手机端 action 固定为 `shrink-0`
-- 首页 `常用入口` 每条 `打开` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
+- 首页首屏 `首页主任务` 只应包含 `当前任务`、今日进度条和一个主 CTA，不应并排展示 `今日能量`、`常用入口` 或多个工具快捷 CTA。
+- 首页次级动作应默认折叠在 `今天还可以`，包含写笔记、说出理解、推进项目和查看路径等入口；每条 `打开` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
+- 首页 section header action，例如 `今日学习` 顶部 CTA，在手机端应是全宽大触控目标，且共享 section action wrapper 不应把手机端 action 固定为 `shrink-0`
 - 首页 `今日任务` 应可见
-- 首页 `今日任务` / `今日三件事` 中的任务卡 CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11`、`w-full sm:w-auto`，且任务卡手机端不应用横向 `flex` 挤压按钮
+- 首页 `今日任务` 中的任务卡 CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11`、`w-full sm:w-auto`，且任务卡手机端不应用横向 `flex` 挤压按钮
 - 首页 `今日任务` Daily Quest 每条任务的 XP badge 和 CTA 在手机端应纵向排列，CTA 至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 首页和 `/progress` 的徽章架顶部解锁计数应显示 `已解锁 N 个`，不应显示英文 `N earned`
 - 首页和 `/progress` 的语音徽章应显示 `首次语音笔记`，不应显示 `首次 Voice Note`
@@ -37,7 +37,7 @@
 - 首页和 `/progress` 的 `轻量学习模式` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 首页当前项目卡应显示 `当前项目进度`、项目标题、`进度`、`今日里程碑` 和 `继续项目`；`选择项目` / `继续项目` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 如果今日课程带 `Lesson.connections.glossary/breadth`，Daily Quest 应显示 `今日术语挑战`、`今日人物挑战` 或 `今日 Benchmark 挑战` 之一，并链接到 `/glossary` 或 `/radar`
-- 当今日学习、到期复习、误区补弱、代码反馈、今日笔记、语音复盘和项目任务都没有更高优先级动作时，首页 `当前任务` 应推荐 `做一个轻量广度探索` 并链接到 `/radar`
+- 当今日学习、到期复习、误区补弱、代码反馈、今日笔记、语音复盘和项目任务都没有更高优先级动作时，首页 `当前任务` 应推荐 `今天轻量探索：认识 SWE-bench` 并链接到 `/radar?entity=swe-bench`
 - 首页今日学习状态应显示中文业务标签，例如 `已完成`、`待完成`、`未生成`，不应直接显示 raw `planned` / `completed`
 - 首页补弱焦点应显示中文来源和状态，例如 `小测验`、`代码反馈`、`部分正确`，不应直接显示 raw `quiz`、`partially_correct`
 
@@ -122,6 +122,8 @@
 
 - 输入区、上下文区、反馈结果区可见
 - `输入内容` 旁的必填 badge 应显示 `必填`，不应显示英文 `required`
+- `评审模式` 主下拉只应提供 5 个学习者意图：`我想解释一个概念`、`我想检查一段代码思路`、`我想复述一个错题`、`我想问一本书里的内容`、`我想问某个术语/人物/Benchmark`；不应继续把 `今日课程`、`算法设计`、`行业广度`、`自由想法` 作为主输入类型展示
+- 从 Today 进入 Coach 的完成后行动应链接到 `/coach?lessonId=...&mode=concept_question`；旧 `today_lesson` URL 可兼容进入，但不应继续由 Today 主链路传播
 - `评审模式` 选择框在手机端应满足 44px 触控高度，至少包含 `min-h-11`
 - `关联最近课程` checkbox label 在手机端应满足 44px 触控高度，至少包含 `min-h-11`
 - 支持从课程或语音上下文进入
@@ -131,7 +133,7 @@
 - 上下文面板徽章应显示 `上下文指南针`，不应显示 `Context Compass`
 - 可能问题卡片应显示中文问题类型和优先级，例如 `概念问题`、`高优先级`，不应直接显示 raw `conceptual`、`high`
 - 从语音笔记进入的 review 应显示 `来自语音笔记` 来源面板、转写预览、`查看语音笔记` 和 `保存为 Note` / `查看 Note`，不应显示 `来自 Voice Note` 或 `查看 Voice Note`
-- 语音笔记来源模式应显示中文业务标签，例如 `代码调试`，不应直接显示 raw `code_debug`
+- 语音笔记来源模式应显示中文业务标签，例如 `代码思路`、`错题复述`、`读书疑问`，不应直接显示 raw `code_debug`、`mistake_retell` 或 `book_question`
 - 语音笔记来源的 Coach review 仍应能通过 `生成卡片` 进入 `/review?source=voice-note` focused review；普通 Coach review 继续进入 `/review?source=thought-review`
 - 语音笔记来源的 Coach review 在卡片已生成后，静态 `复习这 N 张 Coach 卡片` 链接也应进入 `/review?source=voice-note`，不应回退到普通 `thought-review` 队列
 - `提交给 Coach`、`查看课程`、`生成卡片`、`复习这 N 张 Coach 卡片`、右侧 `今日学习` / `复习中心` / `查看关联课程`、最近评审入口在手机端应是全宽大触控目标，至少包含 `min-h-11`；按钮类 CTA 还应包含 `w-full sm:w-auto`
@@ -141,6 +143,7 @@
 ## Voice `/voice`
 
 - 录音或 transcript 输入区可见
+- 页头标题应显示 `说出你的理解`，副标题应显示 `不用整理，先说出来。Roky 会帮你转写、整理、检查和生成卡片。`，不应退回旧标题 `语音学习捕获`
 - 页头 badge 应显示 `语音捕获`，不应显示英文 `Voice`
 - 手机端录音主操作应显示 `一键录音` 和 `停止并转写`，按钮为大触控目标
 - 录音状态面板的计时器标签应显示 `录音计时`，不应显示纯英文 `recording`
@@ -162,8 +165,9 @@
 - Voice 输入表单中的 `开始 60 秒反思`、`清空` 和 `保存并进入分析` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 转写 prompt 应保护 `CoT`、`SWE-bench`、`BM25`、`Reranker`、`Embedding`、`Vector Database` 等 AI 术语
 - Transcript cleanup 应能把 `chain of thought`、`swe bench/swebench`、`rag`、`lora`、`mmlu`、`gpqa` 归一化为稳定写法
-- `60 秒反思模板` 应显示 `今日理解`、`代码思路`、`术语解释`、`论文阅读`、`行业观察`、`项目复盘`
-- 每个反思模板都应显示同一组提示：`我今天学了什么？`、`我哪里还不懂？`、`我能举什么例子？`、`我希望 Coach 检查什么？`
+- `60 秒反思模板` 应显示 `今日理解`、`代码思路`、`错题复述`、`术语解释`、`项目复盘`、`读书疑问`、`论文阅读`、`行业观察`
+- 每个反思模板都应显示同一组提示：`我今天学的是...`、`我理解为...`、`我卡住的是...`、`我想让 Coach 检查...`
+- 从未来 `/books` 进入 Voice 时，`mode=book_question` 应被保留为 `读书疑问`，转写文本 placeholder 应显示 `我正在读第 X 页，我不理解的是...`
 - 每个反思模板入口在手机端应满足 44px 触控高度，至少包含 `min-h-11`
 - 语音学习流水线的 `当前最优动作`、`送 Coach 检查`、`整理成笔记`、`生成复习卡片`、`去复习` CTA 在手机端应为全宽大按钮，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 语音学习流水线步骤标题应显示 `Coach 检查`、`整理笔记`、`复习卡片`，不应单独显示 `Coach`、`Note`、`Cards`
@@ -176,8 +180,8 @@
 
 ## PWA / 移动安装
 
-- 移动端底部导航应包含 `今日`、`复习`、`Coach`、`语音`、`更多`
-- `更多` Sheet 应包含 `/map`、`/library`、`/notes`、`/glossary`、`/radar`、`/projects`、`/progress`、`/settings` 等核心学习入口
+- 移动端底部导航应包含 `今日`、`复习`、`Coach`、`路径`、`更多`，把学习主线优先于单个工具入口。
+- `更多` Sheet 应包含 `/voice`、`/map`、`/library`、`/notes`、`/glossary`、`/radar`、`/projects`、`/progress`、`/settings` 等核心学习入口
 - `更多` Sheet 的每个入口在手机端应满足 44px 触控高度，至少包含 `min-h-11`
 - `/manifest.webmanifest` 应包含 `name`、`short_name`、`start_url=/today`、`display=standalone`、`theme_color`
 - 未登录访问 `/manifest.webmanifest` 应返回 manifest JSON，不应被重定向到 `/login`
@@ -209,7 +213,8 @@
 
 - 页面应显示 `AI Industry Path` 和 `Benchmark Path` 两条 curated learning paths，不应因页面截断而漏掉未来新增 Radar path
 - 学习路径模块徽章应显示 `路径模式`，不应显示 `Path Mode`
-- 学习路径指标应显示 `已看`、`已生成卡片`、`已复习`、`未掌握`、`下一项`
+- 学习路径指标应显示 `已看`、`已生成卡片`、`已复习`、`掌握`、`下一项`
+- 学习路径节点状态只能显示 `未看`、`已查看`、`已生成卡片`、`已复习`、`掌握`
 - 学习路径卡片的 `下一项` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 实体详情应显示 `关系卡片链`
 - 关系卡片链应包含四组：`相关实体`、`相关术语`、`相关论文`、`相关 Benchmark`
@@ -233,7 +238,8 @@
 
 - 页面应显示 `Agent Path`、`RAG Path`、`LLM Training Path` 三条 curated learning paths，不应只显示前两条
 - 学习路径模块徽章应显示 `路径模式`，不应显示 `Path Mode`
-- 学习路径指标应显示 `已看`、`已生成卡片`、`已复习`、`未掌握`、`下一项`
+- 学习路径指标应显示 `已看`、`已生成卡片`、`已复习`、`掌握`、`下一项`
+- 学习路径节点状态只能显示 `未看`、`已查看`、`已生成卡片`、`已复习`、`掌握`
 - 学习路径卡片的 `下一项` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 分类筛选、术语结果列表和术语详情 badge 应显示本地化术语分类，例如 `提示工程`、`Agent`、`检索增强`、`微调`、`模型架构`；不应直接显示 raw `prompting`、`agent`、`retrieval`、`fine-tuning`、`architecture`
 - 术语详情难度 badge 应显示 `入门`、`进阶`、`高阶` 或 `难度未标记`，不应直接显示 raw `beginner`、`intermediate`、`advanced`
@@ -246,9 +252,9 @@
 - 顶部 `去复习`、检索区 `搜索`、相关术语链 `去复习`、详情底部 `生成复习卡片` / `复制详情入口` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 检索区搜索输入 `搜索 CoT / RAG / SWE-bench` 在手机端应满足 44px 触控高度，至少包含 `min-h-11`
 - 相关术语链 header 和生成复习卡片 action 区在手机端应使用单列 `grid gap-2`，避免复习、制卡和复制入口在窄屏挤压
-- `Agent Path` 应按 `CoT -> ReAct -> Reflexion -> Tool Calling -> SWE-bench`
+- `Agent Path` 应按 `CoT -> ReAct -> Reflexion -> Agent -> SWE-bench`
 - `RAG Path` 应按 `Embedding -> Vector Database -> Retriever -> Reranker -> RAG Evaluation`
-- `LLM Training Path` 应按 `Pretraining -> SFT -> RLHF -> DPO -> RFT`
+- `LLM Training Path` 应按 `SFT -> RLHF -> DPO -> Alignment`
 
 ## 课程库 `/library`
 
@@ -431,6 +437,7 @@
 - 页面级 `看进度`、项目复盘 `复习项目卡片`、`生成项目总结` 和 `打开作品集` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 项目类型筛选入口在手机端应满足 44px 触控高度，至少包含 `inline-flex` 和 `min-h-11`，不应回退到小尺寸 `Badge asChild` 链接模板
 - Mission Hero 徽章应显示 `项目任务模式`，不应显示 `Mission Mode`
+- Mission Hero 顶部任务卡应显示 `今日项目任务`，并用固定字段呈现 `项目：...`、`任务：...`、`完成标准：...`、`预计：20 分钟`
 - 当前项目任务 brief 应显示 `当前任务`、`输入/输出`、`需要提交什么`、`AI 评审入口`
 - `AI 评审入口` 应指向现有 `保存并评审代码` 动作，不应暗示服务端会执行用户代码
 - 今日项目任务表单中的 `完成里程碑`、`保存草稿` 和 `保存并评审代码` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
@@ -442,8 +449,10 @@
 - 项目模板列表中的难度 badge 应显示中文业务标签 `入门`、`进阶`、`高阶`，不应把 `beginner`、`intermediate` 或 `advanced` 作为学习者可见文案直出
 - `我的项目` 列表中每个项目入口在手机端应满足 44px 触控高度，至少包含 `min-h-11`
 - 当前里程碑代码反馈应显示中文业务标签，例如 `部分正确`、`已评审`、`高优先级 / 逻辑问题` 和 `代码反馈`，不应直接显示 raw `partially_correct`、`reviewed`、`high / logic` 或英文 `feedback` 前缀
+- 当前里程碑有代码反馈 issue 时，应优先显示 `你现在只需要修这个问题：...` 的单点修复目标，不应把多条反馈压成同等优先级动作
 - 项目和里程碑状态应显示中文业务标签，例如 `进行中`、`已完成`、`待开始`，不应把 raw `active`、`completed` 或 `planned` 作为学习者可见文案直出
 - 里程碑完成态应出现 `里程碑完成` 和 `项目进度`，并显示里程碑进度指标
+- 项目完成态应显示 `你完成了一个项目！`、`练到了：` 和 `生成：`，并列出代码卡与概念卡数量
 - 里程碑路线保存状态应显示 `已保存代码`、`已保存反思`、`AI 已评审`，不应显示 `code saved`、`reflection saved`、`AI reviewed`
 - 项目复习队列中的 `复习代码反馈` 和 `复习项目卡片` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 已完成项目应在 `项目作品集` 中显示 `导出 Portfolio Markdown`，内容包含项目总结、学习证据、相关知识和代表代码片段
@@ -454,6 +463,7 @@
 - `项目作品集` 区域应提供 `打开作品集`，进入 `/projects/portfolio`
 - `项目作品集` 中每个 `复习项目卡片` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`，卡片 header 手机端应使用单列 `grid` 避免标题和按钮互相挤压
 - `/projects/portfolio` 页头 `回到项目实践` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`，页头 action 区手机端应使用单列 `grid`
+- Books 联动在本阶段只显示 `从《xxx》第 2 章生成一个小项目` 的预留文案，不应新增 `/books` 入口或链接
 - Preview 下创建或提交项目动作应被拒绝
 
 ## Project Portfolio `/projects/portfolio`

@@ -5,7 +5,9 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   MissionCompletionCriteria,
+  ProjectCompletionRitual,
   ProjectDailyRhythmCard,
+  ProjectFeedbackNextFix,
   ProjectListPanel,
   ProjectMilestonePath,
   ProjectMissionBrief,
@@ -50,6 +52,39 @@ test("project mission hero renders the mission workspace hierarchy", () => {
   assert.match(markup, /aria-label="项目任务进度"/);
 });
 
+test("project mission hero renders today's mission mode fields", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(ProjectMissionHero, {
+      mission: {
+        id: "project-rag",
+        title: "简单向量检索系统",
+        description: "从文档切块到本地向量检索。",
+        typeLabel: "RAG 小项目",
+        status: "active",
+        percent: 35,
+        totalMilestones: 3,
+        completedMilestones: 1,
+        remainingMilestones: 2,
+        topicCount: 3,
+        estimatedMinutes: 20,
+        activeMilestoneTitle: "实现 cosine similarity",
+        activeMilestoneTask: "给出 3 个测试样例并覆盖空向量边界。",
+        activeMilestoneCompletionStandard: "给出 3 个测试样例",
+        reviewDue: 0,
+        reviewTotal: 2,
+        codeDue: 1,
+        codeTotal: 3,
+      },
+    }),
+  );
+
+  assert.match(markup, /今日项目任务/);
+  assert.match(markup, /项目：简单向量检索系统/);
+  assert.match(markup, /任务：实现 cosine similarity/);
+  assert.match(markup, /完成标准：给出 3 个测试样例/);
+  assert.match(markup, /预计：20 分钟/);
+});
+
 test("project mission hero keeps today's task slot visible before a project starts", () => {
   const markup = renderToStaticMarkup(
     React.createElement(ProjectMissionHero, {
@@ -90,6 +125,25 @@ test("project mission hero shows a milestone completion cue when the project is 
 
   assert.match(markup, /里程碑完成/);
   assert.match(markup, /3\/3 里程碑/);
+});
+
+test("project completion ritual shows learned topics and generated cards", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(ProjectCompletionRitual, {
+      learnedTopics: ["向量表示", "cosine similarity", "top-k retrieval"],
+      generatedCodeCards: 4,
+      generatedConceptCards: 2,
+    }),
+  );
+
+  assert.match(markup, /你完成了一个项目！/);
+  assert.match(markup, /练到了：/);
+  assert.match(markup, /向量表示/);
+  assert.match(markup, /cosine similarity/);
+  assert.match(markup, /top-k retrieval/);
+  assert.match(markup, /生成：/);
+  assert.match(markup, /4 张代码卡/);
+  assert.match(markup, /2 张概念卡/);
 });
 
 test("project daily rhythm card connects active project to daily flow", () => {
@@ -146,6 +200,26 @@ test("mission completion criteria keeps practical completion rules visible", () 
   assert.match(markup, /代码与思路已保存/);
   assert.match(markup, /边界\/测试用例/);
   assert.match(markup, /保存并评审代码/);
+});
+
+test("project feedback next fix turns code feedback into one repair target", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(ProjectFeedbackNextFix, {
+      issue: "边界条件：空向量时返回什么？",
+      summary: "整体方向正确，但缺少空向量边界。",
+    }),
+  );
+
+  assert.match(markup, /你现在只需要修这个问题：/);
+  assert.match(markup, /边界条件：空向量时返回什么？/);
+  assert.match(markup, /整体方向正确，但缺少空向量边界。/);
+});
+
+test("projects page keeps book generated project copy as future integration only", () => {
+  const source = readFileSync("src/app/projects/page.tsx", "utf8");
+
+  assert.match(source, /从《xxx》第 2 章生成一个小项目/);
+  assert.doesNotMatch(source, /href="\/books"/);
 });
 
 test("project mission brief exposes input output submission and AI review entry", () => {

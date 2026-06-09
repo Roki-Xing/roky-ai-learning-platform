@@ -6,17 +6,17 @@
 
 ## 用户流程
 
-1. 打开 `/voice`，页头 badge 显示 `语音捕获`，不显示英文 `Voice`。
+1. 打开 `/voice`，页头标题显示 `说出你的理解`，副标题显示 `不用整理，先说出来。Roky 会帮你转写、整理、检查和生成卡片。`，页头 badge 显示 `语音捕获`，不显示英文 `Voice`。
 2. 手机端可直接点击“一键录音”，录音区显示计时。
 3. 点击“停止并转写”后，浏览器录音会自动进入转写流程；成功时自动填入转写文本。
 4. 上传音频仍可临时发送到服务端转写；无转写密钥时使用手动转写文本。
 5. 转写 prompt 会显式保护 AI 术语缩写和技术词，例如 `CoT`、`SWE-bench`、`RLHF`、`DPO`、`SFT`、`LoRA`、`QLoRA`、`MoE`、`RAG`、`MMLU`、`GPQA`、`HumanEval`、`ReAct`、`ToT`、`MCP`、`BM25`、`Reranker`、`Embedding`、`Vector Database`。
 6. 转写结果会对常见误识别做后处理，例如 `cot -> CoT`、`chain of thought -> Chain-of-Thought`、`swe bench / swebench -> SWE-bench`、`rag -> RAG`、`lora -> LoRA`、`mmlu -> MMLU`、`gpqa -> GPQA`。
 7. 可以点击“开始 60 秒反思”，把四句模板直接插入转写文本：
-   - 我今天学了什么？
-   - 我哪里还不懂？
-   - 我能举什么例子？
-   - 我希望 Coach 检查什么？
+   - 我今天学的是...
+   - 我理解为...
+   - 我卡住的是...
+   - 我想让 Coach 检查...
 8. 在转写文本区粘贴、编辑或补充转写文本。
 9. 保存语音笔记；学习者可见文案不显示 `Voice Note` / `Voice Notes`。
 10. 在“语音学习流水线”中继续执行：
@@ -39,9 +39,10 @@
 23. 转写结果状态 badge 显示 `转写成功` 或 `需手动整理`，不直接显示 raw `success` / `manual_required`。
 24. 录音/上传状态面板在 `manual_required` 时也显示 `需手动整理`，与转写结果 badge 保持一致，不再显示缩写式 `需手动`。
 25. 转写结果详情显示 `转写方式：自动转写/手动整理` 和 `提示：...`，不直接显示 `provider:`、`model:` 或 `reason:` 技术标签。
-26. 6 个反思模板入口在手机端使用显式 `min-h-11`，避免“今日理解 / 代码思路 / 术语解释 / 论文阅读 / 行业观察 / 项目复盘”退回小触控卡片。
+26. 8 个反思模板入口在手机端使用显式 `min-h-11`，避免“今日理解 / 代码思路 / 错题复述 / 术语解释 / 项目复盘 / 读书疑问 / 论文阅读 / 行业观察”退回小触控卡片。
 27. `/voice`、Voice 捕获状态、Voice 表单、语音学习流水线、Coach 来源面板、Weekly 7 天总览、Weekly Markdown、Notes 当前笔记 badge 和学习徽章统一使用 `语音笔记`，不向学习者显示 `Voice Note` / `Voice Notes` / `来自 Voice 的当前笔记`。
 28. 最近语音笔记列表每条回看入口复用 `voiceRecentNoteLinkClassName = "min-h-11 rounded-md border px-3 py-2 text-sm transition-colors"`，手机端满足 44px 触控高度。
+29. `book_question` 作为未来 `/books` 进入 Voice 的预留模式，表单默认显示 `读书疑问`，转写文本 placeholder 显示 `我正在读第 X 页，我不理解的是...`；该预留不创建 `/books` 页面。
 
 ## 首页推荐
 
@@ -93,8 +94,11 @@
 - `src/server/voice/cleanup.ts`
   - 维护 transcript 后处理规则，将常见 AI 术语误识别归一化为稳定写法。
 - `src/server/voice/reflection-template.ts`
-  - 提供 `今日理解`、`代码思路`、`术语解释`、`论文阅读`、`行业观察`、`项目复盘` 六个反思模板入口。
-  - 六个模板均显示同一组 60 秒提示：`我今天学了什么？`、`我哪里还不懂？`、`我能举什么例子？`、`我希望 Coach 检查什么？`。
+  - 提供 `今日理解`、`代码思路`、`错题复述`、`术语解释`、`项目复盘`、`读书疑问`、`论文阅读`、`行业观察` 八个反思模板入口。
+  - 八个模板均显示同一组 60 秒提示：`我今天学的是...`、`我理解为...`、`我卡住的是...`、`我想让 Coach 检查...`。
+- `src/server/voice/voice-note.ts`
+  - `normalizeVoiceMode()` 接收 `mistake_retell`、`project_retrospective` 和 `book_question` 等学习表达模式。
+  - `voiceModeToCoachMode()` 将错题复述和读书疑问保留为 `mistake_retell` / `book_question` Coach mode；项目复盘继续映射到 `code_reasoning`，避免送 Coach 时回退为 `free_thought`，也避免来源面板和实际评审 mode 不一致。
 - `src/server/voice/submit.ts`
   - `saveVoiceNote()`
   - 支持 manual transcript 与 server-side transcription 两种路径。
@@ -121,7 +125,8 @@
   - 展示 60 秒反思模板，并支持一键插入转写文本。
   - 模式选择框和 transcript 文本区使用中文业务 `aria-label`，避免辅助技术朗读 `Voice Note 模式` 或纯英文 `Transcript`。
   - 模式选择框使用 `voiceModeSelectClassName = "min-h-11 rounded-md border bg-background px-3 text-sm outline-none"`，避免手机端 select 退回小触控目标。
-  - 反思模板按钮使用 `voiceReflectionTemplateButtonClassName = "min-h-11 rounded-md border bg-background px-3 py-2 text-left transition-colors hover:bg-muted/50"`，避免 6 个模板入口退回 44px 以下的小触控卡片。
+  - 反思模板按钮使用 `voiceReflectionTemplateButtonClassName = "min-h-11 rounded-md border bg-background px-3 py-2 text-left transition-colors hover:bg-muted/50"`，避免 8 个模板入口退回 44px 以下的小触控卡片。
+  - 普通模式的转写文本 placeholder 显示 4 句学习表达提示；`mode=book_question` 时显示 `我正在读第 X 页，我不理解的是...`。
   - 转写区域可见标题使用 `转写文本`，避免中文界面中出现独立英文标题 `Transcript`。
 - `src/app/voice/ui/voice-capture.tsx`
   - 浏览器录音停止后自动调用转写流程，成功后填入转写文本。
@@ -133,12 +138,17 @@
 - `src/app/voice/ui/voice-capture-status.ts`
   - 录音/上传状态面板在 `manual_required` 时使用 `需手动整理`，与转写结果 badge 的状态文案保持一致。
 - `src/app/voice/page.tsx`
+  - 页头标题使用 `说出你的理解`，副标题使用 `不用整理，先说出来。Roky 会帮你转写、整理、检查和生成卡片。`，把 Voice 定位为学习表达而不是音频上传工具。
   - 页面级 `打开 Coach` 与学习链路 `去复习` 复用 `voicePageCtaClassName = "min-h-11 w-full sm:w-auto"`，手机端全宽且满足 44px 触控高度。
   - 最近语音笔记列表每条回看入口复用 `voiceRecentNoteLinkClassName`，保持 `min-h-11` 触控高度，避免回看历史语音记录时退回小链接。
   - 选中态、空态、最近列表和语音笔记价值说明使用中文业务文案，防止 `当前 Voice Note`、`最近 Voice Notes`、`Voice Note 的价值` 等旧文案回退。
 
 ## 本地验收
 
+- Reduce Chaos Voice Learning Upgrade：
+  - `npm test -- tests/unit/voice-note.test.ts`：RED/GREEN 后 18 项通过；覆盖 `/voice` 页头学习化、8 个反思模板、新四句 prompt、`mistake_retell` / `book_question` 模式、Books 预留 placeholder 和 Voice → Coach 模式映射。
+  - `npm test -- tests/unit/voice-note.test.ts tests/unit/voice-transcription.test.ts tests/unit/voice-capture-status.test.ts tests/unit/voice-submit.test.ts tests/unit/learning-ui-components.test.ts`：65 项通过，覆盖 Voice 页面、转写术语保护、录音状态、Voice 服务链路和共享学习 UI。
+  - 该切片未创建 `/books` 页面，`book_question` 仅作为 Voice 预留入口。
 - Phase E Voice Recent Note Link Mobile Touch Targets：
   - `npm test -- tests/unit/voice-note.test.ts`：RED 后 GREEN，15 项通过；覆盖最近语音笔记列表入口复用 `voiceRecentNoteLinkClassName`，并防止退回旧 `rounded-md border px-3 py-2 text-sm transition-colors` 小触控模板。
   - `npm test -- tests/unit/voice-note.test.ts tests/unit/voice-capture-status.test.ts tests/unit/voice-transcription.test.ts tests/unit/coach-workspace.test.ts tests/unit/review-filter.test.ts tests/unit/learning-ui-components.test.ts`：75 项通过，覆盖 Voice 页面、录音状态、转写服务、Coach handoff、Review queue 和共享学习 UI。

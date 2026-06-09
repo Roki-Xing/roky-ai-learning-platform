@@ -40,6 +40,8 @@ import {
 } from "@/app/_lib/home-labels";
 import {
   MissionCompletionCriteria,
+  ProjectCompletionRitual,
+  ProjectFeedbackNextFix,
   ProjectListPanel,
   ProjectMilestonePath,
   ProjectMissionBrief,
@@ -66,6 +68,12 @@ function projectTypeHref(type?: string) {
 }
 
 const projectMilestoneInputClassName = "min-h-11";
+const projectDailyMissionMinutes = 20;
+const projectDailyCompletionStandard = "给出 3 个测试样例";
+
+function projectLearnedTopics(project: { relatedTopics?: unknown }) {
+  return strings(project.relatedTopics).slice(0, 5);
+}
 
 export default async function ProjectsPage({
   searchParams,
@@ -141,6 +149,10 @@ export default async function ProjectsPage({
   const activeMilestoneFeedback = activeMilestone
     ? feedbackByMilestoneId.get(activeMilestone.id)
     : null;
+  const activeMilestoneFeedbackIssue =
+    activeMilestoneFeedback?.feedback.issues.find((issue) => issue.severity === "high") ??
+    activeMilestoneFeedback?.feedback.issues[0] ??
+    null;
 
   const typeEntries = Object.entries(PROJECT_TYPE_LABELS) as Array<[ProjectType, string]>;
   const typeFilterItems: ProjectTypeFilterItem[] = [
@@ -187,8 +199,10 @@ export default async function ProjectsPage({
           completedMilestones: selectedProgress.completed,
           remainingMilestones: selectedProgress.remaining,
           topicCount: strings(selectedProject.relatedTopics).length,
+          estimatedMinutes: projectDailyMissionMinutes,
           activeMilestoneTitle: activeMilestone?.title ?? null,
           activeMilestoneTask: activeMilestone?.task ?? null,
+          activeMilestoneCompletionStandard: projectDailyCompletionStandard,
           reviewDue: selectedReviewCards?.due ?? 0,
           reviewTotal: selectedReviewCards?.total ?? 0,
           codeDue: selectedCodeFeedbackCards?.due ?? 0,
@@ -252,6 +266,9 @@ export default async function ProjectsPage({
 
           <LearningSectionCard title="项目模板" description="选择一个能在几小时内收尾的小项目。">
             <ProjectTemplateList templates={templateViews} startAction={startProjectAction} />
+            <div className="mt-3 rounded-lg border bg-muted/20 px-3 py-2 text-xs leading-5 text-muted-foreground">
+              Books 预留：从《xxx》第 2 章生成一个小项目。
+            </div>
           </LearningSectionCard>
 
           <LearningSectionCard title="我的项目" description="继续未完成任务，避免重复开坑。">
@@ -384,33 +401,41 @@ export default async function ProjectsPage({
                     </div>
 
                     {activeMilestoneFeedback ? (
-                      <div className="rounded-lg border bg-card px-3 py-3 text-sm">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="font-medium">代码反馈</div>
-                          <LearningStatusBadge tone="info">
-                            {formatHomeCodeFeedbackOverallLabel(activeMilestoneFeedback.feedback.overall) ?? "已评审"}
-                          </LearningStatusBadge>
+                      <div className="grid gap-3">
+                        <ProjectFeedbackNextFix
+                          issue={activeMilestoneFeedbackIssue?.message}
+                          summary={activeMilestoneFeedback.feedback.summary}
+                        />
+                        <div className="rounded-lg border bg-card px-3 py-3 text-sm">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="font-medium">代码反馈</div>
+                            <LearningStatusBadge tone="info">
+                              {formatHomeCodeFeedbackOverallLabel(activeMilestoneFeedback.feedback.overall) ?? "已评审"}
+                            </LearningStatusBadge>
+                          </div>
+                          <div className="mt-2 text-muted-foreground">
+                            {activeMilestoneFeedback.feedback.summary}
+                          </div>
+                          {activeMilestoneFeedback.feedback.issues.length ? (
+                            <ul className="mt-2 grid gap-1 text-xs text-muted-foreground">
+                              {activeMilestoneFeedback.feedback.issues.slice(0, 3).map((issue) => (
+                                <li key={`${issue.type}-${issue.message}`}>
+                                  {formatCodeFeedbackIssueSeverityLabel(issue.severity)} /{" "}
+                                  {formatCodeFeedbackIssueTypeLabel(issue.type)}：{issue.message}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
                         </div>
-                        <div className="mt-2 text-muted-foreground">
-                          {activeMilestoneFeedback.feedback.summary}
-                        </div>
-                        {activeMilestoneFeedback.feedback.issues.length ? (
-                          <ul className="mt-2 grid gap-1 text-xs text-muted-foreground">
-                            {activeMilestoneFeedback.feedback.issues.slice(0, 3).map((issue) => (
-                              <li key={`${issue.type}-${issue.message}`}>
-                                {formatCodeFeedbackIssueSeverityLabel(issue.severity)} /{" "}
-                                {formatCodeFeedbackIssueTypeLabel(issue.type)}：{issue.message}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
                       </div>
                     ) : null}
                   </form>
                 ) : (
-                  <div className="rounded-lg border bg-emerald-50/50 p-4 text-sm text-emerald-800">
-                    所有里程碑已完成。可以生成项目总结并进入项目卡片复习。
-                  </div>
+                  <ProjectCompletionRitual
+                    learnedTopics={projectLearnedTopics(selectedProject)}
+                    generatedCodeCards={selectedCodeFeedbackCards?.total ?? 0}
+                    generatedConceptCards={selectedReviewCards?.total ?? 0}
+                  />
                 )}
               </LearningSectionCard>
 
@@ -429,6 +454,11 @@ export default async function ProjectsPage({
                 <LearningSectionCard title="项目复盘" description="完成所有里程碑后生成总结和项目卡。">
                   {selectedProject.summary ? (
                     <div className="grid gap-3">
+                      <ProjectCompletionRitual
+                        learnedTopics={projectLearnedTopics(selectedProject)}
+                        generatedCodeCards={selectedCodeFeedbackCards?.total ?? 0}
+                        generatedConceptCards={selectedReviewCards?.total ?? 0}
+                      />
                       <div className="flex flex-wrap items-center gap-2">
                         <LearningStatusBadge tone="success">已总结</LearningStatusBadge>
                         <LearningStatusBadge tone="neutral">

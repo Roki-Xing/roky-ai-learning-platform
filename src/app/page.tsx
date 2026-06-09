@@ -50,41 +50,30 @@ import {
   formatHomeDailyPlanStatusLabel,
 } from "@/app/_lib/home-labels";
 
-const QUICK_ACTIONS = [
-  {
-    href: "/today",
-    label: "继续今日学习",
-    note: "主课、步骤、代码练习和小测验都在这里。",
-  },
-  {
-    href: "/review",
-    label: "去复习",
-    note: "把今天到期的卡片清掉。",
-  },
-  {
-    href: "/coach",
-    label: "让 Coach 看看",
-    note: "把自己的理解说出来，找出误区。",
-  },
+const TODAY_CAN_ALSO_ACTIONS = [
   {
     href: "/notes",
-    label: "写今日笔记",
-    note: "把今天学到的东西沉淀下来。",
+    label: "写一句笔记",
+    note: "把今天最清楚的一句话沉淀下来。",
+  },
+  {
+    href: "/voice",
+    label: "说出今天的理解",
+    note: "用 60 秒口述检查自己是否真的明白。",
   },
   {
     href: "/projects",
-    label: "项目实践",
-    note: "把知识放进任务和里程碑里。",
+    label: "推进项目",
+    note: "把当前知识放进一个可提交的小任务。",
   },
   {
-    href: "/map",
-    label: "查看知识地图",
-    note: "看哪些领域正在增长，下一步补哪里。",
+    href: "/path",
+    label: "看当前路径",
+    note: "确认今天的任务如何连接到长期阶段。",
   },
 ] as const;
 
-const homeQuickCtaClassName = "min-h-11 w-full sm:w-auto";
-const homeCommonEntryCtaClassName = "min-h-11 w-full sm:w-auto shrink-0";
+const homeSecondaryActionCtaClassName = "min-h-11 w-full sm:w-auto shrink-0";
 const homeSectionActionCtaClassName = "min-h-11 w-full sm:w-auto";
 
 export default async function HomePage() {
@@ -355,68 +344,58 @@ export default async function HomePage() {
   return (
     <AppShell activePath="/" title="Roky Learn">
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-5">
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.55fr)]">
-          <div className="grid gap-3">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-                Roky Learn
-              </h1>
-              <p className="text-sm leading-6 text-muted-foreground">
-                每天先看当前任务，再进入今日学习、复习和表达理解。
-              </p>
-            </div>
-            <CurrentMissionCard
-              mission={currentMission}
-              signals={currentMissionSignals}
-              progress={currentMissionProgress}
-              className="p-4 md:p-5"
-            />
-            <LearningMomentumStrip momentum={learningMomentum} />
-            {remediationFocus ? (
-              <div className="rounded-lg border bg-muted/20 p-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <LearningStatusBadge tone={remediationFocus.tone}>补弱焦点</LearningStatusBadge>
-                  <span className="text-xs font-medium text-muted-foreground">{remediationFocus.label}</span>
-                </div>
-                <div className="mt-2 text-sm font-medium leading-relaxed">{remediationFocus.text}</div>
-                {remediationFocus.meta ? (
-                  <div className="mt-1 text-xs text-muted-foreground">{remediationFocus.meta}</div>
-                ) : null}
-              </div>
-            ) : null}
+        <section aria-label="首页主任务" className="grid gap-3">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+              Roky Learn
+            </h1>
+            <p className="text-sm leading-6 text-muted-foreground">
+              每天先看当前任务，再进入今日学习、复习和表达理解。
+            </p>
           </div>
-
-          <LearningSectionCard
-            title="今日能量"
-            description="把今天拆成少量明确动作。"
-          >
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-lg border bg-card p-3">
-                <div className="text-xs text-muted-foreground">到期</div>
-                <div className="mt-1 text-2xl font-semibold tabular-nums">{dueFlashcardsCount}</div>
+          <CurrentMissionCard
+            mission={currentMission}
+            signals={currentMissionSignals}
+            progress={currentMissionProgress}
+            className="p-4 md:p-5"
+          />
+          <LearningMomentumStrip momentum={learningMomentum} />
+          {remediationFocus ? (
+            <div className="rounded-lg border bg-muted/20 p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <LearningStatusBadge tone={remediationFocus.tone}>补弱焦点</LearningStatusBadge>
+                <span className="text-xs font-medium text-muted-foreground">{remediationFocus.label}</span>
               </div>
-              <div className="rounded-lg border bg-card p-3">
-                <div className="text-xs text-muted-foreground">连续</div>
-                <div className="mt-1 text-2xl font-semibold tabular-nums">{streak}</div>
-              </div>
-              <div className="rounded-lg border bg-card p-3">
-                <div className="text-xs text-muted-foreground">课程</div>
-                <div className="mt-1 text-2xl font-semibold tabular-nums">{completedPlansCount}</div>
-              </div>
+              <div className="mt-2 text-sm font-medium leading-relaxed">{remediationFocus.text}</div>
+              {remediationFocus.meta ? (
+                <div className="mt-1 text-xs text-muted-foreground">{remediationFocus.meta}</div>
+              ) : null}
             </div>
-            <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
-              <Button asChild size="sm" className={homeQuickCtaClassName}>
-                <Link href="/today">{isTodayCompleted ? "回到今日" : "开始今日"}</Link>
-              </Button>
-              <Button asChild size="sm" variant="outline" className={homeQuickCtaClassName}>
-                <Link href="/review">复习</Link>
-              </Button>
-              <Button asChild size="sm" variant="outline" className={homeQuickCtaClassName}>
-                <Link href="/voice">说出理解</Link>
-              </Button>
-            </div>
-          </LearningSectionCard>
+          ) : null}
         </section>
+
+        <details className="rounded-lg border bg-card/60">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium">
+            <span>今天还可以</span>
+            <span className="text-xs text-muted-foreground">次级动作</span>
+          </summary>
+          <div className="grid gap-2 border-t p-3 sm:grid-cols-2">
+            {TODAY_CAN_ALSO_ACTIONS.map((action) => (
+              <div
+                key={action.href}
+                className="grid gap-3 rounded-lg border bg-background px-3 py-3 sm:flex sm:items-start sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <div className="font-medium">{action.label}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">{action.note}</div>
+                </div>
+                <Button asChild size="sm" variant="secondary" className={homeSecondaryActionCtaClassName}>
+                  <Link href={action.href}>打开</Link>
+                </Button>
+              </div>
+            ))}
+          </div>
+        </details>
 
         <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]">
           <DailyQuestCard quests={dailyQuests} />
@@ -495,67 +474,6 @@ export default async function HomePage() {
             : null
         }
       />
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <LearningSectionCard
-          title="今日三件事"
-          description="先完成今天最重要的三步。"
-          action={
-            <Button asChild size="sm" variant="secondary" className={homeSectionActionCtaClassName}>
-              <Link href="/today">继续学习</Link>
-            </Button>
-          }
-        >
-          <div className="grid gap-2 text-sm">
-            <LearningMissionCard
-              title="完成今日学习"
-              description="一步一步走完引导步骤与小测验"
-              statusLabel={isTodayCompleted ? "已完成" : "待完成"}
-              tone={isTodayCompleted ? "success" : "warning"}
-              href="/today"
-              actionLabel={isTodayCompleted ? "查看" : "继续"}
-            />
-            <LearningMissionCard
-              title="清空到期复习"
-              description="主动回忆，比直接看答案更有效"
-              statusLabel={dueFlashcardsCount > 0 ? `剩余 ${dueFlashcardsCount}` : "已清空"}
-              tone={dueFlashcardsCount > 0 ? "warning" : "success"}
-              href="/review"
-              actionLabel="复习"
-            />
-            <LearningMissionCard
-              title="写下自己的理解"
-              description="一句话也行，沉淀到笔记库"
-              statusLabel={todayNoteCount > 0 ? `${todayNoteCount} 篇` : "待沉淀"}
-              tone={todayNoteCount > 0 ? "success" : "info"}
-              href="/notes"
-              actionLabel="去写"
-            />
-          </div>
-        </LearningSectionCard>
-
-        <LearningSectionCard
-          title="常用入口"
-          description="从今天最常打开的动作开始。"
-        >
-          <div className="grid gap-2">
-                {QUICK_ACTIONS.map((action) => (
-                  <div
-                    key={action.href}
-                    className="grid gap-3 rounded-lg border bg-card px-3 py-3 sm:flex sm:items-start sm:justify-between"
-                  >
-                    <div className="min-w-0">
-                      <div className="font-medium">{action.label}</div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">{action.note}</div>
-                    </div>
-                    <Button asChild size="sm" variant="secondary" className={homeCommonEntryCtaClassName}>
-                      <Link href={action.href}>打开</Link>
-                    </Button>
-                  </div>
-            ))}
-          </div>
-        </LearningSectionCard>
-      </div>
 
         <div className="text-xs text-muted-foreground">
           {previewMode

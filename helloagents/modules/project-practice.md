@@ -8,16 +8,19 @@
 
 1. 打开 `/projects`，页头 badge 显示 `项目实践`，不显示英文 `Mission`。
 2. 在 Mission Hero 查看当前项目、进度、剩余里程碑、项目卡片到期数和代码反馈到期数。
-3. 按类型筛选项目模板：Python 基础、数据结构、算法、AI 工程、RAG、Agent、数据分析、论文复现。
-4. 点击“开始项目”，模板会复制成当前用户自己的 `LearningProject`。
-5. 在“今日项目任务”里查看当前 milestone、完成条件、代码提示和反思提示。
-6. 保存 milestone 草稿，或填写代码产物、笔记、反思后完成 milestone。
-7. 需要代码反馈时点击“保存并评审代码”，结果会回写到当前 milestone 并生成代码反馈卡片。
-8. 所有 milestones 完成后生成项目总结和项目复习卡片。
-9. 在“项目作品集”复制 `Portfolio Markdown`，沉淀项目总结、学习证据、相关知识和代表代码片段。
-10. 打开 `/projects/portfolio` 查看独立项目作品集页，并把完成项目导出到笔记、简历或学习档案。
-11. 在 `/review` 复习项目总结卡、里程碑卡和项目代码反馈卡。
-12. 在 `/progress` 查看项目数量、完成项目数、里程碑进度和最近项目。
+3. 在顶部 `今日项目任务` 查看固定字段：`项目：...`、`任务：...`、`完成标准：...`、`预计：20 分钟`。
+4. 按类型筛选项目模板：Python 基础、数据结构、算法、AI 工程、RAG、Agent、数据分析、论文复现。
+5. 点击“开始项目”，模板会复制成当前用户自己的 `LearningProject`。
+6. 在“今日项目任务”里查看当前 milestone、完成条件、代码提示和反思提示。
+7. 代码反馈返回 issue 后，先处理 `你现在只需要修这个问题：...` 的单点修复目标。
+8. 项目完成后看到 `你完成了一个项目！`，并检查 `练到了：` 与 `生成：` 的卡片数量。
+9. 保存 milestone 草稿，或填写代码产物、笔记、反思后完成 milestone。
+10. 需要代码反馈时点击“保存并评审代码”，结果会回写到当前 milestone 并生成代码反馈卡片。
+11. 所有 milestones 完成后生成项目总结和项目复习卡片。
+12. 在“项目作品集”复制 `Portfolio Markdown`，沉淀项目总结、学习证据、相关知识和代表代码片段。
+13. 打开 `/projects/portfolio` 查看独立项目作品集页，并把完成项目导出到笔记、简历或学习档案。
+14. 在 `/review` 复习项目总结卡、里程碑卡和项目代码反馈卡。
+15. 在 `/progress` 查看项目数量、完成项目数、里程碑进度和最近项目。
 
 ## 数据模型
 
@@ -84,6 +87,8 @@
   - 继续项目
 - `src/app/projects/ui/project-mission-workspace.tsx` 只负责 `/projects` 展示组件：
   - `ProjectMissionHero`
+  - `ProjectFeedbackNextFix`
+  - `ProjectCompletionRitual`
   - `ProjectTypeFilter`
   - `ProjectTemplateList`
   - `ProjectListPanel`
@@ -97,6 +102,7 @@
 - `ProjectListPanel` 的每个项目入口复用 `projectListPanelLinkClassName`，手机端至少 44px 触控高度，方便从“我的项目”继续当前任务。
 - 学习者可见状态文案保持中文：
   - Mission Hero 徽章显示 `项目任务模式`。
+  - Mission Hero 的 `今日项目任务` 固定展示 `项目：...`、`任务：...`、`完成标准：给出 3 个测试样例`、`预计：20 分钟`，让项目实践从模板列表收束为今日小步。
   - 当前任务状态显示 `进行中` / `已完成` / `待开始`；全部完成 fallback 显示 `全部完成`，不向学习者暴露 raw `planned`。
   - 当前里程碑代码反馈显示 `部分正确` / `已评审`、`高优先级 / 逻辑问题` 和 `代码反馈 <id>`，不向学习者暴露 raw `partially_correct`、`high / logic` 或英文 `feedback` 前缀。
   - 里程碑路线保存状态显示 `已保存代码`、`已保存反思`、`AI 已评审`。
@@ -105,6 +111,9 @@
   - 项目作品集数量显示 `已完成 N 个项目`；独立作品集页顶部徽章显示 `项目作品集`。
   - 项目作品集相关知识 badge 显示中文业务标签，例如 `倒排索引`、`文件读写`、`向量检索`，不向学习者暴露 `inverted-index`、`file-io` 等 raw topic slug。
   - `导出 Portfolio Markdown` 中的 `相关知识` 行显示中文业务标签，例如 `倒排索引, 文件读写`，不把 raw topic slug 写入可复制成果。
+- 当前里程碑有代码反馈 issue 时，`ProjectFeedbackNextFix` 优先展示最高严重度 issue；没有 high issue 时展示第一条 issue。
+- 项目完成态通过 `ProjectCompletionRitual` 显示 `你完成了一个项目！`、`练到了：` 和 `生成：`，代码卡数量来自项目代码反馈卡片统计，概念卡数量来自项目复盘卡片统计。
+- Books 联动当前只在项目模板区显示 `从《xxx》第 2 章生成一个小项目` 预留文案；本切片不新增 `/books` 路由、不写 Books 数据模型。
 - 底部“项目作品集”会为已完成项目展示可复制的 `导出 Portfolio Markdown` 文本区，并提供 `/projects/portfolio` 独立页入口。
 - `/projects/portfolio` 保留 `回到项目实践` 入口，复用同一 portfolio panel 和 Markdown 导出文本，不新增写 action。
 - `Portfolio Markdown` 包含项目标题、项目总结、完成里程碑、代码片段数、反思/笔记数、项目卡片数、相关知识和代表代码片段。
@@ -121,6 +130,7 @@
 
 ## 本地验收
 
+- `npm test -- tests/unit/project-mission-workspace.test.ts`：Reduce Chaos Projects Mission Mode RED 首次失败于 Mission Hero 缺少 `今日项目任务` 字段结构、缺少 `ProjectFeedbackNextFix` / `ProjectCompletionRitual` 导出、页面缺少 Books 预留文案；GREEN 后 27 项通过。
 - Phase E Projects Header Badge Localization：
   - `npm test -- tests/unit/project-mission-workspace.test.ts`：RED 后 GREEN，18 项通过；覆盖 `/projects` 页头 badge 显示 `项目实践`，并防止 `badge="Mission"` 回退。
   - `npm test -- tests/unit/project-mission-workspace.test.ts tests/unit/projects.test.ts tests/unit/today-completion-next-actions.test.ts`：43 项通过，覆盖 Projects UI、项目服务规则和 Today 完成后项目推荐回归。

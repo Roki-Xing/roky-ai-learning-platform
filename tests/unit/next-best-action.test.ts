@@ -123,8 +123,9 @@ test("next best action recommends lightweight breadth exploration when learning 
     activeProject: null,
   });
 
-  assert.equal(action.href, "/radar");
-  assert.match(action.title, /广度探索/);
-  assert.match(action.reason, /Glossary|Radar|轻量/);
-  assert.equal(action.ctaLabel, "探索 Radar");
+  assert.equal(action.href, "/radar?entity=swe-bench");
+  assert.equal(action.title, "今天轻量探索：认识 SWE-bench");
+  assert.match(action.reason, /SWE-bench/);
+  assert.equal(action.ctaLabel, "认识 SWE-bench");
+  assert.equal(action.priorityLabel, "轻量");
 });

@@ -52,7 +52,7 @@ test("today completion actions prioritize review, notes, voice, coach, and proje
       "/review",
       "/notes?lessonId=lesson-2",
       "/voice?lessonId=lesson-2&mode=today_lesson",
-      "/coach?lessonId=lesson-2&mode=today_lesson",
+      "/coach?lessonId=lesson-2&mode=concept_question",
       "/projects?projectId=project-1",
     ],
   );
@@ -79,7 +79,7 @@ test("today completion actions keep voice and coach available when the lesson is
     result.actions.map((action) => action.href),
     [
       "/voice?lessonId=lesson-3&mode=today_lesson",
-      "/coach?lessonId=lesson-3&mode=today_lesson",
+      "/coach?lessonId=lesson-3&mode=concept_question",
       "/projects",
       "/progress",
     ],
@@ -176,7 +176,7 @@ test("learning completion card renders ordered next actions", () => {
   assert.match(markup, /aria-label="让 Coach 检查"/);
   assert.match(markup, /href="\/notes\?lessonId=lesson-4"/);
   assert.match(markup, /href="\/voice\?lessonId=lesson-4&amp;mode=today_lesson"/);
-  assert.match(markup, /href="\/coach\?lessonId=lesson-4&amp;mode=today_lesson"/);
+  assert.match(markup, /href="\/coach\?lessonId=lesson-4&amp;mode=concept_question"/);
 });
 
 test("learning completion card highlights the active project milestone as today's practice task", () => {

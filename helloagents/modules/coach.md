@@ -8,13 +8,11 @@
 
 1. 打开 `/coach`，页头 badge 显示 `思路评审`，不显示英文 `Coach`。
 2. 选择模式：
-   - `today_lesson`
-   - `concept_question`
-   - `code_reasoning`
-   - `algorithm_design`
-   - `glossary_term`
-   - `industry_radar`
-   - `free_thought`
+   - `我想解释一个概念` (`concept_question`)
+   - `我想检查一段代码思路` (`code_reasoning`)
+   - `我想复述一个错题` (`mistake_retell`)
+   - `我想问一本书里的内容` (`book_question`)
+   - `我想问某个术语/人物/Benchmark` (`glossary_term`)
    - 模式选择框在手机端使用 `min-h-11`，满足 44px 触控高度。
 3. 输入自己的理解、困惑、代码思路或行业问题；`输入内容` 旁的必填 badge 显示 `必填`。
 4. 服务端构造学习上下文并生成结构化 ThoughtReview。
@@ -65,6 +63,8 @@
   - standalone glossary review cards
 - `src/server/coach/submit.ts`
   - `normalizeCoachMode()`
+  - 接收 `concept_question`、`code_reasoning`、`mistake_retell`、`book_question`、`glossary_term` 五个主输入类型。
+  - 兼容旧入口：`today_lesson/free_thought -> concept_question`、`code_debug/algorithm_design -> code_reasoning`、`glossary_question/industry_radar/paper_reading -> glossary_term`。
   - `createThoughtReview()`
   - `generateFlashcardsForThoughtReview()`
   - high severity `possibleIssues` 自动沉淀为 Coach source misconception，并更新 `UserTopicState`
@@ -81,6 +81,8 @@
 - 误区沉淀使用 stable sourceKey + upsert，重复处理同一 review issue 不会重复创建 misconception。
 - 无 `lessonId` 的自由想法不创建 misconception，因为当前 `Misconception.lessonId` 为必填字段。
 - `/voice` 入口复用同一 Coach 服务层，避免行为分叉。
+- Today 完成后 `让 Coach 检查` 主链路必须使用 `/coach?lessonId=...&mode=concept_question`，不要继续传播旧 `mode=today_lesson`；页面和服务端仍兼容旧 URL，便于历史入口安全进入。
+- Voice 送入 Coach 时，`mistake_retell` 和 `book_question` 必须保留为同名 Coach mode，不再压成 `concept_question`，避免来源面板和实际评审 mode 不一致。
 - 从语音笔记进入的 Coach 来源面板必须显示 `来自语音笔记` 和 `查看语音笔记`，不显示 `来自 Voice Note` 或 `查看 Voice Note`；内部 `source=voice-note` 队列契约保持不变。
 - `/coach` 页头 badge 使用 `思路评审`，避免在中文学习页面顶部孤立显示英文 `Coach`。
 - `/coach` 输入内容必填状态使用 `必填`，避免在中文表单里孤立显示英文 `required`；textarea 原生 `required` 校验保持不变。

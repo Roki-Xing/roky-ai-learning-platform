@@ -19,8 +19,9 @@ export function PasswordLoginForm({ next }: { next: string }) {
     <form action={formAction} className="grid gap-3">
       <input type="hidden" name="next" value={next} />
       <div className="grid gap-2">
-        <div className="text-sm font-medium">访问密码</div>
+        <label htmlFor="password-login" className="text-sm font-medium">访问密码</label>
         <Input
+          id="password-login"
           type="password"
           name="password"
           placeholder="输入共享访问密码"

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bot, Mic, MoreHorizontal, RotateCcw, Sparkles } from "lucide-react";
+import { Bot, MoreHorizontal, RotateCcw, Route as RouteIcon, Sparkles } from "lucide-react";
 import { APP_ROUTE_GROUPS } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import {
@@ -16,11 +16,12 @@ const MOBILE_PRIMARY_ROUTES = [
   { href: "/today", label: "今日", icon: Sparkles },
   { href: "/review", label: "复习", icon: RotateCcw },
   { href: "/coach", label: "Coach", icon: Bot },
-  { href: "/voice", label: "语音", icon: Mic },
+  { href: "/path", label: "路径", icon: RouteIcon },
 ] as const;
 
 const MORE_ROUTE_ORDER = [
   "/",
+  "/voice",
   "/map",
   "/library",
   "/notes",
@@ -50,7 +51,7 @@ function MoreSheetNav(props: { activePath: string }) {
         <div className="border-b px-4 py-3">
           <SheetTitle className="text-sm font-semibold">更多学习入口</SheetTitle>
           <SheetDescription className="sr-only">
-            打开知识库、项目、进度、复盘和设置页面。
+            打开表达、知识库、项目、进度、复盘和设置页面。
           </SheetDescription>
         </div>
         <nav className="grid grid-cols-2 gap-2 p-4" aria-label="更多学习入口">

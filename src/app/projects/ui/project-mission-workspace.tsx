@@ -44,8 +44,10 @@ export type ProjectMissionView = {
   completedMilestones: number;
   remainingMilestones: number;
   topicCount: number;
+  estimatedMinutes?: number | null;
   activeMilestoneTitle?: string | null;
   activeMilestoneTask?: string | null;
+  activeMilestoneCompletionStandard?: string | null;
   reviewDue: number;
   reviewTotal: number;
   codeDue: number;
@@ -92,6 +94,9 @@ export type ProjectPortfolioView = {
   featuredCodeSnippet?: string | null;
   portfolioMarkdown?: string;
 };
+
+const defaultProjectMissionMinutes = 20;
+const defaultProjectCompletionStandard = "给出 3 个测试样例";
 
 function statusTone(status: string): LearningStatusTone {
   if (status === "completed") return "success";
@@ -162,6 +167,11 @@ export function ProjectMissionHero({ mission }: { mission: ProjectMissionView | 
     );
   }
 
+  const taskTitle = mission.activeMilestoneTitle ?? "所有里程碑已完成";
+  const completionStandard =
+    mission.activeMilestoneCompletionStandard ?? defaultProjectCompletionStandard;
+  const estimatedMinutes = mission.estimatedMinutes ?? defaultProjectMissionMinutes;
+
   return (
     <section className="rounded-lg border bg-card p-4 shadow-sm md:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -198,15 +208,69 @@ export function ProjectMissionHero({ mission }: { mission: ProjectMissionView | 
         />
       ) : null}
       <div className="mt-4 rounded-lg border bg-muted/20 p-3">
-        <div className="text-xs font-medium text-muted-foreground">今日只做这一小步</div>
-        <div className="mt-1 text-sm font-semibold">
-          {mission.activeMilestoneTitle ?? "所有里程碑已完成"}
+        <div className="text-xs font-medium text-muted-foreground">今日项目任务</div>
+        <div className="mt-2 grid gap-2 text-sm">
+          <MissionTaskLine label="项目" value={mission.title} strong />
+          <MissionTaskLine label="任务" value={taskTitle} strong />
+          <MissionTaskLine label="完成标准" value={completionStandard} />
+          <MissionTaskLine label="预计" value={`${estimatedMinutes} 分钟`} />
         </div>
         {mission.activeMilestoneTask ? (
-          <div className="mt-1 text-sm text-muted-foreground">{mission.activeMilestoneTask}</div>
+          <div className="mt-3 rounded-md border bg-background/70 px-3 py-2 text-xs leading-5 text-muted-foreground">
+            今日只做这一小步：{mission.activeMilestoneTask}
+          </div>
         ) : null}
       </div>
     </section>
+  );
+}
+
+function MissionTaskLine(props: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className={cn("leading-5", props.strong ? "font-semibold" : "text-muted-foreground")}>
+      {props.label}：{props.value}
+    </div>
+  );
+}
+
+export function ProjectFeedbackNextFix(props: { issue?: string | null; summary?: string | null }) {
+  if (!props.issue?.trim()) return null;
+
+  return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-3 text-sm">
+      <div className="font-medium text-amber-950">你现在只需要修这个问题：</div>
+      <div className="mt-1 font-semibold text-amber-950">{props.issue}</div>
+      {props.summary?.trim() ? (
+        <div className="mt-2 text-xs leading-5 text-muted-foreground">{props.summary}</div>
+      ) : null}
+    </div>
+  );
+}
+
+export function ProjectCompletionRitual(props: {
+  learnedTopics: string[];
+  generatedCodeCards: number;
+  generatedConceptCards: number;
+}) {
+  const learnedTopics = props.learnedTopics.length
+    ? props.learnedTopics
+    : ["项目拆解", "代码实现", "复盘卡片"];
+
+  return (
+    <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 text-sm text-emerald-950">
+      <div className="text-base font-semibold">你完成了一个项目！</div>
+      <div className="mt-3 font-medium">练到了：</div>
+      <ul className="mt-2 grid list-disc gap-1 pl-5">
+        {learnedTopics.slice(0, 5).map((topic) => (
+          <li key={topic}>{formatProjectRelatedTopicLabel(topic)}</li>
+        ))}
+      </ul>
+      <div className="mt-3 font-medium">生成：</div>
+      <ul className="mt-2 grid list-disc gap-1 pl-5">
+        <li>{props.generatedCodeCards} 张代码卡</li>
+        <li>{props.generatedConceptCards} 张概念卡</li>
+      </ul>
+    </div>
   );
 }
 

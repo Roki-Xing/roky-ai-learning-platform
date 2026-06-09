@@ -8,9 +8,12 @@ const VOICE_MODES = new Set([
   "free_thought",
   "today_lesson",
   "code_debug",
+  "mistake_retell",
   "paper_reading",
   "industry_radar",
   "glossary_question",
+  "project_retrospective",
+  "book_question",
 ]);
 
 export function normalizeVoiceMode(value: string | null | undefined) {
@@ -24,10 +27,16 @@ export function voiceModeToCoachMode(mode: string) {
       return "today_lesson";
     case "code_debug":
       return "code_reasoning";
+    case "mistake_retell":
+      return "mistake_retell";
     case "industry_radar":
       return "industry_radar";
     case "glossary_question":
       return "glossary_term";
+    case "project_retrospective":
+      return "code_reasoning";
+    case "book_question":
+      return "book_question";
     case "paper_reading":
       return "concept_question";
     case "free_thought":

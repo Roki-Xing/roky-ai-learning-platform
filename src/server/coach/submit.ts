@@ -9,18 +9,22 @@ import { buildCoachContext } from "@/server/coach/context";
 import { prisma } from "@/server/db";
 
 const MODES = new Set([
-  "today_lesson",
   "concept_question",
   "code_reasoning",
-  "algorithm_design",
+  "mistake_retell",
+  "book_question",
   "glossary_term",
-  "industry_radar",
-  "free_thought",
 ]);
 
 export function normalizeCoachMode(value: string | null | undefined) {
   const mode = (value ?? "").trim();
-  return MODES.has(mode) ? mode : "free_thought";
+  if (MODES.has(mode)) return mode;
+  if (mode === "today_lesson" || mode === "free_thought") return "concept_question";
+  if (mode === "code_debug" || mode === "algorithm_design") return "code_reasoning";
+  if (mode === "glossary_question" || mode === "industry_radar" || mode === "paper_reading") {
+    return "glossary_term";
+  }
+  return "free_thought";
 }
 
 type CoachHighSeverityIssue = ThoughtReviewResult["possibleIssues"][number] & {

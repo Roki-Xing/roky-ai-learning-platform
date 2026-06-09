@@ -6,6 +6,7 @@ import {
   buildVoiceCoachText,
   buildVoiceNoteTitle,
   normalizeVoiceMode,
+  voiceModeToCoachMode,
 } from "@/server/voice/voice-note";
 import { buildVoiceCoachReviewHref } from "@/server/voice/handoff";
 import React from "react";
@@ -16,8 +17,16 @@ import { VoiceWorkspaceForm } from "@/app/voice/ui/voice-workspace-form";
 test("normalizeVoiceMode accepts documented modes and falls back safely", () => {
   assert.equal(normalizeVoiceMode("today_lesson"), "today_lesson");
   assert.equal(normalizeVoiceMode("code_debug"), "code_debug");
+  assert.equal(normalizeVoiceMode("mistake_retell"), "mistake_retell");
+  assert.equal(normalizeVoiceMode("book_question"), "book_question");
   assert.equal(normalizeVoiceMode("unknown"), "free_thought");
   assert.equal(normalizeVoiceMode(""), "free_thought");
+});
+
+test("voice modes map to Coach modes without falling back to free thought", () => {
+  assert.equal(voiceModeToCoachMode("mistake_retell"), "mistake_retell");
+  assert.equal(voiceModeToCoachMode("book_question"), "book_question");
+  assert.equal(voiceModeToCoachMode("project_retrospective"), "code_reasoning");
 });
 
 test("buildVoiceNoteTitle creates a compact transcript title", () => {
@@ -71,10 +80,10 @@ test("voice workspace form can default to today's lesson mode from completion ha
   assert.match(markup, /<option value="today_lesson" selected="">今日课程<\/option>/);
   assert.match(markup, /type="hidden" name="lessonId" value="lesson-1"/);
   assert.match(markup, /开始 60 秒反思/);
-  assert.match(markup, /我今天学了什么/);
-  assert.match(markup, /我哪里还不懂/);
-  assert.match(markup, /我能举什么例子/);
-  assert.match(markup, /我希望 Coach 检查什么/);
+  assert.match(markup, /我今天学的是\.\.\./);
+  assert.match(markup, /我理解为\.\.\./);
+  assert.match(markup, /我卡住的是\.\.\./);
+  assert.match(markup, /我想让 Coach 检查\.\.\./);
   assert.doesNotMatch(markup, /aria-label="Voice Note 模式"/);
   assert.match(markup, /aria-label="语音笔记模式"/);
   assert.match(markup, /<select[^>]+aria-label="语音笔记模式"[^>]+class="[^"]*min-h-11[^"]*"/);
@@ -91,7 +100,7 @@ test("voice workspace form can default to today's lesson mode from completion ha
   }
 
   const reflectionTemplateSection = markup.slice(markup.indexOf("60 秒反思模板"));
-  for (const label of ["今日理解", "代码思路", "术语解释", "论文阅读", "行业观察", "项目复盘"]) {
+  for (const label of ["今日理解", "代码思路", "错题复述", "术语解释", "项目复盘", "读书疑问", "论文阅读", "行业观察"]) {
     const labelIndex = reflectionTemplateSection.indexOf(label);
     assert.notEqual(labelIndex, -1);
     const templateWindow = reflectionTemplateSection.slice(Math.max(0, labelIndex - 260), labelIndex + 120);
@@ -168,11 +177,14 @@ test("voice page keeps unknown mode fallback learner-friendly", () => {
   assert.doesNotMatch(source, /MODE_LABELS\.get\(n\.mode\) \?\? n\.mode/);
 });
 
-test("voice page header badge is localized for learners", () => {
+test("voice page header is learning-oriented for learners", () => {
   const source = readFileSync("src/app/voice/page.tsx", "utf8");
 
+  assert.match(source, /title="说出你的理解"/);
+  assert.match(source, /subtitle="不用整理，先说出来。Roky 会帮你转写、整理、检查和生成卡片。"/);
   assert.match(source, /badge="语音捕获"/);
   assert.doesNotMatch(source, /badge="Voice"/);
+  assert.doesNotMatch(source, /title="语音学习捕获"/);
 });
 
 test("voice learner-visible copy uses Chinese voice note wording", () => {
@@ -234,23 +246,72 @@ test("voice recent note links keep mobile touch targets", () => {
   );
 });
 
-test("voice reflection templates cover the six learning reflection intents", () => {
+test("voice reflection templates cover the eight learning reflection intents", () => {
   assert.deepEqual(
     VOICE_REFLECTION_TEMPLATES.map((template) => template.id),
     [
       "daily_understanding",
       "code_reasoning",
+      "mistake_retell",
       "glossary_explanation",
+      "project_retrospective",
+      "book_question",
       "paper_reading",
       "industry_observation",
-      "project_retrospective",
     ],
+  );
+  assert.deepEqual(
+    VOICE_REFLECTION_TEMPLATES.map((template) => template.label),
+    ["今日理解", "代码思路", "错题复述", "术语解释", "项目复盘", "读书疑问", "论文阅读", "行业观察"],
   );
   for (const template of VOICE_REFLECTION_TEMPLATES) {
     assert.match(template.prompt, /请用 60 秒说明/);
-    assert.match(template.prompt, /1\. 我今天学了什么？/);
-    assert.match(template.prompt, /2\. 我哪里还不懂？/);
-    assert.match(template.prompt, /3\. 我能举什么例子？/);
-    assert.match(template.prompt, /4\. 我希望 Coach 检查什么？/);
+    assert.match(template.prompt, /1\. 我今天学的是\.\.\./);
+    assert.match(template.prompt, /2\. 我理解为\.\.\./);
+    assert.match(template.prompt, /3\. 我卡住的是\.\.\./);
+    assert.match(template.prompt, /4\. 我想让 Coach 检查\.\.\./);
+  }
+});
+
+test("voice workspace offers mistake and book learning modes", () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(VoiceWorkspaceForm, {
+      modes: [
+        ["free_thought", "自由想法"],
+        ["mistake_retell", "错题复述"],
+        ["book_question", "读书疑问"],
+      ],
+      recentPlan: null,
+      defaultMode: "book_question",
+    }),
+  );
+
+  assert.match(markup, /<option value="mistake_retell">错题复述<\/option>/);
+  assert.match(markup, /<option value="book_question" selected="">读书疑问<\/option>/);
+  assert.match(markup, /今日理解/);
+  assert.match(markup, /代码思路/);
+  assert.match(markup, /错题复述/);
+  assert.match(markup, /术语解释/);
+  assert.match(markup, /项目复盘/);
+  assert.match(markup, /读书疑问/);
+  assert.match(markup, /论文阅读/);
+  assert.match(markup, /行业观察/);
+  assert.match(markup, /placeholder="我正在读第 X 页，我不理解的是\.\.\."/);
+});
+
+test("voice page exposes learning-oriented reflection modes", () => {
+  const source = readFileSync("src/app/voice/page.tsx", "utf8");
+
+  for (const expected of [
+    '["today_lesson", "今日理解"]',
+    '["code_debug", "代码思路"]',
+    '["mistake_retell", "错题复述"]',
+    '["glossary_question", "术语解释"]',
+    '["project_retrospective", "项目复盘"]',
+    '["book_question", "读书疑问"]',
+    '["paper_reading", "论文阅读"]',
+    '["industry_radar", "行业观察"]',
+  ]) {
+    assert.match(source, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
 });

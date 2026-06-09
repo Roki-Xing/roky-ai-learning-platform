@@ -117,17 +117,23 @@ function coachIssueSeverityTone(severity?: string): LearningStatusTone {
 function coachVoiceModeLabel(mode: string) {
   switch (mode) {
     case "today_lesson":
-      return "今日课程";
+      return "今日理解";
     case "code_debug":
     case "code_reasoning":
-      return "代码调试";
+      return "代码思路";
+    case "mistake_retell":
+      return "错题复述";
+    case "project_retrospective":
+      return "项目复盘";
+    case "book_question":
+      return "读书疑问";
     case "paper_reading":
       return "论文阅读";
     case "industry_radar":
       return "行业观察";
     case "glossary_question":
     case "glossary_term":
-      return "术语提问";
+      return "术语解释";
     case "concept_question":
       return "概念疑问";
     case "algorithm_design":
@@ -206,8 +212,8 @@ export function CoachModeRail(props: {
       <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
         <div className="rounded-md border bg-muted/20 px-2 py-2">概念</div>
         <div className="rounded-md border bg-muted/20 px-2 py-2">代码</div>
-        <div className="rounded-md border bg-muted/20 px-2 py-2">算法</div>
-        <div className="rounded-md border bg-muted/20 px-2 py-2">广度</div>
+        <div className="rounded-md border bg-muted/20 px-2 py-2">错题</div>
+        <div className="rounded-md border bg-muted/20 px-2 py-2">书籍/术语</div>
       </div>
     </div>
   );

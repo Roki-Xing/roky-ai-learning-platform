@@ -82,6 +82,25 @@ test("current mission routes unresolved misconceptions to coach with focus copy"
   assert.doesNotMatch(mission.reason, /open misconception/);
 });
 
+test("current mission recommends SWE-bench light exploration after main tasks are clear", async () => {
+  const { buildCurrentMission } = await loadCurrentMission();
+  const mission = buildCurrentMission({
+    ...baseInput,
+    todayPlanStatus: "completed",
+    dueFlashcardsCount: 0,
+    openMisconceptionCount: 0,
+    codeFeedbackNeedsAttentionCount: 0,
+    activeProject: null,
+    todayNoteCount: 1,
+    todayVoiceNoteCount: 1,
+  });
+
+  assert.equal(mission.title, "今天轻量探索：认识 SWE-bench");
+  assert.equal(mission.href, "/radar?entity=swe-bench");
+  assert.equal(mission.ctaLabel, "认识 SWE-bench");
+  assert.match(mission.reason, /SWE-bench/);
+});
+
 test("current mission localizes unresolved misconception fallback copy", async () => {
   const { buildCurrentMission } = await loadCurrentMission();
   const mission = buildCurrentMission({

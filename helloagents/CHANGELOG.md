@@ -1,5 +1,148 @@
 # Changelog
 
+## [0.351.0] - 2026-06-09
+
+### Changed
+
+- **[Reduce Chaos Glossary Radar Paths]** 按指导文件第 13 节将 `/glossary` 和 `/radar` 从知识库列表继续收束为探索路径。
+  - `src/server/knowledge/paths.ts` 将 Agent Path 调整为 `CoT -> ReAct -> Reflexion -> Agent -> SWE-bench`，LLM Training Path 调整为 `SFT -> RLHF -> DPO -> Alignment`，Benchmark Path 调整为 `HumanEval -> SWE-bench -> SWE-agent -> tau-bench`。
+  - 学习路径节点状态改为 `未看 / 已查看 / 已生成卡片 / 已复习 / 掌握`；`weak` 只保留为内部排序/风险信号，不再作为节点状态文案。
+  - `KnowledgePathExplorer` 指标改为 `已看 / 已生成卡片 / 已复习 / 掌握`，保留 `下一项` CTA。
+  - 补齐 `retriever`、`rag-evaluation`、`alignment`、`Meta AI`、`Mistral`、`DeepSeek`、`SWE-agent`、`tau-bench` 默认 seed，确保 curated paths 不生成空链接。
+  - Current Mission 兜底探索改为 `今天轻量探索：认识 SWE-bench`，并链接到 `/radar?entity=swe-bench`。
+  - `PasswordLoginForm` 将访问密码输入框关联到可访问 label，生产 smoke 可通过 `getByLabel("访问密码")` 完成登录。
+  - `dotenv` 明确写入生产依赖，避免 `scripts/next-start-with-env.mjs` 依赖间接安装包启动。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/knowledge-base.test.ts tests/unit/learning-ui-components.test.ts tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts` 首次失败于旧路径、缺 seed、旧节点指标和泛化 `/radar` 兜底。
+- 本地 GREEN：`npm test -- tests/unit/knowledge-base.test.ts tests/unit/learning-ui-components.test.ts tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts` 63 项通过。
+- 本地最终门禁：`git diff --check`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 454 项通过，Next 生产构建生成 28 个页面。
+- 本地登录/路径回归：`npm test -- tests/unit/login-page-ui.test.ts tests/unit/knowledge-base.test.ts tests/unit/learning-ui-components.test.ts tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts` 65 项通过。
+- 本地浏览器 smoke：`npx playwright test tests/e2e/smoke.spec.ts --project="Desktop Chrome"` 2 项通过。
+- 生产部署：`learn.roky.chat` 当前 HTTPS 网关为 `198.10.0.92`，实际反代到应用机 `118.25.15.72`；已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.351.0-20260609-231940.tar.gz`，rsync 同步并重启 `ai-learning-platform` 容器。
+- 远端门禁：容器内 `npm ci --include=dev`、`npm run prisma:generate`、关键单测 65 项、`npm run build` 通过，随后 `npm prune --omit=dev`。
+- 生产验收：`https://learn.roky.chat/api/health` 返回 200；密码登录后访问 `https://learn.roky.chat/radar?entity=swe-bench`，页面可见 `AI Radar`、`路径化学习`、`SWE-bench` 和 `掌握`。
+
+### Not Covered
+
+- 未执行真实移动端截图、完整 Playwright 矩阵或真实写入型生产 smoke。
+
+## [0.350.0] - 2026-06-09
+
+### Changed
+
+- **[Reduce Chaos Projects Mission Mode]** 按指导文件第 12 节将 `/projects` 进一步收束成 Mission Mode。
+  - `ProjectMissionHero` 顶部任务卡固定展示 `今日项目任务`、`项目：...`、`任务：...`、`完成标准：给出 3 个测试样例`、`预计：20 分钟`，让 Projects 首屏从模板列表转向今日小步。
+  - `src/app/projects/page.tsx` 将当前里程碑、完成标准和 20 分钟任务时长传入 Mission Hero，并在模板区加入 `从《xxx》第 2 章生成一个小项目` 的 Books 预留文案；本切片不新增 `/books` 路由或链接。
+  - 新增 `ProjectFeedbackNextFix`，当前里程碑已有代码反馈时优先展示 `你现在只需要修这个问题：...` 的单点修复目标。
+  - 新增 `ProjectCompletionRitual`，项目完成态显示 `你完成了一个项目！`、`练到了：` 和 `生成：`，并展示代码卡与概念卡数量。
+  - `docs/ui-review-checklist.md` 与 `helloagents/modules/project-practice.md` 同步记录 Mission Mode、Books 预留边界和本地验收要求。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/project-mission-workspace.test.ts` 首次失败于 Mission Hero 缺少 `今日项目任务` 字段结构、缺少 `ProjectFeedbackNextFix` / `ProjectCompletionRitual` 导出、页面缺少 Books 预留文案。
+- 本地 GREEN：`npm test -- tests/unit/project-mission-workspace.test.ts` 27 项通过。
+- 本地相关回归：`npm test -- tests/unit/project-mission-workspace.test.ts tests/unit/projects.test.ts tests/unit/today-completion-next-actions.test.ts tests/unit/learning-ui-components.test.ts` 77 项通过，覆盖 Projects UI、项目服务规则、Today 完成后项目推荐和共享学习 UI。
+- 本地审计：`npm run audit:routes` 和 `npm run audit:learning` 通过；路由表仍为 19 个页面，缺失核心页、无导航页面、无页面导航入口均为 none。
+- 本地门禁：`git diff --check`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 452 项通过，Next 生产构建生成 28 个页面。
+
+### Not Covered
+
+- 未执行 Playwright E2E、真实移动端截图、生产部署或真实生产登录 smoke。
+
+## [0.349.0] - 2026-06-09
+
+### Changed
+
+- **[Reduce Chaos Coach Input Intent Upgrade]** 将 `/coach` 主输入类型从旧功能分类收束为指导文件第 11 节的 5 个学习者意图。
+  - `src/app/coach/page.tsx` 的 `评审模式` 主下拉改为 `我想解释一个概念 / 我想检查一段代码思路 / 我想复述一个错题 / 我想问一本书里的内容 / 我想问某个术语/人物/Benchmark`。
+  - `src/server/coach/submit.ts` 接收 `mistake_retell` 和 `book_question`，并将旧入口安全映射到新主类型：`today_lesson/free_thought -> concept_question`、`code_debug/algorithm_design -> code_reasoning`、`glossary_question/industry_radar/paper_reading -> glossary_term`。
+  - `src/server/voice/voice-note.ts` 的 Voice → Coach handoff 保留 `mistake_retell` 和 `book_question` 为同名 Coach mode，不再压成 `concept_question`。
+  - `src/server/learning/today-completion-actions.ts` 将 Today 完成后 `让 Coach 检查` 链接改为 `/coach?lessonId=...&mode=concept_question`，避免主链路继续传播旧 Coach `today_lesson` mode。
+  - `src/app/_lib/home-labels.ts` 更新共享 Coach mode 展示标签，让最近评审、课程库和进度页显示 `错题复述`、`书籍疑问`、`术语/人物/Benchmark` 等学习者文案。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/coach-workspace.test.ts tests/unit/coach-submit.test.ts tests/unit/home-page-labels.test.ts` 首次失败于后端不接受 `mistake_retell`、页面仍展示旧 Coach 模式、共享标签仍输出旧 `概念疑问`。
+- 本地 RED：`npm test -- tests/unit/voice-note.test.ts` 首次失败于 Voice `mistake_retell` / `book_question` 仍映射为 `concept_question`。
+- 本地 RED：`npm test -- tests/unit/today-completion-next-actions.test.ts` 首次失败于 Today 完成后 Coach 链接仍使用 `mode=today_lesson`。
+- 本地 GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/coach-workspace.test.ts tests/unit/coach-submit.test.ts tests/unit/home-page-labels.test.ts tests/unit/voice-note.test.ts` 56 项通过，覆盖 Today → Coach 链接、Coach 页面模式、Coach submit、共享标签和 Voice handoff。
+- 本地 GREEN：`npx playwright test tests/e2e/smoke.spec.ts --project="Desktop Chrome"` 2 项通过，覆盖核心页面 smoke、Coach 新默认 mode 和 Voice 新标题。
+- 本地 GREEN：`npx playwright test tests/e2e/today-interactions.spec.ts --project="Desktop Chrome"` 2 项通过，覆盖 Today 完成后进入 Voice 和 Coach 的真实浏览器路径。
+
+### Not Covered
+
+- 未执行真实移动端截图、生产部署或真实生产登录 smoke。
+
+## [0.348.0] - 2026-06-09
+
+### Changed
+
+- **[Reduce Chaos Voice Learning Upgrade]** 将 `/voice` 从“上传/捕获音频”继续收束为学习主线里的“说出你的理解”。
+  - `src/app/voice/page.tsx` 页头改为 `说出你的理解`，副标题改为 `不用整理，先说出来。Roky 会帮你转写、整理、检查和生成卡片。`。
+  - `src/server/voice/reflection-template.ts` 将反思模板扩展为 `今日理解 / 代码思路 / 错题复述 / 术语解释 / 项目复盘 / 读书疑问 / 论文阅读 / 行业观察`，并统一使用 `我今天学的是... / 我理解为... / 我卡住的是... / 我想让 Coach 检查...`。
+  - `src/app/voice/page.tsx` 与 `src/server/voice/voice-note.ts` 接入 `mistake_retell`、`project_retrospective` 和 `book_question`，并将新模式映射到既有 Coach 模式，避免送 Coach 时回退成自由想法。
+  - `src/app/voice/ui/voice-workspace-form.tsx` 为普通模式提供四句学习表达 placeholder，为 `mode=book_question` 预留 `我正在读第 X 页，我不理解的是...`；该切片只预留 Books 入口，不新增 `/books` 页面。
+  - `src/app/coach/ui/coach-workspace.tsx` 同步 Voice 来源模式展示，让从 Voice 进入 Coach 的来源面板显示 `代码思路`、`错题复述`、`项目复盘` 或 `读书疑问`，不再显示旧 `代码调试` 或新模式兜底 `语音反思`。
+  - `tests/unit/voice-note.test.ts` 扩展源码和渲染回归，覆盖页头文案、8 个模板、Books 预留 placeholder、Voice 模式 normalize 和 Voice → Coach 模式映射。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/voice-note.test.ts` 首次失败于模板缺少 `mistake_retell` / `book_question`、Books placeholder 未切换、页面模式未暴露新学习标签；随后新增页头断言再次失败于旧标题 `语音学习捕获`。
+- 本地 GREEN：`npm test -- tests/unit/voice-note.test.ts` 18 项通过。
+- 本地 GREEN：`npm test -- tests/unit/coach-workspace.test.ts` 17 项通过，覆盖 Voice-linked Coach 来源面板的新模式中文展示。
+- 本地相关回归：`npm test -- tests/unit/voice-note.test.ts tests/unit/voice-transcription.test.ts tests/unit/voice-capture-status.test.ts tests/unit/voice-submit.test.ts tests/unit/learning-ui-components.test.ts` 65 项通过，覆盖 Voice 页面、转写术语、录音状态、Voice 服务链路和共享学习 UI。
+
+### Not Covered
+
+- 未执行 Playwright E2E、真实移动端截图、生产部署或真实生产登录 smoke。
+
+## [0.347.0] - 2026-06-09
+
+### Changed
+
+- **[Reduce Chaos Homepage Command Center]** 将首页首屏从 dashboard/快捷入口混排收束为 Daily Command Center。
+  - `src/app/page.tsx` 新增 `首页主任务` section，首屏只保留 `CurrentMissionCard`、`LearningMomentumStrip` 和补弱焦点，让 Current Mission 成为唯一主路径。
+  - 删除首屏右侧 `今日能量` 快捷卡，以及下方重复的 `今日三件事` / `常用入口` 区块，避免首页同时给出多组“也可以做”。
+  - 新增默认折叠的 `今天还可以` 次级动作区，保留写笔记、说出理解、推进项目和查看当前路径入口；每条 CTA 继续满足移动端 `min-h-11 w-full sm:w-auto` 触控目标。
+  - `tests/unit/home-page-labels.test.ts` 新增首页首屏和折叠次级动作源码级回归，防止首页退回多入口 dashboard。
+  - 该切片只改首页读侧结构、测试和文档，不改 Current Mission 优先级、Daily Quest、项目查询、数据库、Preview 写保护、生产配置或密钥。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/home-page-labels.test.ts` 首次失败于旧首页仍存在 `今日能量`、`今日三件事`、`常用入口`、`QUICK_ACTIONS` 和多个首屏快捷 CTA。
+- 本地 GREEN：`npm test -- tests/unit/home-page-labels.test.ts` 4 项通过，覆盖首页标签、主任务首屏和 `今天还可以` 折叠区。
+- 本地相关回归：`npm test -- tests/unit/home-page-labels.test.ts tests/unit/current-mission.test.ts tests/unit/learning-motivation.test.ts tests/unit/learning-ui-components.test.ts` 48 项通过，覆盖首页、Current Mission、学习动机和共享学习 UI。
+- 本地审计：`npm run audit:routes` 与 `npm run audit:learning` 通过。
+- 本地门禁：`git diff --check`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 441 项通过，Next 生产构建生成 28 个静态页面。
+
+### Not Covered
+
+- 未执行 Playwright E2E、真实移动端截图、生产部署或真实生产登录 smoke。
+
+## [0.346.0] - 2026-06-09
+
+### Changed
+
+- **[Reduce Chaos Navigation Mainline]** 收束全局导航信息架构，让入口更贴近“每天先做什么”的学习主线。
+  - `src/lib/routes.ts` 将桌面侧边栏分组调整为 `学习主线 / 补弱与表达 / 知识与探索 / 系统`，把 `/path` 提升到主线分组，把 Voice 显示为 `说出理解`，把 Projects 显示为 `项目任务`。
+  - `src/components/mobile/mobile-bottom-nav.tsx` 将移动底部第四主入口从 `/voice` 调整为 `/path` 的 `路径`，同时把 `/voice` 保留在 More Sheet 中，避免表达工具挤占学习主线入口。
+  - `tests/unit/shared-ui-a11y.test.ts` 新增导航分组和移动底栏源码级回归，防止主入口退回工具堆叠。
+  - 该切片只改读侧导航和验收文档，不新增页面、不改路由存在性、学习数据、Preview 写保护、数据库、生产配置或密钥。
+
+### Verified
+
+- 本地 RED：`npm test -- tests/unit/shared-ui-a11y.test.ts` 首次失败于旧分组 `今日 / 能力 / 知识库` 和移动底栏 `/voice` `语音` 主入口。
+- 本地 GREEN：`npm test -- tests/unit/shared-ui-a11y.test.ts` 5 项通过，覆盖共享 UI a11y、导航分组、移动底栏和 AppShell 页头。
+- 本地相关回归：`npm test -- tests/unit/shared-ui-a11y.test.ts tests/unit/pwa-manifest.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts` 33 项通过。
+- 本地审计：`npm run audit:routes` 通过，19 个页面、15 个导航入口，缺失核心页 / 无导航页面 / 无页面导航入口均为 none；`npm run audit:learning` 通过。
+- 本地门禁：`git diff --check`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 439 项通过，Next 生产构建生成 28 个静态页面。
+
+### Not Covered
+
+- 未执行生产部署、真实生产登录 smoke、Playwright E2E 或真实移动端截图验证。
+
 ## [0.345.0] - 2026-06-08
 
 ### Added

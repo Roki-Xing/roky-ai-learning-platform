@@ -44,19 +44,18 @@ test("login or preview flow reaches homepage and core learning pages @smoke", as
   await page.goto("/radar");
   await expect(page.getByRole("heading", { name: "AI Radar" })).toBeVisible();
   await expect(page.getByText("路径化学习").first()).toBeVisible();
-  await expect(page.getByText(/未掌握/).first()).toBeVisible();
+  await expect(page.getByText("掌握").first()).toBeVisible();
 
   await page.goto("/coach");
   await expect(page.getByRole("heading", { name: "思路评审" })).toBeVisible();
   await expect(page.getByText("我的理解")).toBeVisible();
   await expect(page.getByText("上下文指南针", { exact: true })).toBeVisible();
 
-  await page.goto("/coach?mode=today_lesson");
-  await expect(page.locator('select[name="mode"]')).toHaveValue("today_lesson");
+  await page.goto("/coach?mode=concept_question");
+  await expect(page.locator('select[name="mode"]')).toHaveValue("concept_question");
 
   await page.goto("/voice");
-  await expect(page.getByRole("heading", { name: "语音学习捕获" })).toBeVisible();
-  await expect(page.getByText("说出你的理解", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "说出你的理解" })).toBeVisible();
   await expect(page.getByText("准备说出理解")).toBeVisible();
   await expect(page.getByText("把脑子里的想法说出来")).toBeVisible();
   await expect(page.getByText("转写后会自动聚焦到这里")).toBeVisible();

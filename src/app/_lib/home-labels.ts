@@ -103,14 +103,16 @@ export function formatCodeFeedbackIssueTypeLabel(type: string | null | undefined
 }
 
 export function formatCoachModeLabel(mode: string | null | undefined) {
-  if (mode === "today_lesson") return "今日课程";
-  if (mode === "concept_question") return "概念疑问";
-  if (mode === "code_debug") return "代码调试";
+  if (mode === "today_lesson") return "今日理解";
+  if (mode === "concept_question") return "解释概念";
+  if (mode === "code_debug") return "代码思路";
   if (mode === "code_reasoning") return "代码思路";
+  if (mode === "mistake_retell") return "错题复述";
+  if (mode === "book_question") return "书籍疑问";
   if (mode === "algorithm_design") return "算法设计";
   if (mode === "paper_reading") return "论文阅读";
-  if (mode === "industry_radar") return "行业广度";
-  if (mode === "glossary_question" || mode === "glossary_term") return "术语理解";
+  if (mode === "industry_radar") return "行业观察";
+  if (mode === "glossary_question" || mode === "glossary_term") return "术语/人物/Benchmark";
   if (mode === "free_thought") return "自由想法";
   return "思路评审";
 }

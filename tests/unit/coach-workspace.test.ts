@@ -71,8 +71,8 @@ test("coach mode rail renders the review mode options", () => {
   const markup = renderToStaticMarkup(
     React.createElement(CoachModeRail, {
       modes: [
-        ["today_lesson", "今日课程"],
-        ["code_reasoning", "代码思路"],
+        ["concept_question", "我想解释一个概念"],
+        ["code_reasoning", "我想检查一段代码思路"],
       ],
       defaultMode: "code_reasoning",
     }),
@@ -81,9 +81,33 @@ test("coach mode rail renders the review mode options", () => {
   assert.match(markup, /评审模式/);
   assert.match(markup, /<select[^>]+aria-label="评审模式"[^>]+class="[^"]*min-h-11[^"]*"/);
   assert.doesNotMatch(markup, /class="h-10 rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"/);
-  assert.match(markup, /今日课程/);
-  assert.match(markup, /代码思路/);
-  assert.match(markup, /<option value="code_reasoning" selected="">代码思路<\/option>/);
+  assert.match(markup, /我想解释一个概念/);
+  assert.match(markup, /我想检查一段代码思路/);
+  assert.match(markup, /<option value="code_reasoning" selected="">我想检查一段代码思路<\/option>/);
+});
+
+test("coach page source narrows the input types to learner intents", () => {
+  const source = readFileSync("src/app/coach/page.tsx", "utf8");
+
+  for (const [mode, label] of [
+    ["concept_question", "我想解释一个概念"],
+    ["code_reasoning", "我想检查一段代码思路"],
+    ["mistake_retell", "我想复述一个错题"],
+    ["book_question", "我想问一本书里的内容"],
+    ["glossary_term", "我想问某个术语/人物/Benchmark"],
+  ] as const) {
+    assert.match(source, new RegExp(`\\["${mode}", "${label}"\\]`));
+  }
+
+  for (const staleLabel of ["今日课程", "概念疑问", "算法设计", "行业广度", "自由想法"]) {
+    assert.doesNotMatch(source, new RegExp(`\\["[^"]+", "${staleLabel}"\\]`));
+  }
+
+  assert.match(source, /const matchedMode = MODES\.find\(\(\[candidate\]\) => candidate === mode\)\?\.\[0\];/);
+  assert.match(source, /if \(matchedMode\) return matchedMode;/);
+  assert.match(source, /mode === "today_lesson" \|\| mode === "free_thought"/);
+  assert.match(source, /mode === "glossary_question" \|\| mode === "industry_radar" \|\| mode === "paper_reading"/);
+  assert.doesNotMatch(source, /return MODES\.some\(\(\[mode\]\) => mode === value\) \? value \?\? "today_lesson" : "today_lesson";/);
 });
 
 test("coach context compass makes the strongest context signal visible", () => {
@@ -218,7 +242,8 @@ test("coach voice source panel shows localized voice note origin and note handof
 
   assert.match(markup, /来自语音笔记/);
   assert.doesNotMatch(markup, /来自 Voice Note/);
-  assert.match(markup, /代码调试/);
+  assert.match(markup, /代码思路/);
+  assert.doesNotMatch(markup, /代码调试/);
   assert.doesNotMatch(markup, /code_debug/);
   assert.match(markup, /softmax/);
   assert.match(markup, /一键生成卡片/);
@@ -227,6 +252,27 @@ test("coach voice source panel shows localized voice note origin and note handof
   assert.doesNotMatch(markup, /查看 Voice Note/);
   assert.match(markup, /href="\/voice\?voiceNoteId=voice-1"/);
   assert.match(markup, /type="hidden" name="voiceNoteId" value="voice-1"/);
+});
+
+test("coach voice source panel keeps new Voice learning modes localized", () => {
+  for (const [mode, label] of [
+    ["mistake_retell", "错题复述"],
+    ["project_retrospective", "项目复盘"],
+    ["book_question", "读书疑问"],
+  ] as const) {
+    const markup = renderToStaticMarkup(
+      React.createElement(CoachVoiceSourcePanel, {
+        voiceNoteId: `voice-${mode}`,
+        mode,
+        transcriptPreview: "我用语音说出理解。",
+        noteId: null,
+        saveAsNoteAction: async () => {},
+      }),
+    );
+
+    assert.match(markup, new RegExp(label));
+    assert.doesNotMatch(markup, /语音反思/);
+  }
 });
 
 test("coach quick links keep mobile-friendly touch targets", () => {

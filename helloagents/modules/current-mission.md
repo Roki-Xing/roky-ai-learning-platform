@@ -36,6 +36,8 @@
 - 首页：替换原“现在最值得做”块，直接显示 `当前任务`
 - 首页 Current Mission 卡片现在显示轻量元信息：`推荐/重要/轻量`、预计分钟数和陪练/Coach/项目等 companion 标签。
 - 首页 Current Mission 卡片接入 `buildCurrentMissionProgress()`，显示 `今日闭环 X/4` 与可访问进度条；闭环步骤为今日学习完成、到期复习清空、今日笔记、语音复盘。
+- 首页首屏现在是 `首页主任务` 区，只保留 `CurrentMissionCard`、`LearningMomentumStrip` 和补弱焦点，避免与 `今日能量`、`今日三件事`、`常用入口` 等多入口模块竞争。
+- 首页次级动作默认折叠到 `今天还可以`，保留写笔记、说出理解、推进项目和查看当前路径入口；这些入口仍使用 `min-h-11 w-full sm:w-auto` 触控目标。
 - 首页 Current Mission 下方新增 `LearningMomentumStrip`，将 XP、Daily Quest、streak 和周目标转换为：
   - 当前阶段称号
   - 下一步解锁阶段与进度
@@ -58,8 +60,8 @@
 
 ## 兜底探索
 
-- 当今日学习、复习、笔记、语音复盘和项目任务都没有更高优先级动作时，`buildNextBestAction()` 推荐 `做一个轻量广度探索`。
-- 该兜底指向 `/radar`，文案提示去 Glossary / Radar 探索一个新人物、工具或 Benchmark，符合 guidance 中“都完成后推荐 Glossary/Radar 轻量广度探索”的优先级。
+- 当今日学习、复习、误区、代码反馈、笔记、语音复盘和项目任务都没有更高优先级动作时，`buildNextBestAction()` 推荐 `今天轻量探索：认识 SWE-bench`。
+- 该兜底指向 `/radar?entity=swe-bench`，把轻量探索固定到 SWE-bench，连接 Agent、真实工程任务和后续项目练习。
 
 ## 习惯目标
 
@@ -104,6 +106,7 @@
 - Phase E Current Mission Misconception Fallback Localization：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts` RED/GREEN 后 13 项通过；覆盖无 focus 未解决误区兜底显示 `N 个未解决误区`，并防止 `open misconception` 回退到学习者可见 reason。
 - Phase E Current Mission Misconception Fallback Localization related regression：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-motivation.test.ts tests/unit/today-code-exercise.test.ts tests/unit/coach-workspace.test.ts` 41 项通过。
 - Sprint Learning Desire Homepage Momentum Strip：`npm test -- tests/unit/learning-motivation.test.ts` RED 首次失败于缺少 `@/server/learning/momentum`，GREEN 后 12 项通过；相关回归 `npm test -- tests/unit/learning-motivation.test.ts tests/unit/current-mission.test.ts tests/unit/learning-ui-components.test.ts tests/unit/home-page-labels.test.ts` 46 项通过。
+- Reduce Chaos Homepage Command Center：`npm test -- tests/unit/home-page-labels.test.ts` RED 首次失败于首页仍存在 `今日能量`、`今日三件事`、`常用入口` 和旧 `QUICK_ACTIONS`；GREEN 后 4 项通过，覆盖首页首屏只保留 Current Mission/进度，次级动作折叠到 `今天还可以`。
 - `npm run lint`
 - `npm run build`
 

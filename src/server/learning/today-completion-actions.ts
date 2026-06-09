@@ -83,7 +83,7 @@ function encodedDailyUnderstandingVoiceHref(lessonId: string) {
 function encodedCoachHref(lessonId: string) {
   const query = new URLSearchParams({
     lessonId,
-    mode: "today_lesson",
+    mode: "concept_question",
   });
   return `/coach?${query.toString()}`;
 }

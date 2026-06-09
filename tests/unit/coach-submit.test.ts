@@ -4,6 +4,7 @@ import { prisma } from "@/server/db";
 import {
   createThoughtReview,
   generateFlashcardsForThoughtReview,
+  normalizeCoachMode,
 } from "@/server/coach/submit";
 
 async function createCoachSubmitFixture() {
@@ -49,6 +50,22 @@ async function createCoachSubmitFixture() {
 
   return { userId, lesson };
 }
+
+test("normalizeCoachMode accepts the focused Coach learner input types", () => {
+  for (const mode of [
+    "concept_question",
+    "code_reasoning",
+    "mistake_retell",
+    "book_question",
+    "glossary_term",
+  ]) {
+    assert.equal(normalizeCoachMode(mode), mode);
+  }
+
+  assert.equal(normalizeCoachMode("algorithm_design"), "code_reasoning");
+  assert.equal(normalizeCoachMode("industry_radar"), "glossary_term");
+  assert.equal(normalizeCoachMode("unknown"), "free_thought");
+});
 
 test("createThoughtReview rejects explicit lesson ids outside the current user's visible plans", async () => {
   const { userId } = await createCoachSubmitFixture();

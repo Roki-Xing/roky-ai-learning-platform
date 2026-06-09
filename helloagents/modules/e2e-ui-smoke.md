@@ -30,7 +30,9 @@ npm run e2e:preview-readonly
 - `tests/e2e/today-interactions.spec.ts` 通过真实 FocusPlayer 阶段切换按钮进入 `小测验`、`代码练习`、`反思与完成`，不直接假设折叠完整视图已展开。
 - `/projects` 能显示中文 `项目任务模式` 和 `今日项目任务`，不再断言旧英文 `Mission Mode`。
 - `/coach` 能显示思路评审工作台和中文 `上下文指南针`，不再断言旧英文 `Context Compass`。
-- `/voice` 能显示语音学习捕获和说出理解入口。
+- `tests/unit/coach-workspace.test.ts` 覆盖 `/coach` 主输入类型只保留 5 个学习者意图：解释概念、检查代码思路、复述错题、书籍疑问、术语/人物/Benchmark。
+- `tests/unit/today-completion-next-actions.test.ts` 覆盖 Today 完成后 Coach 链接使用 `mode=concept_question`，避免继续从主链路传播旧 `today_lesson` Coach mode。
+- `/voice` 能显示 `说出你的理解`，并提供 8 个学习反思模板与转写文本入口。
 - `/review` 主动回忆流程会先隐藏答案，点击显示后才出现评分按钮。
 - `tests/e2e/review-interactions.spec.ts` 按 Review 评分按钮的真实可访问名称定位：`很熟 +14d`，不再断言旧键盘序号文案 `4 很熟`。
 - `tests/e2e/visual.spec.ts` 覆盖 login、home、today、review、coach、voice、map、glossary、radar、projects、path、weekly、mistakes、progress、settings、library 的桌面/移动截图 smoke。
@@ -54,7 +56,7 @@ npm run e2e:preview-readonly
 - `tests/unit/learning-ui-components.test.ts` 覆盖 `KnowledgePathExplorer` 指标卡不在非交互 `div` 上额外添加 `aria-label`，保留可见中文 label/value 作为主语义。
 - `tests/unit/reduced-motion-css.test.ts` 覆盖全局 `prefers-reduced-motion: reduce` CSS 降级，避免动画、transition 和平滑滚动不尊重系统减少动态偏好。
 - `tests/unit/shared-ui-a11y.test.ts` 覆盖 Dialog、Sheet、Breadcrumb 的中文屏幕阅读器文案，避免共享 UI 基础组件朗读英文 `Close`、`More` 或 `breadcrumb`。
-- `tests/unit/shared-ui-a11y.test.ts` 覆盖移动端底部导航 More Sheet，要求底部主入口保留 `今日`、`复习`、`Coach`、`语音`、`更多`，More Sheet 保留核心学习入口并让每个链接带 `min-h-11` 触控高度。
+- `tests/unit/shared-ui-a11y.test.ts` 覆盖桌面导航分组和移动端底部导航 More Sheet，要求桌面侧边栏按 `学习主线 / 补弱与表达 / 知识与探索 / 系统` 组织；移动底部主入口保留 `今日`、`复习`、`Coach`、`路径`、`更多`，把 `/voice` 放入 More Sheet，并让每个链接带 `min-h-11` 触控高度。
 - `tests/unit/shared-ui-a11y.test.ts` 覆盖全局 `AppShell` 页头 action 区，要求手机端使用全宽单列布局并允许 header 换行，避免 Today、Review、Voice、Projects、Mistakes 等页面页头 CTA 被旧 `flex shrink-0` 容器横向挤压。
 - `tests/unit/weekly-review.test.ts` 和 `tests/unit/project-mission-workspace.test.ts` 覆盖 Weekly / Portfolio Markdown 导出文本区的中文业务 `aria-label`，避免只读导出控件朗读英文 `weekly report markdown` 或 `portfolio markdown`。
 - `tests/unit/weekly-review.test.ts` 覆盖 Weekly 复盘指标和错题来源中文化，避免页面或 Markdown 导出显示 `quiz 正确率`、`Strongest`、`Weakest`、`mastery`、`weakness` 或 raw `quiz` 来源。
@@ -86,6 +88,10 @@ npm run e2e:preview-readonly
 
 ## 最近验收
 
+- 2026-06-09 本地 RED/GREEN：`npm test -- tests/unit/coach-workspace.test.ts tests/unit/coach-submit.test.ts tests/unit/home-page-labels.test.ts tests/unit/voice-note.test.ts` 首次失败于 Coach 页面仍展示旧模式、新 Coach mode 未被 submit 接收、共享标签仍为旧文案、Voice `mistake_retell/book_question` 仍压成 `concept_question`；补齐后 47 项通过。
+- 2026-06-09 本地 RED/GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 首次失败于 Today 完成后 Coach 链接仍使用 `mode=today_lesson`；补齐为 `mode=concept_question` 后相关回归 56 项通过。
+- 2026-06-09 本地 GREEN：`npx playwright test tests/e2e/smoke.spec.ts --project="Desktop Chrome"` 2 项通过，覆盖核心页面 smoke、Coach `concept_question` 下拉值和 Voice 新标题。
+- 2026-06-09 本地 GREEN：`npx playwright test tests/e2e/today-interactions.spec.ts --project="Desktop Chrome"` 2 项通过，覆盖 Today 完成后真实进入 `/voice?...mode=today_lesson` 与 `/coach?...mode=concept_question`。
 - 2026-06-08 本地 RED/GREEN：`npm test -- tests/unit/shared-ui-a11y.test.ts` 首次失败于 `AppShell` 仍使用固定 `h-14` header 和旧 `flex shrink-0 items-center gap-2` action 容器；补齐移动端 `min-h-14 flex-wrap py-2` header 和 `grid w-full gap-2` action wrapper 后 4 项通过。
 - 2026-06-08 本地相关回归：`npm test -- tests/unit/shared-ui-a11y.test.ts tests/unit/learning-ui-components.test.ts tests/unit/project-mission-workspace.test.ts tests/unit/mistakes-view.test.ts tests/unit/voice-note.test.ts tests/unit/home-page-labels.test.ts tests/unit/library-page-labels.test.ts tests/unit/today-activity-labels.test.ts` 90 项通过，覆盖共享 UI a11y、学习组件、Projects、Mistakes、Voice、首页、Library 和 Today 标签/触控目标。
 - 2026-06-08 本地最终门禁：`git diff --check`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 422 项通过，Next 构建生成 28 个页面。Aegis helper 仍失败于既有 Markdown-only 结构债，不属于产品 UI 验证失败。

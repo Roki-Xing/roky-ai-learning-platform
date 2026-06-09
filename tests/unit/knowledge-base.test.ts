@@ -136,17 +136,29 @@ test("default knowledge paths include glossary and radar learning routes", () =>
   ]);
   assert.ok(agentPath);
   assert.equal(agentPath.kind, "glossary");
-  assert.deepEqual(agentPath.slugs, ["cot", "react", "reflexion", "tool-calling", "swe-bench"]);
+  assert.deepEqual(agentPath.slugs, ["cot", "react", "reflexion", "agent", "swe-bench"]);
   assert.ok(ragPath);
   assert.deepEqual(ragPath.slugs, ["embedding", "vector-database", "retriever", "reranker", "rag-evaluation"]);
   assert.ok(llmTrainingPath);
   assert.equal(llmTrainingPath.kind, "glossary");
-  assert.deepEqual(llmTrainingPath.slugs, ["pretraining", "sft", "rlhf", "dpo", "rft"]);
+  assert.deepEqual(llmTrainingPath.slugs, ["sft", "rlhf", "dpo", "alignment"]);
   assert.ok(radarPath);
   assert.equal(radarPath.kind, "radar");
   assert.deepEqual(radarPath.slugs, ["openai", "anthropic", "google-deepmind", "meta-ai", "mistral", "deepseek"]);
   assert.ok(benchmarkPath);
-  assert.deepEqual(benchmarkPath.slugs, ["humaneval", "swe-bench", "mmlu", "gpqa", "livecodebench"]);
+  assert.deepEqual(benchmarkPath.slugs, ["humaneval", "swe-bench", "swe-agent", "tau-bench"]);
+});
+
+test("curated knowledge paths are backed by default glossary and radar seeds", () => {
+  const glossarySlugs = new Set(DEFAULT_GLOSSARY_TERMS.map((term) => term.slug));
+  const radarSlugs = new Set(DEFAULT_KNOWLEDGE_ENTITIES.map((entity) => entity.slug));
+
+  for (const path of DEFAULT_KNOWLEDGE_PATHS) {
+    const availableSlugs = path.kind === "glossary" ? glossarySlugs : radarSlugs;
+    for (const slug of path.slugs) {
+      assert.equal(availableSlugs.has(slug), true, `${path.id} missing seed for ${slug}`);
+    }
+  }
 });
 
 test("glossary and radar pages expose every curated learning path", () => {
@@ -397,12 +409,18 @@ test("buildKnowledgePathProgress marks card and review progress", () => {
   assert.equal(progress.cardCount, 2);
   assert.equal(progress.reviewedCount, 1);
   assert.equal(progress.weakCount, 1);
+  assert.equal(progress.masteredCount, 1);
   assert.equal(progress.items[0]?.viewed, true);
   assert.equal(progress.items[0]?.hasCard, true);
   assert.equal(progress.items[0]?.reviewed, true);
+  assert.equal(progress.items[0]?.statusLabel, "掌握");
   assert.equal(progress.items[1]?.weak, true);
   assert.equal(progress.nextSlug, "react");
-  assert.equal(progress.nextStatusLabel, "未掌握");
+  assert.equal(progress.nextStatusLabel, "已生成卡片");
+  assert.deepEqual(
+    new Set(progress.items.map((item) => item.statusLabel)),
+    new Set(["掌握", "已生成卡片", "未看"]),
+  );
 });
 
 test("buildRadarRelationGroups builds card-chain groups for entities terms papers and benchmarks", () => {

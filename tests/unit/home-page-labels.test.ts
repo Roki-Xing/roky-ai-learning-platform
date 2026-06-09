@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import {
   buildHomeCodeFeedbackMeta,
   buildHomeMistakeMeta,
+  formatCoachModeLabel,
   formatHomeCodeFeedbackOverallLabel,
   formatHomeDailyPlanStatusLabel,
   formatHomeMistakeSourceLabel,
@@ -37,18 +38,58 @@ test("home page helpers localize daily plan and remediation labels", () => {
   assert.doesNotMatch(mistakeMeta, /来源：quiz/);
 });
 
+test("shared Coach mode labels use learner intent wording", () => {
+  assert.equal(formatCoachModeLabel("concept_question"), "解释概念");
+  assert.equal(formatCoachModeLabel("code_reasoning"), "代码思路");
+  assert.equal(formatCoachModeLabel("mistake_retell"), "错题复述");
+  assert.equal(formatCoachModeLabel("book_question"), "书籍疑问");
+  assert.equal(formatCoachModeLabel("glossary_term"), "术语/人物/Benchmark");
+
+  assert.notEqual(formatCoachModeLabel("mistake_retell"), "思路评审");
+  assert.notEqual(formatCoachModeLabel("book_question"), "思路评审");
+});
+
 test("home page source uses display helpers instead of raw enum output", () => {
   const source = readFileSync("src/app/page.tsx", "utf8");
 
   assert.match(source, /formatHomeDailyPlanStatusLabel\(todayPlan\?\.status \?\? null\)/);
   assert.match(source, /buildHomeCodeFeedbackMeta\(codeFeedbackFocus\)/);
   assert.match(source, /buildHomeMistakeMeta\(openMisconceptionFocus\)/);
-  assert.match(source, /const homeQuickCtaClassName = "min-h-11 w-full sm:w-auto"/);
-  assert.match(source, /className=\{homeQuickCtaClassName\}/);
-  assert.match(source, /const homeCommonEntryCtaClassName = "min-h-11 w-full sm:w-auto shrink-0"/);
-  assert.match(source, /className=\{homeCommonEntryCtaClassName\}/);
+  assert.match(source, /const homeSecondaryActionCtaClassName = "min-h-11 w-full sm:w-auto shrink-0"/);
+  assert.match(source, /className=\{homeSecondaryActionCtaClassName\}/);
   assert.match(source, /const homeSectionActionCtaClassName = "min-h-11 w-full sm:w-auto"/);
   assert.match(source, /className=\{homeSectionActionCtaClassName\}/);
   assert.doesNotMatch(source, /\{todayPlan\?\.status \?\? "未生成"\}/);
   assert.doesNotMatch(source, /`状态：\$\{codeFeedbackFocus\.overall\}`/);
+});
+
+test("home page keeps the first screen focused on the current mission", () => {
+  const source = readFileSync("src/app/page.tsx", "utf8");
+  const heroStart = source.indexOf('<section aria-label="首页主任务"');
+  assert.notEqual(heroStart, -1);
+  const heroEnd = source.indexOf("</section>", heroStart);
+  assert.notEqual(heroEnd, -1);
+  const heroSource = source.slice(heroStart, heroEnd);
+
+  assert.match(heroSource, /<CurrentMissionCard/);
+  assert.match(heroSource, /<LearningMomentumStrip/);
+  assert.doesNotMatch(heroSource, /<LearningSectionCard/);
+  assert.doesNotMatch(heroSource, /href="\/review"|href="\/voice"|href="\/notes"|href="\/projects"/);
+  assert.doesNotMatch(heroSource, /title="今日能量"|title="今日三件事"|title="常用入口"/);
+});
+
+test("home page folds secondary actions under today can also", () => {
+  const source = readFileSync("src/app/page.tsx", "utf8");
+
+  assert.match(source, /const TODAY_CAN_ALSO_ACTIONS = \[/);
+  assert.match(source, /<summary className="flex min-h-11 cursor-pointer/);
+  assert.match(source, />今天还可以<\/span>/);
+  for (const label of ["写一句笔记", "说出今天的理解", "推进项目", "看当前路径"]) {
+    assert.match(source, new RegExp(`label: "${label}"`));
+  }
+
+  assert.doesNotMatch(source, /const QUICK_ACTIONS = \[/);
+  assert.doesNotMatch(source, /title="今日能量"/);
+  assert.doesNotMatch(source, /title="今日三件事"/);
+  assert.doesNotMatch(source, /title="常用入口"/);
 });

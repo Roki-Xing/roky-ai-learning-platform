@@ -19,11 +19,14 @@ import { LearningStatusBadge } from "@/components/learning/learning-status-badge
 
 const MODES = [
   ["free_thought", "自由想法"],
-  ["today_lesson", "今日课程"],
-  ["code_debug", "代码调试"],
+  ["today_lesson", "今日理解"],
+  ["code_debug", "代码思路"],
+  ["mistake_retell", "错题复述"],
+  ["glossary_question", "术语解释"],
+  ["project_retrospective", "项目复盘"],
+  ["book_question", "读书疑问"],
   ["paper_reading", "论文阅读"],
-  ["industry_radar", "行业广度"],
-  ["glossary_question", "术语问题"],
+  ["industry_radar", "行业观察"],
 ] as const;
 
 const MODE_LABELS = new Map<string, string>(MODES);
@@ -95,8 +98,8 @@ export default async function VoicePage({
       }
     >
       <PageHeader
-        title="语音学习捕获"
-        subtitle="说出你的理解，Roky 帮你整理、检查并沉淀成笔记和卡片。"
+        title="说出你的理解"
+        subtitle="不用整理，先说出来。Roky 会帮你转写、整理、检查和生成卡片。"
         badge="语音捕获"
       />
 

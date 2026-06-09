@@ -139,10 +139,10 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
   }
 
   return {
-    title: "做一个轻量广度探索",
-    reason: "今日学习、复习、笔记和语音复盘都已完成，现在适合去 Glossary / Radar 轻量探索一个新人物、工具或 Benchmark。",
-    href: "/radar",
-    ctaLabel: "探索 Radar",
+    title: "今天轻量探索：认识 SWE-bench",
+    reason: "今日学习、复习、笔记、语音复盘和项目任务都已完成，现在用 SWE-bench 连接 Agent、真实工程任务和后续项目练习。",
+    href: "/radar?entity=swe-bench",
+    ctaLabel: "认识 SWE-bench",
     tone: "success",
     priorityLabel: "轻量",
     estimatedMinutes: 8,

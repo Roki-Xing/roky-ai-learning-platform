@@ -47,6 +47,8 @@ test("login form inputs keep mobile-friendly touch targets", () => {
     passwordInputIndex + 220,
   );
   assert.match(passwordInputBlock, /className=\{passwordLoginInputClassName\}/);
+  assert.match(passwordFormSource, /<label htmlFor="password-login" className="text-sm font-medium">访问密码<\/label>/);
+  assert.match(passwordInputBlock, /id="password-login"/);
 
   const emailInputIndex = emailFormSource.indexOf('type="email"');
   assert.notEqual(emailInputIndex, -1);
