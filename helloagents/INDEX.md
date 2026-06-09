@@ -7,6 +7,7 @@
 - [Voice Note MVP](modules/voice-note.md)
 - [Knowledge Base and AI Radar](modules/knowledge-base-radar.md)
 - [Book Companion](modules/books-companion.md)
+- [Learning Session](modules/learning-session.md)
 - [Project Practice](modules/project-practice.md)
 - [Auth and Demo Mode](modules/auth-demo-mode.md)
 - [Daily Cron](modules/daily-cron.md)

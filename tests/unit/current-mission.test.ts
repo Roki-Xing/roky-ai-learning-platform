@@ -135,6 +135,97 @@ test("current mission recommends active book reading before light exploration", 
   assert.equal(progress.total, 5);
 });
 
+test("learning sessions expose the unified session fields from current mission state", async () => {
+  const { buildLearningSessions } = await loadCurrentMission();
+
+  const sessions = buildLearningSessions({
+    input: {
+      ...baseInput,
+      dueFlashcardsCount: 5,
+    },
+    completedDaysThisWeek: 3,
+  });
+
+  assert.equal(sessions.current.type, "review_session");
+  assert.equal(sessions.current.title, "复习 5 张到期卡");
+  assert.equal(sessions.current.goal, "清空到期复习，先把今天学过的内容留住。");
+  assert.equal(sessions.current.status, "in_progress");
+  assert.equal(sessions.current.startedAt, null);
+  assert.equal(sessions.current.completedAt, null);
+  assert.deepEqual(sessions.current.outputs, ["review logs", "weak signals"]);
+  assert.equal(sessions.current.nextRecommendedSession?.type, "voice_reflection");
+
+  assert.equal(sessions.next.type, "voice_reflection");
+  assert.equal(sessions.next.title, "说出今天的理解");
+  assert.equal(sessions.weekly.title, "本周会话：完成 3/7");
+  assert.equal(sessions.weekly.status, "in_progress");
+});
+
+test("learning sessions cover all reduce-chaos session types with learner-facing goals", async () => {
+  const { buildLearningSessions } = await loadCurrentMission();
+
+  const scenario = (input: typeof baseInput) =>
+    buildLearningSessions({ input, completedDaysThisWeek: 7 }).current;
+
+  const sessions = [
+    scenario({ ...baseInput, todayPlanStatus: "planned" }),
+    scenario({ ...baseInput, dueFlashcardsCount: 3 }),
+    scenario({ ...baseInput, openMisconceptionCount: 1, openMisconceptionFocus: { summary: "RAG 评估边界" } }),
+    scenario({ ...baseInput, codeFeedbackNeedsAttentionCount: 1, codeFeedbackFocus: { summary: "空向量边界" } }),
+    scenario({ ...baseInput, todayNoteCount: 0 }),
+    scenario({ ...baseInput, todayVoiceNoteCount: 0 }),
+    scenario({
+      ...baseInput,
+      activeProject: { id: "project-1", title: "Mini RAG", activeMilestoneTitle: "实现 top-k retrieval" },
+    }),
+    scenario({
+      ...baseInput,
+      activeBookSession: {
+        documentId: "ai-engineering",
+        title: "AI Engineering",
+        currentPage: 12,
+        nextPage: 14,
+        progressPercent: 36,
+      },
+    }),
+    buildLearningSessions({
+      input: { ...baseInput },
+      completedDaysThisWeek: 7,
+      preferredCurrentType: "weekly_review",
+    }).current,
+    buildLearningSessions({
+      input: { ...baseInput },
+      completedDaysThisWeek: 7,
+      preferredCurrentType: "glossary_explore",
+    }).current,
+    scenario({ ...baseInput }),
+  ];
+
+  const types = sessions.map((session) => session.type);
+  assert.deepEqual(types, [
+    "daily_lesson",
+    "review_session",
+    "mistake_repair",
+    "coach_session",
+    "daily_lesson",
+    "voice_reflection",
+    "project_milestone",
+    "book_reading",
+    "weekly_review",
+    "glossary_explore",
+    "radar_explore",
+  ]);
+
+  for (const session of sessions) {
+    assert.equal(typeof session.title, "string");
+    assert.ok(session.title.length > 0);
+    assert.equal(typeof session.goal, "string");
+    assert.ok(session.goal.length > 0);
+    assert.ok(Array.isArray(session.outputs));
+    assert.match(session.status, /^(not_started|in_progress|completed)$/);
+  }
+});
+
 test("current mission localizes unresolved misconception fallback copy", async () => {
   const { buildCurrentMission } = await loadCurrentMission();
   const mission = buildCurrentMission({

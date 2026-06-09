@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LearningFocusPanel } from "@/components/learning/learning-focus-panel";
 import { LearningFocusPlayer } from "@/components/learning/learning-focus-player";
 import { LearningMissionCard } from "@/components/learning/learning-mission-card";
+import { LearningSessionStrip } from "@/components/learning/learning-session-strip";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
 import { LearningMarkdown } from "@/components/learning/learning-markdown";
 import { CollapsibleContentSection } from "@/components/learning/collapsible-content-section";
@@ -16,6 +17,7 @@ import { KnowledgePathExplorer } from "@/components/learning/knowledge-path-expl
 import { LearningProgressBar } from "@/components/learning/learning-progress-bar";
 import { LearningStepCard } from "@/components/learning/learning-step-card";
 import { LearningTimeline } from "@/components/learning/learning-timeline";
+import type { LearningSessionSummary } from "@/server/learning/current-mission";
 import { VoiceLearningPipeline } from "@/app/voice/ui/voice-learning-pipeline";
 import { ReviewRatingControls, ReviewTrainer } from "@/app/review/ui/review-trainer";
 import { visualPages } from "@/../tests/e2e/visual-pages";
@@ -32,6 +34,77 @@ test("visual smoke covers the core learning archive pages", () => {
   assert.ok(pageNames.includes("mistakes"));
   assert.ok(pageNames.includes("progress"));
   assert.ok(pageNames.includes("settings"));
+});
+
+test("learning session strip renders current next and weekly sessions", () => {
+  const sessions: LearningSessionSummary = {
+    current: {
+      type: "review_session",
+      title: "复习 5 张到期卡",
+      goal: "清空到期复习，先把今天学过的内容留住。",
+      status: "in_progress",
+      startedAt: null,
+      completedAt: null,
+      outputs: ["review logs", "weak signals"],
+      nextRecommendedSession: {
+        type: "voice_reflection",
+        title: "说出今天的理解",
+        goal: "用 60 秒口述暴露卡住点，再交给 Coach 检查。",
+      },
+      href: "/review",
+      ctaLabel: "开始复习",
+    },
+    next: {
+      type: "voice_reflection",
+      title: "说出今天的理解",
+      goal: "用 60 秒口述暴露卡住点，再交给 Coach 检查。",
+      status: "not_started",
+      startedAt: null,
+      completedAt: null,
+      outputs: ["transcript", "note draft", "coach input"],
+      nextRecommendedSession: {
+        type: "coach_session",
+        title: "让 Coach 检查理解",
+        goal: "把模糊点说清楚，得到缺失概念和下一步问题。",
+      },
+      href: "/voice",
+      ctaLabel: "去说一遍",
+    },
+    weekly: {
+      type: "weekly_review",
+      title: "本周会话：完成 3/7",
+      goal: "把一周学习转成下周计划。",
+      status: "in_progress",
+      startedAt: null,
+      completedAt: null,
+      outputs: ["weekly summary", "next week plan"],
+      nextRecommendedSession: {
+        type: "glossary_explore",
+        title: "探索一个术语路径",
+        goal: "把术语放回知识路径，而不是只看孤立解释。",
+      },
+      href: "/weekly",
+      ctaLabel: "做周复盘",
+    },
+  };
+
+  const markup = renderToStaticMarkup(
+    React.createElement(LearningSessionStrip, { sessions }),
+  );
+
+  assert.match(markup, /aria-label="学习会话"/);
+  assert.match(markup, /当前会话/);
+  assert.match(markup, /下一会话/);
+  assert.match(markup, /本周会话/);
+  assert.match(markup, /复习 5 张到期卡/);
+  assert.match(markup, /本周会话：完成 3\/7/);
+  assert.match(markup, /产出：review logs \/ weak signals/);
+  assert.match(markup, /下一步：说出今天的理解/);
+  assert.match(markup, /href="\/review"/);
+  assert.match(markup, /开始复习/);
+  assert.match(markup, /min-h-11 w-full sm:w-auto/);
+  assert.doesNotMatch(markup, /用户看到的是会话/);
+  assert.doesNotMatch(markup, /不是分散页面/);
 });
 
 test("learning markdown renders headings, tables, code, and math without raw html", () => {

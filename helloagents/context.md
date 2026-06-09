@@ -19,6 +19,7 @@ Roky Learn 是一个面向 AI、算法、代码能力和行业广度的每日学
 - Sprint 12：Planner Map Weakness，Planner 消费知识地图弱点补弱。
 - Sprint 13：Planner Explanation UX，`/today` 和 `/admin` 展示“为什么今天学这个”。
 - Reduce Chaos：`/books` 作为 Book Companion 进入学习动作区，连接 Current Mission、Notes、Flashcards、Coach、Mistakes、Weekly、Projects、Glossary、Radar 和 Path。
+- Reduce Chaos：首页新增 `学习会话` 读侧切片，用 `当前会话`、`下一会话` 和 `本周会话` 承载 daily lesson、review、Coach、voice、mistake、project、book、weekly、glossary、radar 等动作；当前不新增持久化 session 表。
 
 ## 生产环境
 

@@ -17,13 +17,16 @@ import { LearningHabitGoalCard } from "@/components/learning/learning-habit-goal
 import { LearningMomentumStrip } from "@/components/learning/learning-momentum-strip";
 import { LearningMissionCard } from "@/components/learning/learning-mission-card";
 import { LearningSectionCard } from "@/components/learning/learning-section-card";
+import { LearningSessionStrip } from "@/components/learning/learning-session-strip";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
 import { XpLevelCard } from "@/components/learning/xp-level-card";
 import {
   buildCurrentMission,
   buildCurrentMissionProgress,
   buildCurrentMissionSignals,
+  buildLearningSessions,
 } from "@/server/learning/current-mission";
+import { getActiveBookSession } from "@/server/books/base";
 import { buildLearningBadges } from "@/server/learning/badges";
 import {
   buildBreadthChallengeFromLessonConnections,
@@ -277,6 +280,7 @@ export default async function HomePage() {
     todayLessonId: todayPlan?.lessonId ?? null,
     todayNoteCount,
     todayVoiceNoteCount,
+    activeBookSession: getActiveBookSession(),
   };
   const currentMission = buildCurrentMission(currentMissionInput);
   const currentMissionSignals = buildCurrentMissionSignals(currentMissionInput);
@@ -325,6 +329,10 @@ export default async function HomePage() {
     streakDays: streak,
     completedDaysThisWeek,
   });
+  const learningSessions = buildLearningSessions({
+    input: currentMissionInput,
+    completedDaysThisWeek,
+  });
   const remediationFocus = openMisconceptionFocus
     ? {
         label: "误区补弱",
@@ -359,6 +367,7 @@ export default async function HomePage() {
             progress={currentMissionProgress}
             className="p-4 md:p-5"
           />
+          <LearningSessionStrip sessions={learningSessions} />
           <LearningMomentumStrip momentum={learningMomentum} />
           {remediationFocus ? (
             <div className="rounded-lg border bg-muted/20 p-3">

@@ -78,6 +78,21 @@ test("home page keeps the first screen focused on the current mission", () => {
   assert.doesNotMatch(heroSource, /title="今日能量"|title="今日三件事"|title="常用入口"/);
 });
 
+test("home page shows learning sessions instead of more standalone page entry points", () => {
+  const source = readFileSync("src/app/page.tsx", "utf8");
+  const sessionStripSource = readFileSync("src/components/learning/learning-session-strip.tsx", "utf8");
+  const combinedSource = `${source}\n${sessionStripSource}`;
+
+  assert.match(source, /buildLearningSessions\(/);
+  assert.match(source, /<LearningSessionStrip sessions=\{learningSessions\}/);
+  assert.match(combinedSource, /学习会话/);
+  assert.match(combinedSource, /当前会话/);
+  assert.match(combinedSource, /下一会话/);
+  assert.match(combinedSource, /本周会话/);
+  assert.doesNotMatch(combinedSource, /当前页面/);
+  assert.doesNotMatch(combinedSource, /下一页面/);
+});
+
 test("home page folds secondary actions under today can also", () => {
   const source = readFileSync("src/app/page.tsx", "utf8");
 

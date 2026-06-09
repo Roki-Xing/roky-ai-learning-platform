@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.353.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Learning Sessions]** 按指导文件第 15 节在首页新增 `学习会话` 读侧切片，把分散页面入口继续收束为当前会话、下一会话和本周会话。
+  - `src/server/learning/current-mission.ts` 新增 `LearningSession` 类型与 `buildLearningSessions()`，统一输出 `type / title / goal / status / startedAt / completedAt / outputs / nextRecommendedSession`。
+  - 会话类型覆盖 `daily_lesson / review_session / coach_session / voice_reflection / mistake_repair / project_milestone / book_reading / weekly_review / glossary_explore / radar_explore`。
+  - 首页接入 `LearningSessionStrip`，在 `CurrentMissionCard` 后展示 `当前会话`、`下一会话` 和 `本周会话`，主 CTA 只给当前会话。
+  - 会话从现有 Current Mission 输入派生，不新增 Prisma schema、不新增数据库 migration、不新增持久化 session 表。
+  - active book session 继续进入会话流，读书任务会显示为 `book_reading`，并保留 `/books/:id` 主线链接。
+
+### Verified
+
+- RED：`npm test -- tests/unit/learning-ui-components.test.ts` 首次失败于会话条仍显示说明型文案 `用户看到的是会话，不是分散页面。`
+- GREEN：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` 43 项通过，覆盖会话类型、统一字段、首页接线、组件渲染、移动端 CTA 和说明型文案防回退。
+
+### Not Covered
+
+- 本切片未新增数据库持久化 session、真实 session 开始/完成时间写入、完整 Playwright 矩阵、真实移动端截图或生产写入型 smoke。
+
 ## [0.352.0] - 2026-06-10
 
 ### Changed

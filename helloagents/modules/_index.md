@@ -6,6 +6,7 @@
 - [Project Practice](project-practice.md)
 - [Auth and Demo Mode](auth-demo-mode.md)
 - [Current Mission](current-mission.md)
+- [Learning Session](learning-session.md)
 - [Daily Loop Verification](daily-loop-verification.md)
 - [Daily Cron](daily-cron.md)
 - [Formula Rendering](formula-rendering.md)
