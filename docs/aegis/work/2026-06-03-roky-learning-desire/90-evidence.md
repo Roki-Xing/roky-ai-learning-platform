@@ -2313,6 +2313,9 @@ Not covered:
 | `npm test -- tests/unit/books-companion.test.ts` | fail then pass, 3 tests | RED first failed because `/books/[id]` lacked `aria-label="AI 伴读移动操作"` and a sticky mobile bottom action. GREEN passed after moving `打开 AI 伴读` into a `sticky bottom-16 z-20` mobile action region with `bg-background/95`, `backdrop-blur`, and `min-h-11 w-full`. |
 | `npm test -- tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts tests/unit/auth-policy.test.ts` | pass, 38 tests | Related regression after Books Mobile Sticky Companion; covers Books seed/page contract, Current Mission active reading, Next Best Action ordering, mobile navigation, and auth/Preview boundaries. |
 | `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates before commit/deploy; full unit suite passed 464 tests, route and learning audits passed, and Next production build generated 31 static pages with `/books/[id]` in the route table. |
+| `git push origin main` | pass | Pushed `8d13f7a feat: improve books mobile companion` from local `main` to `origin/main`. |
+| Remote backup + rsync + container gates | pass | Backup created at `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.355.0-20260610-015857.tar.gz`; rsync excluded `.git/`, `node_modules/`, `.next/`, `.env*`, and `*.pem`; container gates passed: `npm ci --include=dev`, `npm run prisma:generate`, 38 targeted tests, route audit, learning audit, lint, and build. |
+| Production restart and smoke | pass | `docker restart ai-learning-platform` succeeded; `https://learn.roky.chat/api/health` returned 200/ok; 390px password-login smoke on `/books/ai-engineering` detected `AI 伴读移动操作`, sticky classes, and opened the AI companion Sheet with `解释选区`, `保存为 Note`, and `送 Coach`. |
 
 Changed surface:
 
@@ -2320,7 +2323,7 @@ Changed surface:
 
 Not covered:
 
-- Production deployment, remote container gates, production login smoke, full Playwright mobile matrix, real mobile screenshots, and production write-type smoke remain pending for the deploy phase.
+- Full Playwright mobile matrix, real mobile screenshots, and production write-type smoke were not performed for this slice. `npm audit` still reports the existing 3 moderate dependency warnings and remains out of scope.
 
 ## Phase E Admin Recent Plan Governance CTA Mobile Touch Targets
 

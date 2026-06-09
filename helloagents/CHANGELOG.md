@@ -15,10 +15,14 @@
 - GREEN：`npm test -- tests/unit/books-companion.test.ts` 3 项通过，覆盖 Books seed、阅读页学习者文案和移动端 sticky 伴读入口。
 - 相关回归：`npm test -- tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts tests/unit/auth-policy.test.ts` 38 项通过，覆盖 Books、Current Mission、Next Best Action、移动导航和鉴权/Preview 边界。
 - 本地最终门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 464 项通过，Next 生产构建生成 31 个静态页面。
+- GitHub：代码提交 `8d13f7a feat: improve books mobile companion` 已推送到 `origin/main`。
+- 生产部署：已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.355.0-20260610-015857.tar.gz`，rsync 同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，并重启 `ai-learning-platform` 容器。
+- 远端门禁：容器内 `npm ci --include=dev`、`npm run prisma:generate`、Books/Current Mission/Auth 定向测试 38 项、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、`npm run build` 通过，随后 `npm prune --omit=dev`。
+- 生产验收：`https://learn.roky.chat/api/health` 返回 200/ok；390px 移动视口密码登录 `/books/ai-engineering` 后可见 `PDF Viewer`，检测到 `AI 伴读移动操作` sticky 区，且 `打开 AI 伴读` Sheet 可见 `解释选区`、`保存为 Note`、`送 Coach`。
 
 ### Not Covered
 
-- 生产部署、远端门禁和真实移动端登录 smoke 待上线后补齐；`npm audit` 既有 3 个 moderate 告警未纳入本轮范围。
+- 未执行完整 Playwright 移动端截图矩阵或生产写入型 smoke；`npm audit` 仍报告既有 3 个 moderate 告警，未纳入本轮范围。
 
 ## [0.354.0] - 2026-06-10
 
