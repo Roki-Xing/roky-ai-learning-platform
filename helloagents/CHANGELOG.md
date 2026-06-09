@@ -13,10 +13,15 @@
 
 - RED：`npm test -- tests/unit/learning-ui-components.test.ts` 首次失败于 Review 活动卡片缺少 `aria-label="复习移动操作"` 和 `sticky bottom-16`。
 - GREEN：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/review-empty-state.test.ts tests/unit/review-rating.test.ts` 31 项通过，覆盖 sticky 操作区、Review 空态和评分幂等。
+- 本地最终门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 463 项通过，Next 生产构建生成 31 个静态页面。
+- GitHub：代码提交 `62d9394 feat: improve review mobile sticky actions` 已推送到 `origin/main`。
+- 生产部署：已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.354.0-20260610-014015.tar.gz`，rsync 同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，并重启 `ai-learning-platform` 容器。
+- 远端门禁：容器内 `npm run prisma:generate`、非 DB Review 定向测试 30 项、`npm run build` 通过，随后 `npm prune --omit=dev`；DB 型 `review-rating.test.ts` 在生产容器内因本地测试库 `localhost:65432` 不存在未作为远端门禁，已由本地全量测试覆盖。
+- 生产验收：`https://learn.roky.chat/api/health` 返回 200/ok；390px 移动视口密码登录 `/review` 后页面可见，并检测到 DOM 中存在 `aria-label="复习移动操作"`；远端源码确认包含 `sticky bottom-16 z-20` 和 `bg-background/95`。
 
 ### Not Covered
 
-- 未执行完整移动端截图矩阵、Playwright 交互 smoke、生产部署或生产写入型评分 smoke。
+- 未执行完整移动端截图矩阵或生产写入型评分 smoke；`npm audit` 仍报告既有 3 个 moderate 依赖告警，未纳入本轮范围。
 
 ## [0.353.0] - 2026-06-10
 
