@@ -16,10 +16,14 @@
 - RED/GREEN：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/mistakes-view.test.ts` 34 项通过，覆盖 `/mistakes?focus=<id>`、fallback `/mistakes`、Learning Session 误区修复 href、`当前先修这一条` 和移动端 sticky 操作区。
 - 相关回归：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/mistakes-view.test.ts tests/unit/auth-policy.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/learning-ui-components.test.ts` 77 项通过，覆盖 Current Mission、Mistakes、Auth/Preview、Review 补弱、Today 补弱和共享学习 UI。
 - 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 467 项通过，Next 生产构建生成 31 个静态页面。
+- GitHub：代码提交 `645a293 feat: focus mistake repair mission` 已推送到 `origin/main`。
+- 生产部署：已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.357.0-20260610-062421.tar.gz`，rsync 同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，并重启 `ai-learning-platform` 容器。
+- 远端门禁：容器内 `npm ci --include=dev`、`npm run prisma:generate`、Mistakes/Current Mission 相关回归 77 项、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、`npm run build` 通过，随后 `npm prune --omit=dev`。
+- 生产验收：`https://learn.roky.chat/api/health` 返回 200/ok；390px 移动视口密码登录 `/mistakes` 后可见 `错题误区`，页面可访问；远端源码确认已部署 `当前先修这一条`、`错题修复移动操作`、`/mistakes?focus=<id>` 和 sticky class。
 
 ### Not Covered
 
-- 尚未执行 GitHub 推送、生产部署和生产 smoke；后续收尾继续补齐。
+- 当前生产 demo 用户没有开放误区样本（`open` count = 0），所以未能在线上真实数据中实测 `当前先修这一条` sticky 区渲染；该行为由本地/远端单测和远端源码核验覆盖。未执行完整 Playwright 移动端截图矩阵或写入型错题修复 smoke；`npm audit` 仍报告既有 3 个 moderate 告警，未纳入本轮范围。
 
 ## [0.356.0] - 2026-06-10
 

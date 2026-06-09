@@ -8,13 +8,13 @@
 - [√] GREEN：`/mistakes` 新增 `当前先修这一条` 和 `aria-label="错题修复移动操作"` sticky 主修复区。
 - [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/mistakes.md` 和 `helloagents/CHANGELOG.md` 初始记录。
 - [√] 运行相关回归与本地完整门禁。
-- [ ] 提交并推送 GitHub。
-- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
-- [ ] 补生产证据并清理临时 SSH key。
+- [√] 提交并推送 GitHub：`645a293 feat: focus mistake repair mission`。
+- [√] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
+- [√] 补生产证据并清理临时 SSH key。
 
 ## Current Resume State Hint
 
-从 `ai-learning-platform` 根目录继续。当前切片是 `0.357.0 Reduce Chaos Mistakes Focus Repair`：只改 Current Mission / Next Best Action 到 `/mistakes?focus=<id>` 的读侧路由，以及 `/mistakes` 聚焦修复展示层和移动 sticky 主操作；不要改 `generateMistakeReviewCardAction`、`markMistakeResolvedAction`、Preview 写保护、数据库 schema/migration、生产 env/provider 密钥或 Voice/Books/Review 等无关模块逻辑。已完成定向 RED/GREEN、相关回归、完整本地门禁和初始文档同步，下一步提交推送、生产部署和 smoke。
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.357.0 Reduce Chaos Mistakes Focus Repair`：只改 Current Mission / Next Best Action 到 `/mistakes?focus=<id>` 的读侧路由，以及 `/mistakes` 聚焦修复展示层和移动 sticky 主操作；不要改 `generateMistakeReviewCardAction`、`markMistakeResolvedAction`、Preview 写保护、数据库 schema/migration、生产 env/provider 密钥或 Voice/Books/Review 等无关模块逻辑。已完成定向 RED/GREEN、相关回归、完整本地门禁、GitHub push、生产部署、远端门禁和 390px `/mistakes` 页面 smoke；生产 demo 用户当前 0 条开放误区，未能用真实样本实测 focus sticky 区。
 
 ## Current Drift Check
 
@@ -22,7 +22,7 @@
 - Compatibility：不新增迁移，不触碰生产 env、provider 密钥、Preview 写保护或错题写入 action；只改变读侧路由、页面展示和源码级测试/文档记录。
 - New fallback/owner：没有新增外部 owner、adapter 或兼容层；缺少误区 id 时保留 `/mistakes` fallback。
 - Retirement：旧的 `/coach` 直接跳转和 summary-as-focus 行为已退役；列表级修复动作继续保留。
-- Decision：continue; 定向测试、相关回归和完整本地门禁已通过，仍需提交推送、生产部署和 smoke。
+- Decision：complete; 定向测试、相关回归、完整本地门禁、GitHub push、生产部署、远端门禁、生产 health、390px `/mistakes` 页面 smoke、远端源码核验和临时 SSH key 清理均已完成。生产 demo 用户当前 0 条开放误区，focus sticky 区真实数据 smoke 保持未覆盖边界。
 
 ## Previous Slice: Reduce Chaos Voice Mobile Sticky Capture
 
