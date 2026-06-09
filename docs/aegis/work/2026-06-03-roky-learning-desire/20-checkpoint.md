@@ -10,13 +10,13 @@
 - [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/path.md` 和 `helloagents/CHANGELOG.md` 初始记录。
 - [√] 运行定向 RED/GREEN 和相关回归。
 - [√] 运行本地完整门禁。
-- [ ] 提交并推送 GitHub。
-- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
-- [ ] 补生产部署证据并清理临时 SSH key。
+- [√] 提交并推送 GitHub：`0e9ce02 feat: add path stage reading materials`。
+- [√] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
+- [√] 补生产部署证据并清理临时 SSH key 和登录态临时文件。
 
 ## Current Resume State Hint
 
-从 `ai-learning-platform` 根目录继续。当前切片是 `0.360.0 Reduce Chaos Path Stage Reading Materials`：只改 `/path` 读侧数据合约、阶段卡展示、Books 推荐规则、源码级测试和文档记录；不要改数据库 schema/migration、Current Mission 排序、Books 上传/OCR/AI provider、生产 env/provider 密钥、Preview 写保护语义或其他页面主流程。已完成 RED/GREEN、相关回归和完整本地门禁；下一步提交推送、生产部署和读侧 smoke。生产 smoke 只检查 `/path` 可见 `阶段阅读` 和 `去同读`，不做写入型操作。
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.360.0 Reduce Chaos Path Stage Reading Materials`：只改 `/path` 读侧数据合约、阶段卡展示、Books 推荐规则、源码级测试和文档记录；不要改数据库 schema/migration、Current Mission 排序、Books 上传/OCR/AI provider、生产 env/provider 密钥、Preview 写保护语义或其他页面主流程。已完成 RED/GREEN、相关回归、完整本地门禁、GitHub push、生产部署、远端门禁、生产 health 和 390px `/path` 只读 smoke。生产 smoke 只检查 `/path` 可见 `阶段阅读` 和 `去同读`，未做写入型操作。
 
 ## Current Drift Check
 
@@ -24,7 +24,7 @@
 - Compatibility：不新增迁移，不触碰生产 env、provider 密钥、数据库 schema、Current Mission 排序、Books 上传禁用态、OCR/AI provider 或 Preview 写保护；只新增读侧推荐材料和页面展示。
 - New fallback/owner：新增 `path-reading.ts` 作为 Books 到 Path 的读侧桥接 owner；没有新增外部 adapter 或兼容 fallback。
 - Retirement：旧的 `/path` 阶段卡没有 Books 阅读材料，用户需要从导航另找 `/books`；该断点已由阶段内 `阶段阅读` 入口退役。
-- Decision：continue; RED/GREEN、相关回归和完整本地门禁已完成，下一步提交推送并进入部署流程。
+- Decision：complete; RED/GREEN、相关回归、完整本地门禁、GitHub push、生产部署、远端门禁、生产 health、390px `/path` 只读 smoke 和临时 SSH key / 登录态文件清理均已完成。完整 Playwright 移动端截图矩阵、写入型生产 smoke、数据库迁移、真实 PDF 上传、OCR、AI provider 调用和既有 `npm audit` moderate 告警保持未覆盖边界。
 
 ## Current Slice: Reduce Chaos Weekly Ritual Summary and Reflection Note
 

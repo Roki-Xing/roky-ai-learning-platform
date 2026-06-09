@@ -7,14 +7,18 @@
 | `npm test -- tests/unit/learning-path.test.ts` | fail then pass, 4 tests | RED first failed because `readingMaterials` was `undefined`, `/path` lacked `阶段阅读`, and the page lacked `pathReadingLinkClassName`. GREEN passed after adding `path-reading.ts`, wiring `LearningPathStage.readingMaterials`, and rendering reading materials on stage cards. |
 | `npm test -- tests/unit/learning-path.test.ts tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts` | pass, 33 tests | Related regression covers Path, Books, Current Mission, Next Best Action, mobile navigation, and shared accessibility boundaries. |
 | `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates before push; full unit suite passed 471 tests, route audit reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
+| `git push origin main` | pass | Code commit `0e9ce02 feat: add path stage reading materials` pushed to `origin/main`. |
+| Production backup and deploy | pass | Created `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.360.0-20260610-074331.tar.gz`, rsynced code to `118.25.15.72:/home/ubuntu/ai-learning-platform`, pruned dev dependencies after validation, and restarted container `ai-learning-platform`. |
+| Remote container gates | pass | In container: `npm ci --include=dev`, `npm run prisma:generate`, Path/Books/Current Mission related regression 33 tests, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, and `npm run build` passed. |
+| `curl https://learn.roky.chat/api/health` and 390px Playwright login smoke | pass | Health returned 200/ok. Mobile smoke logged in to `/path`, saw `学习路径`, `阶段阅读`, `AI Engineering`, `第 12-14 页`, and `去同读`; the `去同读` link contained `/books/ai-engineering`. The smoke intentionally did not perform production writes. |
 
 Changed surface:
 
 - Reduce Chaos Path Stage Reading Materials layer: `src/server/learning/path-reading.ts`, `src/server/learning/path.ts`, `src/app/path/page.tsx`, `tests/unit/learning-path.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/path.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
 
-Not covered yet:
+Not covered:
 
-- GitHub push, production deployment, production smoke, and production deploy evidence are still pending for this slice. This slice does not include database migrations, real PDF upload, OCR, AI provider calls, or write-type production smoke.
+- Full Playwright mobile screenshot matrix and write-type production smoke were not run. This slice does not include database migrations, real PDF upload, OCR, or AI provider calls. `npm audit` still reports existing 3 moderate dependency advisories and was not part of this slice.
 
 ## Reduce Chaos Weekly Ritual Summary and Reflection Note
 

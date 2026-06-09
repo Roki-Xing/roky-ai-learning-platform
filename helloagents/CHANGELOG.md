@@ -17,10 +17,14 @@
 - GREEN：`npm test -- tests/unit/learning-path.test.ts` 4 项通过，覆盖 Path 阶段阅读材料数据合约、`阶段阅读` 页面接线、页码/推荐理由渲染和移动端 `去同读` 触控目标。
 - 相关回归：`npm test -- tests/unit/learning-path.test.ts tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts` 33 项通过，覆盖 Path、Books、Current Mission、Next Best Action、移动导航和共享可访问性边界。
 - 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 471 项通过，Next 生产构建生成 31 个静态页面。
+- GitHub：代码提交 `0e9ce02 feat: add path stage reading materials` 已推送到 `origin/main`。
+- 生产部署：已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.360.0-20260610-074331.tar.gz`，rsync 同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，并重启 `ai-learning-platform` 容器。
+- 远端门禁：容器内 `npm ci --include=dev`、`npm run prisma:generate`、Path/Books/Current Mission 相关回归 33 项、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、`npm run build` 通过，随后 `npm prune --omit=dev`。
+- 生产验收：`https://learn.roky.chat/api/health` 返回 200/ok；390px 移动视口密码登录 `/path` 后可见 `学习路径`、`阶段阅读`、`AI Engineering`、`第 12-14 页` 和 `去同读`，且 `去同读` 链接包含 `/books/ai-engineering`。
 
 ### Not Covered
 
-- 生产部署、生产 smoke、完整 Playwright 移动端截图矩阵和写入型生产 smoke 尚未执行；本切片不包含数据库迁移、真实 PDF 上传、OCR 或 AI provider 调用。生产部署证据会在上线后追加。
+- 未执行完整 Playwright 移动端截图矩阵或写入型生产 smoke；本切片不包含数据库迁移、真实 PDF 上传、OCR 或 AI provider 调用。`npm audit` 仍报告既有 3 个 moderate 告警，未纳入本轮范围。
 
 ## [0.359.0] - 2026-06-10
 
