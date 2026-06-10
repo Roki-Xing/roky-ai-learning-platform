@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.364.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Current Mission Companion Copy]** 按指导文件第 3.4 继续优化首页 Daily Command Center，在首屏 Current Mission 中加入短学习伴随提示。
+  - `CurrentMissionCard` 新增可选 `companionCopy`，用于在任务原因下方展示一行低噪音陪伴文案。
+  - 首页 `首页主任务` 向 `CurrentMissionCard` 传入 `今天不用做很多事，先完成当前任务就够了。`，帮助学习者先聚焦当前任务。
+  - 保留 Current Mission 现有优先级、五步今日闭环、完成后路径、Books active reading、Mistakes focus route、首页首屏收束、移动底部导航、认证策略、Preview 写保护、数据库 schema、生产 env/provider 密钥和所有写入行为边界。
+
+### Verified
+
+- RED：`npm test -- tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` 首次失败于 `CurrentMissionCard` 和首页首屏 `首页主任务` 缺少 `今天不用做很多事，先完成当前任务就够了。`。
+- GREEN：`npm test -- tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` 20 项通过，覆盖任务卡渲染、首页首屏源码契约和首屏仍不混入 `LearningSessionStrip` / `LearningMomentumStrip` / 多快捷入口。
+- 相关回归：`npm test -- tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts tests/unit/next-best-action.test.ts tests/unit/learning-ui-components.test.ts` 56 项通过，覆盖 Current Mission、首页源码契约、Next Best Action 和共享学习 UI。
+- 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 473 项通过，Next 生产构建生成 31 个静态页面。
+- Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+
+### Not Covered
+
+- 本条记录写入时尚未执行 GitHub 推送、生产部署、远端门禁或生产 smoke；后续部署证据会在完成后补齐。本切片不包含数据库迁移、路由保护变更、Preview 写保护变更、移动底部导航重构、More Sheet 变更或写入型生产 smoke。
+
 ## [0.363.0] - 2026-06-10
 
 ### Changed

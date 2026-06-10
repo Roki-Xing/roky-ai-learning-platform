@@ -317,6 +317,7 @@ test("current mission localizes unresolved misconception fallback copy", async (
 test("current mission card renders heading, signal summary, and action", () => {
   const markup = renderToStaticMarkup(
     React.createElement(CurrentMissionCard, {
+      companionCopy: "今天不用做很多事，先完成当前任务就够了。",
       mission: {
         title: "完成今日学习",
         reason: "今天的课程已经生成，先走完主课、引导步骤、小测验和反思。",
@@ -354,6 +355,7 @@ test("current mission card renders heading, signal summary, and action", () => {
   assert.doesNotMatch(markup, /Current Mission/);
   assert.match(markup, /完成今日学习/);
   assert.match(markup, /今天的课程已经生成/);
+  assert.match(markup, /今天不用做很多事，先完成当前任务就够了。/);
   assert.match(markup, /误区/);
   assert.match(markup, /代码反馈/);
   assert.match(markup, /href="\/today"/);

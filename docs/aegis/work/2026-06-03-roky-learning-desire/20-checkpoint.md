@@ -1,6 +1,31 @@
 # Todo Checkpoint
 
-## Current Slice: Reduce Chaos Current Mission Daily Loop Steps
+## Current Slice: Reduce Chaos Current Mission Companion Copy
+
+- [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 3.4：首页需要增加学习伴随感，但不重新堆叠首页入口。
+- [√] RED：扩展 Current Mission / Home Page 测试，先失败于 `CurrentMissionCard` 和首页首屏缺少 `今天不用做很多事，先完成当前任务就够了。`。
+- [√] GREEN：`CurrentMissionCard` 新增可选 `companionCopy` 并在任务原因下方渲染一行低噪音提示。
+- [√] GREEN：首页 `首页主任务` 向 `CurrentMissionCard` 传入固定 companion copy，保持首屏只有 Current Mission、今日闭环、完成后路径和一个主 CTA。
+- [√] 运行定向 RED/GREEN 和相关回归。
+- [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/current-mission.md`、`helloagents/CHANGELOG.md` 初始记录。
+- [√] 运行本地完整门禁。
+- [ ] 提交并推送 GitHub。
+- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产只读 smoke。
+- [ ] 补生产部署证据并清理临时 SSH key / 登录态临时文件。
+
+## Current Resume State Hint
+
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.364.0 Reduce Chaos Current Mission Companion Copy`：只改 Current Mission 卡片读侧展示、首页首屏 prop、源码级测试和文档记录；不要改 Current Mission / Next Best Action 排序、数据库 schema/migration、认证策略、Preview 写保护、生产 env/provider 密钥、移动底部导航、More Sheet 或写入型业务流程。已完成 RED/GREEN、相关回归、初始文档同步、本地完整门禁和 Aegis helper 结构检查；GitHub push、生产部署、远端门禁和生产 smoke 仍待执行。
+
+## Current Drift Check
+
+- Scope：仍服务 Roky Learn reduce-chaos 主线，在不增加新入口的前提下给首页 Current Mission 增加短学习伴随感。
+- Compatibility：不新增迁移，不触碰生产 env、provider 密钥、Preview 写保护、认证策略、移动底部导航、More Sheet 或写入型流程；只新增 `CurrentMissionCard` 的可选展示 prop 和首页短文案。
+- New fallback/owner：没有新增外部 owner、adapter 或兼容 fallback；Current Mission 卡片展示 owner 仍为 `src/components/learning/current-mission-card.tsx`，首页接线 owner 仍为 `src/app/page.tsx`。
+- Retirement：没有旧逻辑需要删除；本切片补足此前 Current Mission 只回答任务/原因/下一步、但缺少“今天先做这一件就够”的学习陪伴提示。
+- Decision：continue; RED/GREEN、相关回归、初始文档同步和本地完整门禁完成。Aegis helper 仍失败于既有 Markdown-only 结构债，归类为方法包结构债，不是产品 UI 验证失败。下一步提交推送、生产部署、远端门禁和生产只读 smoke。
+
+## Completed Slice: Reduce Chaos Current Mission Daily Loop Steps
 
 - [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 3.3：首页 Current Mission 的 `今日闭环` 应显示 `学习 / 复习 / 表达 / 修复 / 实践` 五步状态，而不是只有数字进度。
 - [√] RED：扩展 Current Mission 测试，先失败于 `progress.steps` 为 `undefined`、Book Companion 场景缺少五步实践当前态、`CurrentMissionCard` 未渲染五步状态。

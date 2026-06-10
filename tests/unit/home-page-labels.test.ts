@@ -72,6 +72,7 @@ test("home page keeps the first screen focused on the current mission", () => {
   const heroSource = source.slice(heroStart, heroEnd);
 
   assert.match(heroSource, /<CurrentMissionCard/);
+  assert.match(heroSource, /今天不用做很多事，先完成当前任务就够了。/);
   assert.doesNotMatch(heroSource, /<LearningSessionStrip/);
   assert.doesNotMatch(heroSource, /<LearningMomentumStrip/);
   assert.doesNotMatch(heroSource, /<LearningSectionCard/);

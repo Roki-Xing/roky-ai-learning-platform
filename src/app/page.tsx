@@ -365,6 +365,7 @@ export default async function HomePage() {
             mission={currentMission}
             signals={currentMissionSignals}
             progress={currentMissionProgress}
+            companionCopy="今天不用做很多事，先完成当前任务就够了。"
             className="p-4 md:p-5"
           />
         </section>

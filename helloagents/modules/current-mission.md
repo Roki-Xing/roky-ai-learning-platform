@@ -41,6 +41,7 @@
 - `CurrentMissionProgress` 保留 `completed/total` 兼容字段，并新增 `steps`；每一步包含中文 label、`done/current/todo` 状态和短文案，例如 `已完成`、`3 张到期`、`待表达`、`已清空`、`进行中`。
 - 五步状态只读派生自现有 DailyPlan、到期卡片、笔记/语音、误区/代码反馈、项目/同读任务；不新增数据库表、migration 或真实完成写入。
 - 首页 Current Mission 卡片新增 `afterComplete` 轻量链接，说明完成当前动作后应该去哪里，例如 `完成后去复习`、`完成后去语音反思`、`读完后生成笔记/卡片`。
+- 首页 Current Mission 卡片新增 `companionCopy` 短伴随提示，首页固定传入 `今天不用做很多事，先完成当前任务就够了。`，用于降低打开首页后的选择压力；不新增入口、不改变 Current Mission 排序或数据合约。
 - 首页首屏现在是 `首页主任务` 区，只保留 `CurrentMissionCard`，避免与 `学习会话`、`学习状态`、`补弱焦点`、`今日能量`、`今日三件事`、`常用入口` 等模块竞争。
 - 首页 Current Mission 下方新增 `LearningSessionStrip`，把当前推荐动作、完成后的下一动作和本周会话进度展示为 `当前会话`、`下一会话`、`本周会话`。
 - `buildLearningSessions()` 输出指导文件第 15 节的统一字段：`type`、`title`、`goal`、`status`、`startedAt`、`completedAt`、`outputs`、`nextRecommendedSession`，并补充 UI 所需的 `href` 与 `ctaLabel`。
@@ -118,6 +119,7 @@
 - Phase E Current Mission Misconception Fallback Localization：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts` RED/GREEN 后 13 项通过；覆盖无 focus 未解决误区兜底显示 `N 个未解决误区`，并防止 `open misconception` 回退到学习者可见 reason。
 - Phase E Current Mission Misconception Fallback Localization related regression：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-motivation.test.ts tests/unit/today-code-exercise.test.ts tests/unit/coach-workspace.test.ts` 41 项通过。
 - Sprint Learning Desire Homepage Momentum Strip：`npm test -- tests/unit/learning-motivation.test.ts` RED 首次失败于缺少 `@/server/learning/momentum`，GREEN 后 12 项通过；相关回归 `npm test -- tests/unit/learning-motivation.test.ts tests/unit/current-mission.test.ts tests/unit/learning-ui-components.test.ts tests/unit/home-page-labels.test.ts` 46 项通过。
+- 0.364.0 Reduce Chaos Current Mission Companion Copy：`npm test -- tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` RED 首次失败于 `CurrentMissionCard` 和首页首屏缺少 `今天不用做很多事，先完成当前任务就够了。`；GREEN 后 20 项通过。相关回归 `npm test -- tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts tests/unit/next-best-action.test.ts tests/unit/learning-ui-components.test.ts` 56 项通过。
 - Reduce Chaos Homepage Command Center：`npm test -- tests/unit/home-page-labels.test.ts` RED 首次失败于首页仍存在 `今日能量`、`今日三件事`、`常用入口` 和旧 `QUICK_ACTIONS`；GREEN 后 4 项通过，覆盖首页首屏只保留 Current Mission/进度，次级动作折叠到 `今天还可以`。
 - Reduce Chaos Book Companion MVP：`npm test -- tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts tests/unit/auth-policy.test.ts` 覆盖 Books seed、`/books` 和 `/books/[id]` 页面契约、Current Mission active reading、导航和鉴权保护。
 - Reduce Chaos Learning Sessions：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` 43 项通过，覆盖 10 种 session 类型、统一字段、首页接线、组件渲染、移动端 CTA 和说明型文案防回退。

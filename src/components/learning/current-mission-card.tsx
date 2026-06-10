@@ -69,6 +69,7 @@ export function CurrentMissionCard(props: {
   signals?: CurrentMissionSignal[];
   progress?: CurrentMissionProgress;
   title?: string;
+  companionCopy?: string;
   className?: string;
 }) {
   const title = props.title ?? "当前任务";
@@ -106,6 +107,11 @@ export function CurrentMissionCard(props: {
           <div className="mt-1 text-sm leading-6 text-muted-foreground">
             {props.mission.reason}
           </div>
+          {props.companionCopy ? (
+            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-foreground">
+              {props.companionCopy}
+            </p>
+          ) : null}
           {metaBadges.length > 0 ? (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {metaBadges.map((badge) => (
