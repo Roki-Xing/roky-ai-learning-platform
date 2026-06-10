@@ -10,13 +10,13 @@
 - [√] 运行定向 RED/GREEN 和相关回归。
 - [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/current-mission.md`、`helloagents/CHANGELOG.md` 初始记录。
 - [√] 运行本地完整门禁。
-- [ ] 提交并推送 GitHub。
-- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
-- [ ] 补生产部署证据并清理临时 SSH key / 登录态临时文件。
+- [√] 提交并推送 GitHub：`14f87ac feat: show current mission daily loop steps`。
+- [√] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
+- [√] 补生产部署证据并清理临时 SSH key / 登录态临时文件。
 
 ## Current Resume State Hint
 
-从 `ai-learning-platform` 根目录继续。当前切片是 `0.363.0 Reduce Chaos Current Mission Daily Loop Steps`：只改 Current Mission 读侧进度数据合约、任务卡展示、源码级测试和文档记录；不要改 Next Best Action 排序、数据库 schema/migration、认证策略、Preview 写保护、生产 env/provider 密钥、移动底部导航、More Sheet 或写入型业务流程。已完成 RED/GREEN、相关回归和本地完整门禁；下一步提交推送、生产部署和只读首页 smoke。生产 smoke 只检查首页 Current Mission 可见 `今日闭环`、`学习`、`复习`、`表达`、`修复`、`实践`，不做写入型操作。
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.363.0 Reduce Chaos Current Mission Daily Loop Steps`：只改 Current Mission 读侧进度数据合约、任务卡展示、源码级测试和文档记录；不要改 Next Best Action 排序、数据库 schema/migration、认证策略、Preview 写保护、生产 env/provider 密钥、移动底部导航、More Sheet 或写入型业务流程。已完成 RED/GREEN、相关回归、本地完整门禁、GitHub push、生产部署、远端门禁、生产 health、桌面登录态只读首页 smoke 和临时 SSH key / 登录态临时文件清理。生产 smoke 只检查首页 Current Mission 可见 `今日闭环`、`学习`、`复习`、`表达`、`修复`、`实践`，未做写入型操作。
 
 ## Current Drift Check
 
@@ -24,7 +24,7 @@
 - Compatibility：保留 `completed/total` 兼容字段，不新增迁移，不触碰生产 env、provider 密钥、Preview 写保护、认证策略、移动底部导航、More Sheet 或写入型流程；只新增读侧 `steps` 合约和展示层布局调整。
 - New fallback/owner：没有新增外部 owner、adapter 或兼容 fallback；Current Mission progress owner 仍为 `src/server/learning/current-mission.ts` 和 `src/components/learning/current-mission-card.tsx`。
 - Retirement：旧的首页 Current Mission 只显示 `今日闭环 X/5` 和进度条的弱方向感展示已由五步状态块替代；数字进度条继续保留作为摘要和无障碍进度语义。
-- Decision：continue; RED/GREEN、相关回归和本地完整门禁已完成，下一步提交推送并进入部署流程。
+- Decision：complete; RED/GREEN、相关回归、本地完整门禁、GitHub push、生产部署、远端门禁、生产 health、桌面登录态只读首页 smoke 和临时 SSH key / 登录态临时文件清理均已完成。完整 Playwright 移动端截图矩阵、写入型生产 smoke、数据库迁移、路由保护变更、Preview 写保护变更、移动底部导航重构、More Sheet 变更和既有 `npm audit` moderate 告警保持未覆盖边界。Aegis helper 仍失败于既有 Markdown-only 结构债，归类为方法包结构债，不是产品 UI 验证失败。
 
 ## Current Slice: Reduce Chaos Current Mission Handoff
 
