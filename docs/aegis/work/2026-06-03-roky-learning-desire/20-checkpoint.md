@@ -9,13 +9,13 @@
 - [√] 运行定向 RED/GREEN 和相关回归。
 - [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/current-mission.md`、`helloagents/CHANGELOG.md` 初始记录。
 - [√] 运行本地完整门禁。
-- [ ] 提交并推送 GitHub。
-- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产只读 smoke。
-- [ ] 补生产部署证据并清理临时 SSH key / 登录态临时文件。
+- [√] 提交并推送 GitHub：`af8ffbe feat: add current mission companion copy`。
+- [√] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产只读 smoke。
+- [√] 补生产部署证据并清理临时 SSH key / 登录态临时文件。
 
 ## Current Resume State Hint
 
-从 `ai-learning-platform` 根目录继续。当前切片是 `0.364.0 Reduce Chaos Current Mission Companion Copy`：只改 Current Mission 卡片读侧展示、首页首屏 prop、源码级测试和文档记录；不要改 Current Mission / Next Best Action 排序、数据库 schema/migration、认证策略、Preview 写保护、生产 env/provider 密钥、移动底部导航、More Sheet 或写入型业务流程。已完成 RED/GREEN、相关回归、初始文档同步、本地完整门禁和 Aegis helper 结构检查；GitHub push、生产部署、远端门禁和生产 smoke 仍待执行。
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.364.0 Reduce Chaos Current Mission Companion Copy`：只改 Current Mission 卡片读侧展示、首页首屏 prop、源码级测试和文档记录；不要改 Current Mission / Next Best Action 排序、数据库 schema/migration、认证策略、Preview 写保护、生产 env/provider 密钥、移动底部导航、More Sheet 或写入型业务流程。已完成 RED/GREEN、相关回归、本地完整门禁、Aegis helper 结构检查、GitHub push、生产部署、远端门禁、生产 health、桌面登录态只读首页 smoke 和临时 SSH key / 登录态临时文件清理。
 
 ## Current Drift Check
 
@@ -23,7 +23,7 @@
 - Compatibility：不新增迁移，不触碰生产 env、provider 密钥、Preview 写保护、认证策略、移动底部导航、More Sheet 或写入型流程；只新增 `CurrentMissionCard` 的可选展示 prop 和首页短文案。
 - New fallback/owner：没有新增外部 owner、adapter 或兼容 fallback；Current Mission 卡片展示 owner 仍为 `src/components/learning/current-mission-card.tsx`，首页接线 owner 仍为 `src/app/page.tsx`。
 - Retirement：没有旧逻辑需要删除；本切片补足此前 Current Mission 只回答任务/原因/下一步、但缺少“今天先做这一件就够”的学习陪伴提示。
-- Decision：continue; RED/GREEN、相关回归、初始文档同步和本地完整门禁完成。Aegis helper 仍失败于既有 Markdown-only 结构债，归类为方法包结构债，不是产品 UI 验证失败。下一步提交推送、生产部署、远端门禁和生产只读 smoke。
+- Decision：complete; RED/GREEN、相关回归、本地完整门禁、GitHub push、生产部署、远端门禁、生产 health、桌面登录态只读首页 smoke 和临时 SSH key / 登录态临时文件清理均已完成。完整 Playwright 移动端截图矩阵、写入型生产 smoke、数据库迁移、路由保护变更、Preview 写保护变更、移动底部导航重构、More Sheet 变更和既有 `npm audit` moderate 告警保持未覆盖边界。Aegis helper 仍失败于既有 Markdown-only 结构债，归类为方法包结构债，不是产品 UI 验证失败。
 
 ## Completed Slice: Reduce Chaos Current Mission Daily Loop Steps
 

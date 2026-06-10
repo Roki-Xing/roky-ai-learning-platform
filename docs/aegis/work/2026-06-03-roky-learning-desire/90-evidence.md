@@ -8,14 +8,18 @@
 | `npm test -- tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts tests/unit/next-best-action.test.ts tests/unit/learning-ui-components.test.ts` | pass, 56 tests | Related regression covers Current Mission, homepage source contract, Next Best Action, and shared learning UI. |
 | `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates before push; full unit suite passed 473 tests, route audit reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
 | `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py bundle --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform --work 2026-06-03-roky-learning-desire`, `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py check --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform` | fail, structural debt | Aegis helper still reports known Markdown-only workspace debt: missing `task-intent-draft.json` for the current work and current/historical work markdown records not indexed. This is method-pack structure debt, not a product UI validation failure. |
+| `git push origin main` | pass | Code commit `af8ffbe feat: add current mission companion copy` pushed to `origin/main`. |
+| Production backup and deploy | pass | Created `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.364.0-20260610-095952.tar.gz`, rsynced code to `118.25.15.72:/home/ubuntu/ai-learning-platform`, pruned dev dependencies after validation, and restarted container `ai-learning-platform`. |
+| Remote container gates | pass | In container: `npm ci --include=dev`, `npm run prisma:generate`, Current Mission / Home / Next Best Action / Shared Learning UI related regression 56 tests, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, and `npm run build` passed. |
+| `curl https://learn.roky.chat/api/health` and desktop homepage login smoke | pass | Health returned 200/ok. Desktop authenticated readonly smoke loaded `/`, saw `Roky Learn`, `当前任务`, `今日闭环`, `今天不用做很多事，先完成当前任务就够了。`, `学习`, `复习`, `表达`, `修复`, and `实践`. The smoke intentionally did not perform production writes. |
 
 Changed surface:
 
 - Reduce Chaos Current Mission Companion Copy layer: `src/components/learning/current-mission-card.tsx`, `src/app/page.tsx`, `tests/unit/current-mission.test.ts`, `tests/unit/home-page-labels.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/current-mission.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
 
-Not covered yet:
+Not covered:
 
-- GitHub push, production deploy, remote container gates, production health, and authenticated readonly production smoke are still pending for this slice. No database migrations, route protection changes, Preview write-protection changes, mobile bottom-nav rewrites, More Sheet changes, or write-type production smoke are included.
+- Full Playwright mobile screenshot matrix and write-type production smoke were not run. This slice does not include database migrations, route protection changes, Preview write-protection changes, mobile bottom-nav rewrites, or More Sheet changes. `npm ci` / `npm prune` still report the existing 3 moderate dependency advisories and were not part of this slice.
 
 ## Reduce Chaos Current Mission Daily Loop Steps
 
