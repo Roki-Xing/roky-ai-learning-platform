@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.361.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Desktop Navigation Intent Groups]** 按指导文件第 2.1 继续优化桌面端信息架构，把侧边栏从旧的功能簇收束为学习者心智分组。
+  - `APP_ROUTE_GROUPS` 调整为 `今日 / 学习动作 / 知识资产 / 系统`，让桌面侧边栏先回答“今天做什么、接下来做哪个学习动作、知识资产放哪里”。
+  - `今日` 分组包含首页、今日任务、复习中心、当前路径和每周复盘。
+  - `学习动作` 分组包含 Coach、说出理解、错题误区、项目任务和同读书籍。
+  - `知识资产` 分组包含知识地图、课程库、我的笔记、术语路径、AI Radar 和学习进度。
+  - 移动端底部导航继续保留 `今日 / 复习 / Coach / 路径 / 更多`，不改变 More Sheet、认证策略、路由保护、Preview 写保护、数据库 schema 或生产配置。
+
+### Verified
+
+- RED：`npm test -- tests/unit/shared-ui-a11y.test.ts` 首次失败于旧桌面分组仍为 `学习主线 / 补弱与表达 / 知识与探索 / 系统`。
+- GREEN：`npm test -- tests/unit/shared-ui-a11y.test.ts` 5 项通过，覆盖新桌面分组、首页进入 `今日` 分组、Books 进入 `学习动作`、Progress 进入 `知识资产`，并确认移动底部导航不回退。
+- 相关回归：`npm test -- tests/unit/shared-ui-a11y.test.ts tests/unit/books-companion.test.ts tests/unit/auth-policy.test.ts` 18 项通过，覆盖导航分组、Books 导航接线和受保护路由策略。
+- 审计：`npm run audit:routes` 通过，Pages 21、Navigation entries 17、Missing core pages none、Pages without navigation none、Navigation without page none；`npm run audit:learning` 通过，required files missing none、manual migrations missing from docs none。
+- 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 471 项通过，Next 生产构建生成 31 个静态页面。
+
+### Not Covered
+
+- 生产部署、生产 smoke、完整 Playwright 移动端截图矩阵和写入型生产 smoke 尚未执行；本切片不包含数据库迁移、路由保护变更、Preview 写保护变更或移动底部导航重构。生产部署证据会在上线后追加。
+
 ## [0.360.0] - 2026-06-10
 
 ### Changed

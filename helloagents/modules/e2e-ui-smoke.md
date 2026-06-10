@@ -56,7 +56,7 @@ npm run e2e:preview-readonly
 - `tests/unit/learning-ui-components.test.ts` 覆盖 `KnowledgePathExplorer` 指标卡不在非交互 `div` 上额外添加 `aria-label`，保留可见中文 label/value 作为主语义。
 - `tests/unit/reduced-motion-css.test.ts` 覆盖全局 `prefers-reduced-motion: reduce` CSS 降级，避免动画、transition 和平滑滚动不尊重系统减少动态偏好。
 - `tests/unit/shared-ui-a11y.test.ts` 覆盖 Dialog、Sheet、Breadcrumb 的中文屏幕阅读器文案，避免共享 UI 基础组件朗读英文 `Close`、`More` 或 `breadcrumb`。
-- `tests/unit/shared-ui-a11y.test.ts` 覆盖桌面导航分组和移动端底部导航 More Sheet，要求桌面侧边栏按 `学习主线 / 补弱与表达 / 知识与探索 / 系统` 组织；移动底部主入口保留 `今日`、`复习`、`Coach`、`路径`、`更多`，把 `/voice` 放入 More Sheet，并让每个链接带 `min-h-11` 触控高度。
+- `tests/unit/shared-ui-a11y.test.ts` 覆盖桌面导航分组和移动端底部导航 More Sheet，要求桌面侧边栏按 `今日 / 学习动作 / 知识资产 / 系统` 组织；移动底部主入口保留 `今日`、`复习`、`Coach`、`路径`、`更多`，把 `/voice` 放入 More Sheet，并让每个链接带 `min-h-11` 触控高度。
 - `tests/unit/shared-ui-a11y.test.ts` 覆盖全局 `AppShell` 页头 action 区，要求手机端使用全宽单列布局并允许 header 换行，避免 Today、Review、Voice、Projects、Mistakes 等页面页头 CTA 被旧 `flex shrink-0` 容器横向挤压。
 - `tests/unit/weekly-review.test.ts` 和 `tests/unit/project-mission-workspace.test.ts` 覆盖 Weekly / Portfolio Markdown 导出文本区的中文业务 `aria-label`，避免只读导出控件朗读英文 `weekly report markdown` 或 `portfolio markdown`。
 - `tests/unit/weekly-review.test.ts` 覆盖 Weekly 复盘指标和错题来源中文化，避免页面或 Markdown 导出显示 `quiz 正确率`、`Strongest`、`Weakest`、`mastery`、`weakness` 或 raw `quiz` 来源。

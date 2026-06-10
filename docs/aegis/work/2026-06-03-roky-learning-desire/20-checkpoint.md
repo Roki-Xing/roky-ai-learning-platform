@@ -1,5 +1,31 @@
 # Todo Checkpoint
 
+## Current Slice: Reduce Chaos Desktop Navigation Intent Groups
+
+- [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 2.1：桌面端导航从功能分类改为学习者心智分组。
+- [√] RED：更新共享 UI 导航测试，先失败于旧分组仍为 `学习主线 / 补弱与表达 / 知识与探索 / 系统`。
+- [√] GREEN：`APP_ROUTE_GROUPS` 改为 `今日 / 学习动作 / 知识资产 / 系统`。
+- [√] GREEN：`今日` 分组包含首页、今日任务、复习中心、当前路径、每周复盘；`学习动作` 包含 Coach、说出理解、错题误区、项目任务、同读书籍；`知识资产` 包含知识地图、课程库、我的笔记、术语路径、AI Radar、学习进度。
+- [√] 保留移动底部导航 `今日 / 复习 / Coach / 路径 / 更多` 和 More Sheet 行为。
+- [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/e2e-ui-smoke.md`、`helloagents/modules/books-companion.md` 和 `helloagents/CHANGELOG.md` 初始记录。
+- [√] 运行定向 RED/GREEN、相关回归和本地审计。
+- [√] 运行本地完整门禁。
+- [ ] 提交并推送 GitHub。
+- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
+- [ ] 补生产部署证据并清理临时 SSH key / 登录态临时文件。
+
+## Current Resume State Hint
+
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.361.0 Reduce Chaos Desktop Navigation Intent Groups`：只改桌面导航分组数据、导航相关测试和文档记录；不要改移动底部导航主入口、More Sheet 行为、认证策略、Preview 写保护、数据库 schema、生产 env/provider 密钥或页面业务流程。已完成 RED/GREEN、相关回归、route/learning 审计和完整本地门禁；下一步提交推送、生产部署和只读导航 smoke。生产 smoke 只检查桌面侧边栏可见 `今日`、`学习动作`、`知识资产`，不做写入型操作。
+
+## Current Drift Check
+
+- Scope：仍服务 Roky Learn reduce-chaos 主线，把桌面入口从功能簇继续收束为“今天做什么 / 做哪个学习动作 / 去哪里找知识资产”的学习者心智。
+- Compatibility：不新增迁移，不触碰生产 env、provider 密钥、Preview 写保护、认证策略、移动底部导航主入口或页面业务逻辑；只调整 `APP_ROUTE_GROUPS` 和相关文档/测试。
+- New fallback/owner：没有新增外部 owner、adapter 或兼容 fallback；导航 owner 仍为 `src/lib/routes.ts`。
+- Retirement：旧的 `学习主线 / 补弱与表达 / 知识与探索` 桌面分组已由 `今日 / 学习动作 / 知识资产` 替代；移动端 5 主入口继续保留。
+- Decision：continue; RED/GREEN、相关回归、审计和完整本地门禁已完成，下一步提交推送并进入部署流程。
+
 ## Current Slice: Reduce Chaos Path Stage Reading Materials
 
 - [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 8.3 和第 14.2：Books 加入 Path，每个阶段可推荐阅读材料，并把 Books 输出接回长期学习路径。

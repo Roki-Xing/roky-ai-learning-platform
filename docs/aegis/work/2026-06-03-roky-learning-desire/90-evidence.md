@@ -1,5 +1,23 @@
 # Evidence
 
+## Reduce Chaos Desktop Navigation Intent Groups
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/shared-ui-a11y.test.ts` | fail then pass, 5 tests | RED first failed because desktop route groups still rendered `学习主线 / 补弱与表达 / 知识与探索 / 系统`. GREEN passed after `APP_ROUTE_GROUPS` changed to `今日 / 学习动作 / 知识资产 / 系统`, while mobile bottom nav assertions stayed green. |
+| `npm test -- tests/unit/shared-ui-a11y.test.ts tests/unit/books-companion.test.ts tests/unit/auth-policy.test.ts` | pass, 18 tests | Related regression covers desktop navigation grouping, mobile bottom nav and More Sheet, Books navigation wiring, and protected-route policy. |
+| `npm run audit:routes` | pass | Route audit reports Pages 21, Navigation entries 17, Missing core pages none, Pages without navigation none, Navigation without page none. The audit output includes `今日`, `学习动作`, `知识资产`, and `系统` route groups. |
+| `npm run audit:learning` | pass | Learning system audit reports required files missing none and manual migrations missing from docs none. |
+| `git diff --check`, `npm run lint`, `npm test`, `npm run build` | pass | Final local gates before push; full unit suite passed 471 tests and Next build generated 31 static pages. |
+
+Changed surface:
+
+- Reduce Chaos Desktop Navigation Intent Groups layer: `src/lib/routes.ts`, `tests/unit/shared-ui-a11y.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/e2e-ui-smoke.md`, `helloagents/modules/books-companion.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered yet:
+
+- GitHub push, production deployment, production smoke, and production deploy evidence are still pending for this slice. Full Playwright mobile screenshot matrix and write-type production smoke are not part of this slice.
+
 ## Reduce Chaos Path Stage Reading Materials
 
 | Evidence | Result | Notes |

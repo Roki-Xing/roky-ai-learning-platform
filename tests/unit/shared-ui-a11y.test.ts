@@ -30,29 +30,30 @@ test("breadcrumb uses Chinese navigation and ellipsis labels", () => {
   assert.doesNotMatch(ellipsisMarkup, />More</);
 });
 
-test("app route groups organize navigation around the daily learning flow", () => {
+test("app route groups organize desktop navigation by learner intent", () => {
   assert.deepEqual(
     APP_ROUTE_GROUPS.map((group) => group.label),
-    ["学习主线", "补弱与表达", "知识与探索", "系统"],
+    ["今日", "学习动作", "知识资产", "系统"],
   );
 
   assert.deepEqual(
     APP_ROUTE_GROUPS[0]?.routes.map((route) => route.href),
-    ["/today", "/review", "/path", "/progress", "/weekly"],
+    ["/", "/today", "/review", "/path", "/weekly"],
   );
   assert.deepEqual(
     APP_ROUTE_GROUPS[1]?.routes.map((route) => route.href),
-    ["/coach", "/mistakes", "/voice", "/books", "/projects"],
+    ["/coach", "/voice", "/mistakes", "/projects", "/books"],
   );
   assert.deepEqual(
     APP_ROUTE_GROUPS[2]?.routes.map((route) => route.href),
-    ["/library", "/notes", "/map", "/glossary", "/radar"],
+    ["/map", "/library", "/notes", "/glossary", "/radar", "/progress"],
   );
 
   assert.equal(APP_ROUTE_GROUPS[1]?.routes.find((route) => route.href === "/voice")?.label, "说出理解");
   assert.equal(APP_ROUTE_GROUPS[1]?.routes.find((route) => route.href === "/books")?.label, "同读书籍");
   assert.equal(APP_ROUTE_GROUPS[1]?.routes.find((route) => route.href === "/projects")?.label, "项目任务");
   assert.equal(APP_ROUTE_GROUPS[2]?.routes.find((route) => route.href === "/glossary")?.label, "术语路径");
+  assert.equal(APP_ROUTE_GROUPS[2]?.routes.find((route) => route.href === "/progress")?.label, "学习进度");
 });
 
 test("mobile bottom nav prioritizes the learning path and keeps More sheet routes touch friendly", () => {
