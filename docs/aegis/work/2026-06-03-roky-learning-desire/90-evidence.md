@@ -2165,6 +2165,10 @@ Not covered:
 | `npm run lint` | pass | ESLint passed after the six-step progress model and responsive task-card layout change. |
 | `npm test` | pass, 475 tests | Full unit suite passed after adding the Current Mission reading step. |
 | `npm run build` | pass | Next 16.2.6 production build compiled, TypeScript passed, and 31 static pages were generated. |
+| `git push origin main` | pass | Pushed `0b18daf feat: add current mission reading step / 添加当前任务阅读步骤` from local `main` to `origin/main`. |
+| Remote backup + rsync + container gates | pass | Backup created at `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.367.0-20260610-122627.tar.gz`; code synced to `118.25.15.72:/home/ubuntu/ai-learning-platform`; production gates passed inside the `node:22-bookworm` app container: `npm ci --include=dev`, `npm run prisma:generate`, 71 targeted tests, route audit, learning audit, lint, build, and `npm prune --omit=dev`. Host-side `npm ci` was intentionally superseded after failing on host Node 18 and a root-owned `node_modules/deepmerge` directory. |
+| Production restart, health, smoke, and artifact checks | pass | `docker restart ai-learning-platform` succeeded; `https://learn.roky.chat/api/health` and container-local `127.0.0.1:3102/api/health` returned 200/ok; 390px password-login smoke on the home page saw `Roky Learn`, `当前任务`, `今日闭环`, `学习`, `复习`, `表达`, `修复`, `实践`, and `阅读`; remote `.next/server` artifacts contained `grid-cols-6`, `今日闭环`, and `阅读`. |
+| Temporary deployment file cleanup | pass | Removed local `/tmp/roky_deploy_0367.pem` and `/tmp/roky_known_hosts_0367`; removed remote `/tmp/roky-*0367*` smoke artifacts. |
 | `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py bundle --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform --work 2026-06-03-roky-learning-desire`, `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py check --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform` | fail, structural debt | Aegis helper still reports known Markdown-only workspace debt: missing `task-intent-draft.json` for the current work and current/historical work markdown records not indexed. This is method-pack structure debt, not a product UI validation failure. |
 
 Changed surface:
@@ -2173,7 +2177,7 @@ Changed surface:
 
 Not covered:
 
-- Full Playwright mobile matrix, real mobile-device screenshots, write-type production smoke, database migration, real PDF upload, OCR, AI provider calls, and Curriculum Planner persistence were not performed for this slice.
+- Full Playwright mobile matrix, real mobile-device screenshots, write-type production smoke, database migration, real PDF upload, OCR, AI provider calls, Curriculum Planner persistence, and the existing `npm audit` moderate dependency warnings were not covered by this slice.
 
 ## Phase E Projects Type Filter Mobile Touch Targets
 

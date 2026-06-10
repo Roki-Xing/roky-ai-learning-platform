@@ -17,10 +17,15 @@
 - 相关回归：`npm test -- tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts tests/unit/books-companion.test.ts tests/unit/learning-motivation.test.ts` 71 项通过，覆盖 Current Mission、Next Best Action、首页、Books、学习动机和共享学习 UI。
 - 本地完整门禁：`git diff --check`、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 475 项通过，Next 生产构建生成 31 个静态页面。
 - Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+- GitHub：代码提交 `0b18daf feat: add current mission reading step / 添加当前任务阅读步骤` 已推送到 `origin/main`。
+- 生产部署：已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.367.0-20260610-122627.tar.gz`，rsync 同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，并重启 `ai-learning-platform` 容器。
+- 远端门禁：先在 host 执行 `npm ci` 失败于 host Node 18 与 `node_modules/deepmerge` root-owned 目录；确认生产运行时为 `node:22-bookworm` 容器后，改在容器内执行并通过 `npm ci --include=dev`、`npm run prisma:generate`、Current Mission / Home / Books / Learning UI 相关回归 71 项、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、`npm run build`，随后 `npm prune --omit=dev`。
+- 生产验收：公网 `https://learn.roky.chat/api/health` 返回 200/ok；容器内 `127.0.0.1:3102/api/health` 返回 200/ok；390px 登录态 smoke 访问首页后可见 `Roky Learn`、`当前任务`、`今日闭环`、`学习`、`复习`、`表达`、`修复`、`实践` 和 `阅读`。
+- 产物检查：远端 `.next/server` 中确认 `src_components_learning_current-mission-card` 产物包含 `grid-cols-6`，首页产物包含 `今日闭环`，服务端构建产物包含 `阅读`。
 
 ### Not Covered
 
-- 未执行完整 Playwright 移动端截图矩阵、真实移动设备 smoke 或写入型生产 smoke；本切片不包含数据库迁移、真实 PDF 上传、OCR、AI provider 调用、课程反馈持久化或 Curriculum Planner 写入。
+- 未执行完整 Playwright 移动端截图矩阵、真实移动设备 smoke 或写入型生产写入 smoke；本切片不包含数据库迁移、真实 PDF 上传、OCR、AI provider 调用、课程反馈持久化或 Curriculum Planner 写入。`npm audit` 仍报告既有 3 个 moderate 告警，未纳入本轮范围。
 
 ## [0.366.0] - 2026-06-10
 
