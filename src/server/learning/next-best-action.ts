@@ -38,6 +38,10 @@ export type NextBestAction = {
   reason: string;
   href: string;
   ctaLabel: string;
+  afterComplete: {
+    label: string;
+    href: string;
+  };
   tone: NextBestActionTone;
   priorityLabel?: string;
   estimatedMinutes?: number;
@@ -53,6 +57,10 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
         : "今天还没有开始，先生成并进入今日学习闭环。",
       href: "/today",
       ctaLabel: "继续今日学习",
+      afterComplete: {
+        label: "完成后去复习",
+        href: "/review",
+      },
       tone: "info",
       priorityLabel: "推荐",
       estimatedMinutes: 20,
@@ -66,6 +74,10 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       reason: "今日学习已完成，现在清空到期卡片比继续开新内容更重要。",
       href: "/review",
       ctaLabel: "开始复习",
+      afterComplete: {
+        label: "完成后去语音反思",
+        href: "/voice",
+      },
       tone: "warning",
       priorityLabel: "重要",
       estimatedMinutes: 10,
@@ -83,6 +95,10 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
         : `你还有 ${input.openMisconceptionCount} 个未解决误区，先修复最该处理的一条。`,
       href: focusId ? `/mistakes?focus=${encodeURIComponent(focusId)}` : "/mistakes",
       ctaLabel: "去修复",
+      afterComplete: {
+        label: "修复后去复习",
+        href: "/review",
+      },
       tone: "danger",
       priorityLabel: "重要",
       estimatedMinutes: 12,
@@ -99,6 +115,15 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
         : `有 ${input.codeFeedbackNeedsAttentionCount} 条代码反馈需要回看，适合先修正实现思路。`,
       href: input.activeProject ? `/projects?projectId=${encodeURIComponent(input.activeProject.id)}` : "/review",
       ctaLabel: input.activeProject ? "继续项目" : "复习反馈",
+      afterComplete: input.activeProject
+        ? {
+            label: "处理后回到项目",
+            href: `/projects?projectId=${encodeURIComponent(input.activeProject.id)}`,
+          }
+        : {
+            label: "处理后去 Coach",
+            href: "/coach",
+          },
       tone: "info",
       priorityLabel: "推荐",
       estimatedMinutes: 15,
@@ -112,6 +137,10 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       reason: "今天已经学完，但还没有沉淀自己的表述。写一句也能帮后续 Coach 和复习卡更准。",
       href: `/notes?lessonId=${encodeURIComponent(input.todayLessonId)}`,
       ctaLabel: "写今日笔记",
+      afterComplete: {
+        label: "写完后去语音反思",
+        href: "/voice",
+      },
       tone: "success",
       priorityLabel: "轻量",
       estimatedMinutes: 5,
@@ -125,6 +154,10 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       reason: "今天已经完成学习和文字笔记，但还没有用语音把理解讲出来。说一遍可以更快暴露卡住点，并接到 Coach 检查。",
       href: "/voice",
       ctaLabel: "去说一遍",
+      afterComplete: {
+        label: "说完后去 Coach",
+        href: "/coach",
+      },
       tone: "info",
       priorityLabel: "轻量",
       estimatedMinutes: 5,
@@ -140,6 +173,10 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
         : `当前项目 ${input.activeProject.title} 还未收尾，适合继续推进。`,
       href: `/projects?projectId=${encodeURIComponent(input.activeProject.id)}`,
       ctaLabel: "继续项目",
+      afterComplete: {
+        label: "完成后去同读书籍",
+        href: "/books",
+      },
       tone: "info",
       priorityLabel: "推荐",
       estimatedMinutes: 15,
@@ -153,6 +190,10 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
       reason: "有活跃读书任务。今天只读一个短页段，读完后生成 3 张卡片，并把疑问送到 Coach。",
       href: `/books/${encodeURIComponent(input.activeBookSession.documentId)}`,
       ctaLabel: "去同读",
+      afterComplete: {
+        label: "读完后生成笔记/卡片",
+        href: "/notes",
+      },
       tone: "success",
       priorityLabel: "轻量",
       estimatedMinutes: 15,
@@ -165,6 +206,10 @@ export function buildNextBestAction(input: NextBestActionInput): NextBestAction 
     reason: "今日学习、复习、笔记、语音复盘和项目任务都已完成，现在用 SWE-bench 连接 Agent、真实工程任务和后续项目练习。",
     href: "/radar?entity=swe-bench",
     ctaLabel: "认识 SWE-bench",
+    afterComplete: {
+      label: "探索后回到当前路径",
+      href: "/path",
+    },
     tone: "success",
     priorityLabel: "轻量",
     estimatedMinutes: 8,

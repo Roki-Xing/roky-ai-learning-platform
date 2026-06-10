@@ -72,10 +72,23 @@ test("home page keeps the first screen focused on the current mission", () => {
   const heroSource = source.slice(heroStart, heroEnd);
 
   assert.match(heroSource, /<CurrentMissionCard/);
-  assert.match(heroSource, /<LearningMomentumStrip/);
+  assert.doesNotMatch(heroSource, /<LearningSessionStrip/);
+  assert.doesNotMatch(heroSource, /<LearningMomentumStrip/);
   assert.doesNotMatch(heroSource, /<LearningSectionCard/);
   assert.doesNotMatch(heroSource, /href="\/review"|href="\/voice"|href="\/notes"|href="\/projects"/);
   assert.doesNotMatch(heroSource, /title="今日能量"|title="今日三件事"|title="常用入口"/);
+});
+
+test("home page moves progress context below the first mission screen", () => {
+  const source = readFileSync("src/app/page.tsx", "utf8");
+  const heroStart = source.indexOf('<section aria-label="首页主任务"');
+  const heroEnd = source.indexOf("</section>", heroStart);
+  const sessionIndex = source.indexOf("<LearningSessionStrip", heroEnd);
+  const momentumIndex = source.indexOf("<LearningMomentumStrip", heroEnd);
+
+  assert.ok(sessionIndex > heroEnd);
+  assert.ok(momentumIndex > heroEnd);
+  assert.ok(sessionIndex < momentumIndex);
 });
 
 test("home page shows learning sessions instead of more standalone page entry points", () => {

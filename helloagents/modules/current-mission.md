@@ -11,6 +11,7 @@
 - 现在最该做什么
 - 为什么先做这件事
 - 点哪里继续
+- 完成后去哪里
 
 ## 任务优先级
 
@@ -18,7 +19,7 @@
 
 1. 今日学习未完成 → `/today`
 2. 有到期卡片 → `/review`
-3. 有未解决误区 → `/coach`
+3. 有未解决误区 → `/mistakes?focus=<id>`，缺少 id 时回退 `/mistakes`
 4. 有待处理代码反馈 → `/projects` 或 `/review`
 5. 今日没有笔记 → `/notes`
 6. 今日没有语音复盘 → `/voice`
@@ -37,12 +38,13 @@
 - 首页：替换原“现在最值得做”块，直接显示 `当前任务`
 - 首页 Current Mission 卡片现在显示轻量元信息：`推荐/重要/轻量`、预计分钟数和陪练/Coach/项目等 companion 标签。
 - 首页 Current Mission 卡片接入 `buildCurrentMissionProgress()`，显示 `今日闭环 X/5` 与可访问进度条；闭环步骤为今日学习完成、到期复习清空、今日笔记、语音复盘、同读书籍。
-- 首页首屏现在是 `首页主任务` 区，只保留 `CurrentMissionCard`、`LearningMomentumStrip` 和补弱焦点，避免与 `今日能量`、`今日三件事`、`常用入口` 等多入口模块竞争。
+- 首页 Current Mission 卡片新增 `afterComplete` 轻量链接，说明完成当前动作后应该去哪里，例如 `完成后去复习`、`完成后去语音反思`、`读完后生成笔记/卡片`。
+- 首页首屏现在是 `首页主任务` 区，只保留 `CurrentMissionCard`，避免与 `学习会话`、`学习状态`、`补弱焦点`、`今日能量`、`今日三件事`、`常用入口` 等模块竞争。
 - 首页 Current Mission 下方新增 `LearningSessionStrip`，把当前推荐动作、完成后的下一动作和本周会话进度展示为 `当前会话`、`下一会话`、`本周会话`。
 - `buildLearningSessions()` 输出指导文件第 15 节的统一字段：`type`、`title`、`goal`、`status`、`startedAt`、`completedAt`、`outputs`、`nextRecommendedSession`，并补充 UI 所需的 `href` 与 `ctaLabel`。
 - Learning Session 当前是读侧派生，不新增数据库表、migration 或真实开始/完成时间；`startedAt`、`completedAt` 暂为 `null`。
 - 首页次级动作默认折叠到 `今天还可以`，保留写笔记、说出理解、推进项目和查看当前路径入口；这些入口仍使用 `min-h-11 w-full sm:w-auto` 触控目标。
-- 首页 Current Mission 下方新增 `LearningMomentumStrip`，将 XP、Daily Quest、streak 和周目标转换为：
+- 首页 `LearningSessionStrip` 下方显示 `LearningMomentumStrip`，将 XP、Daily Quest、streak 和周目标转换为：
   - 当前阶段称号
   - 下一步解锁阶段与进度
   - 本周目标
@@ -117,6 +119,8 @@
 - Reduce Chaos Homepage Command Center：`npm test -- tests/unit/home-page-labels.test.ts` RED 首次失败于首页仍存在 `今日能量`、`今日三件事`、`常用入口` 和旧 `QUICK_ACTIONS`；GREEN 后 4 项通过，覆盖首页首屏只保留 Current Mission/进度，次级动作折叠到 `今天还可以`。
 - Reduce Chaos Book Companion MVP：`npm test -- tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts tests/unit/auth-policy.test.ts` 覆盖 Books seed、`/books` 和 `/books/[id]` 页面契约、Current Mission active reading、导航和鉴权保护。
 - Reduce Chaos Learning Sessions：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` 43 项通过，覆盖 10 种 session 类型、统一字段、首页接线、组件渲染、移动端 CTA 和说明型文案防回退。
+- Reduce Chaos Current Mission Handoff：`npm test -- tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` RED 首次失败于 `afterComplete` 缺失、任务卡未渲染完成后路径、首页主任务区仍混入 `LearningSessionStrip` 和 `LearningMomentumStrip`；GREEN 后 20 项通过。
+- Reduce Chaos Current Mission Handoff related regression：`npm test -- tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts` 56 项通过。
 - `npm run lint`
 - `npm run build`
 

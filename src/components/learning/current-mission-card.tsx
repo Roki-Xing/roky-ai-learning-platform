@@ -112,6 +112,12 @@ export function CurrentMissionCard(props: {
               </div>
             </div>
           ) : null}
+          <Link
+            href={props.mission.afterComplete.href}
+            className="mt-3 inline-flex min-h-8 items-center text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          >
+            {props.mission.afterComplete.label}
+          </Link>
         </div>
 
         <Button asChild size="sm" className="min-h-11 w-full sm:w-auto shrink-0">

@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.362.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Current Mission Handoff]** 按指导文件第 3.1 和第 4.3 继续优化首页 Daily Command Center，把 Current Mission 从“一个推荐按钮”推进为“当前任务 + 完成后路径”。
+  - `NextBestAction` 新增 `afterComplete`，每个任务规则都返回完成后的轻量路径提示，例如 `完成后去复习`、`完成后去语音反思`、`读完后生成笔记/卡片`。
+  - `CurrentMissionCard` 在今日闭环进度下方渲染 `afterComplete` 文本链接，让用户知道做完当前任务后下一步去哪里。
+  - 首页 `首页主任务` 首屏只保留 `CurrentMissionCard`；`LearningSessionStrip`、`LearningMomentumStrip` 和补弱焦点下移到主任务区之后，减少首屏并列信息。
+  - 保留 Current Mission 现有优先级、Books active reading、Mistakes focus route、移动底部导航、认证策略、Preview 写保护、数据库 schema、生产 env/provider 密钥和所有写入行为边界。
+
+### Verified
+
+- RED：`npm test -- tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` 首次失败于 `afterComplete` 为 `undefined`、任务卡未渲染完成后路径、首页主任务区仍包含 `LearningSessionStrip` 和 `LearningMomentumStrip`。
+- GREEN：`npm test -- tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` 20 项通过，覆盖完成后路径数据合约、任务卡渲染、首页首屏收束和进度上下文下移。
+- 相关回归：`npm test -- tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts` 56 项通过，覆盖 Current Mission、Next Best Action、首页源码契约和共享学习组件。
+- 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 473 项通过，Next 生产构建生成 31 个静态页面。
+- Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+
+### Not Covered Yet
+
+- GitHub push、生产部署和生产 smoke 尚未执行；本切片不包含数据库迁移、路由保护变更、Preview 写保护变更、写入型生产 smoke 或完整 Playwright 移动截图矩阵。
+
 ## [0.361.0] - 2026-06-10
 
 ### Changed

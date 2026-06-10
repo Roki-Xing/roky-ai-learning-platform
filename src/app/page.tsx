@@ -367,21 +367,22 @@ export default async function HomePage() {
             progress={currentMissionProgress}
             className="p-4 md:p-5"
           />
-          <LearningSessionStrip sessions={learningSessions} />
-          <LearningMomentumStrip momentum={learningMomentum} />
-          {remediationFocus ? (
-            <div className="rounded-lg border bg-muted/20 p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <LearningStatusBadge tone={remediationFocus.tone}>补弱焦点</LearningStatusBadge>
-                <span className="text-xs font-medium text-muted-foreground">{remediationFocus.label}</span>
-              </div>
-              <div className="mt-2 text-sm font-medium leading-relaxed">{remediationFocus.text}</div>
-              {remediationFocus.meta ? (
-                <div className="mt-1 text-xs text-muted-foreground">{remediationFocus.meta}</div>
-              ) : null}
-            </div>
-          ) : null}
         </section>
+
+        <LearningSessionStrip sessions={learningSessions} />
+        <LearningMomentumStrip momentum={learningMomentum} />
+        {remediationFocus ? (
+          <div className="rounded-lg border bg-muted/20 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <LearningStatusBadge tone={remediationFocus.tone}>补弱焦点</LearningStatusBadge>
+              <span className="text-xs font-medium text-muted-foreground">{remediationFocus.label}</span>
+            </div>
+            <div className="mt-2 text-sm font-medium leading-relaxed">{remediationFocus.text}</div>
+            {remediationFocus.meta ? (
+              <div className="mt-1 text-xs text-muted-foreground">{remediationFocus.meta}</div>
+            ) : null}
+          </div>
+        ) : null}
 
         <details className="rounded-lg border bg-card/60">
           <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium">

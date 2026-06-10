@@ -1,5 +1,22 @@
 # Evidence
 
+## Reduce Chaos Current Mission Handoff
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` | fail then pass, 20 tests | RED first failed because `afterComplete` was `undefined`, `CurrentMissionCard` did not render the completion handoff link, and the homepage hero still included `LearningSessionStrip` and `LearningMomentumStrip`. GREEN passed after adding `afterComplete`, rendering it as a lightweight link, and moving session/momentum context below the hero. |
+| `npm test -- tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts` | pass, 56 tests | Related regression covers Current Mission, Next Best Action, homepage source contract, Learning Session Strip, and shared learning UI. |
+| `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates before push; full unit suite passed 473 tests, route audit reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
+| `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py bundle --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform --work 2026-06-03-roky-learning-desire`, `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py check --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform` | fail, structural debt | Aegis helper still reports known Markdown-only workspace debt: missing `task-intent-draft.json` for the current work and current/historical work markdown records not indexed. This is method-pack structure debt, not a product UI validation failure. |
+
+Changed surface:
+
+- Reduce Chaos Current Mission Handoff layer: `src/server/learning/next-best-action.ts`, `src/components/learning/current-mission-card.tsx`, `src/app/page.tsx`, `tests/unit/current-mission.test.ts`, `tests/unit/home-page-labels.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/current-mission.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered yet:
+
+- GitHub push, production deployment, production smoke, and production deploy evidence are still pending for this slice. Full Playwright mobile screenshot matrix and write-type production smoke are not part of this slice.
+
 ## Reduce Chaos Desktop Navigation Intent Groups
 
 | Evidence | Result | Notes |

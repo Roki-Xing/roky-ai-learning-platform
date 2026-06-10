@@ -48,6 +48,43 @@ test("current mission exposes compact priority and time metadata", async () => {
   assert.equal(mission.companionLabel, "推荐");
 });
 
+test("current mission exposes where the learner goes after completion", async () => {
+  const { buildCurrentMission } = await loadCurrentMission();
+
+  const lessonMission = buildCurrentMission({
+    ...baseInput,
+    todayPlanStatus: "planned",
+  });
+  assert.deepEqual(lessonMission.afterComplete, {
+    label: "完成后去复习",
+    href: "/review",
+  });
+
+  const reviewMission = buildCurrentMission({
+    ...baseInput,
+    dueFlashcardsCount: 5,
+  });
+  assert.deepEqual(reviewMission.afterComplete, {
+    label: "完成后去语音反思",
+    href: "/voice",
+  });
+
+  const bookMission = buildCurrentMission({
+    ...baseInput,
+    activeBookSession: {
+      documentId: "ai-engineering",
+      title: "AI Engineering",
+      currentPage: 12,
+      nextPage: 14,
+      progressPercent: 36,
+    },
+  });
+  assert.deepEqual(bookMission.afterComplete, {
+    label: "读完后生成笔记/卡片",
+    href: "/notes",
+  });
+});
+
 test("current mission progress summarizes the daily learning loop", async () => {
   const { buildCurrentMissionProgress } = await loadCurrentMission();
   const progress = buildCurrentMissionProgress({
@@ -271,6 +308,10 @@ test("current mission card renders heading, signal summary, and action", () => {
         reason: "今天的课程已经生成，先走完主课、引导步骤、小测验和反思。",
         href: "/today",
         ctaLabel: "继续今日学习",
+        afterComplete: {
+          label: "完成后去复习",
+          href: "/review",
+        },
         tone: "info",
         priorityLabel: "推荐",
         estimatedMinutes: 20,
@@ -296,6 +337,8 @@ test("current mission card renders heading, signal summary, and action", () => {
   assert.match(markup, /代码反馈/);
   assert.match(markup, /href="\/today"/);
   assert.match(markup, /继续今日学习/);
+  assert.match(markup, /完成后去复习/);
+  assert.match(markup, /href="\/review"/);
   assert.match(markup, /min-h-11/);
   assert.match(markup, /w-full sm:w-auto/);
   assert.match(markup, /推荐/);
