@@ -17,10 +17,14 @@
 - 相关回归：`npm test -- tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts` 56 项通过，覆盖 Current Mission、Next Best Action、首页源码契约和共享学习组件。
 - 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 473 项通过，Next 生产构建生成 31 个静态页面。
 - Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+- GitHub：代码提交 `c1b25c4 feat: add current mission handoff` 已推送到 `origin/main`。
+- 生产部署：已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.362.0-20260610-003200.tar.gz`，rsync 同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，并重启 `ai-learning-platform` 容器。
+- 远端门禁：容器内 `npm ci --include=dev`、`npm run prisma:generate`、Current Mission / Next Best Action / Home / Shared Learning UI 相关回归 56 项、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、`npm run build` 通过，随后 `npm prune --omit=dev`。
+- 生产验收：`https://learn.roky.chat/api/health` 返回 200/ok；桌面登录态只读 smoke 访问首页后可见 `Roky Learn`、`当前任务`、`完成后去复习`、`学习会话` 和 `学习状态`。
 
-### Not Covered Yet
+### Not Covered
 
-- GitHub push、生产部署和生产 smoke 尚未执行；本切片不包含数据库迁移、路由保护变更、Preview 写保护变更、写入型生产 smoke 或完整 Playwright 移动截图矩阵。
+- 未执行完整 Playwright 移动端截图矩阵或写入型生产 smoke；本切片不包含数据库迁移、路由保护变更、Preview 写保护变更、移动底部导航重构或 More Sheet 变更。`npm audit` 仍报告既有 3 个 moderate 告警，未纳入本轮范围。
 
 ## [0.361.0] - 2026-06-10
 

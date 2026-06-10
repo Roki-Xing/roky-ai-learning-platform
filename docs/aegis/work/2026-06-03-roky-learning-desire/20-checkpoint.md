@@ -10,13 +10,13 @@
 - [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/current-mission.md` 和 `helloagents/CHANGELOG.md` 初始记录。
 - [√] 运行定向 RED/GREEN 和相关回归。
 - [√] 运行本地完整门禁。
-- [ ] 提交并推送 GitHub。
-- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
-- [ ] 补生产部署证据并清理临时 SSH key / 登录态临时文件。
+- [√] 提交并推送 GitHub：`c1b25c4 feat: add current mission handoff`。
+- [√] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
+- [√] 补生产部署证据并清理临时 SSH key / 登录态临时文件。
 
 ## Current Resume State Hint
 
-从 `ai-learning-platform` 根目录继续。当前切片是 `0.362.0 Reduce Chaos Current Mission Handoff`：只改 Current Mission 读侧数据合约、任务卡展示、首页首屏布局、源码级测试和文档记录；不要改数据库 schema/migration、认证策略、Preview 写保护、生产 env/provider 密钥、移动底部导航、More Sheet 或写入型业务流程。已完成 RED/GREEN、相关回归和本地完整门禁；下一步提交推送、生产部署和只读首页 smoke。生产 smoke 只检查首页可见 `当前任务`、完成后路径提示、`学习会话`、`学习状态`，未做写入型操作。
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.362.0 Reduce Chaos Current Mission Handoff`：只改 Current Mission 读侧数据合约、任务卡展示、首页首屏布局、源码级测试和文档记录；不要改数据库 schema/migration、认证策略、Preview 写保护、生产 env/provider 密钥、移动底部导航、More Sheet 或写入型业务流程。已完成 RED/GREEN、相关回归、本地完整门禁、GitHub push、生产部署、远端门禁、生产 health、桌面登录态只读首页 smoke 和临时 SSH key / 登录态临时文件清理。生产 smoke 只检查首页可见 `当前任务`、完成后路径提示、`学习会话`、`学习状态`，未做写入型操作。
 
 ## Current Drift Check
 
@@ -24,7 +24,7 @@
 - Compatibility：不新增迁移，不触碰生产 env、provider 密钥、Preview 写保护、认证策略、移动底部导航、More Sheet 或写入型流程；只新增读侧 `afterComplete` 合约和展示层布局调整。
 - New fallback/owner：没有新增外部 owner、adapter 或兼容 fallback；Current Mission owner 仍为 `src/server/learning/next-best-action.ts` 和 `src/components/learning/current-mission-card.tsx`。
 - Retirement：旧的首页主任务区同时展示 `LearningSessionStrip`、`LearningMomentumStrip` 和补弱焦点的首屏并列上下文已退役；这些上下文仍保留在主任务区下方。
-- Decision：continue; RED/GREEN、相关回归和本地完整门禁已完成，下一步提交推送并进入部署流程。Aegis helper 仍失败于既有 Markdown-only 结构债，归类为方法包结构债，不是产品 UI 验证失败。
+- Decision：complete; RED/GREEN、相关回归、本地完整门禁、GitHub push、生产部署、远端门禁、生产 health、桌面登录态只读首页 smoke 和临时 SSH key / 登录态临时文件清理均已完成。完整 Playwright 移动端截图矩阵、写入型生产 smoke、数据库迁移、路由保护变更、Preview 写保护变更、移动底部导航重构、More Sheet 变更和既有 `npm audit` moderate 告警保持未覆盖边界。Aegis helper 仍失败于既有 Markdown-only 结构债，归类为方法包结构债，不是产品 UI 验证失败。
 
 ## Current Slice: Reduce Chaos Desktop Navigation Intent Groups
 
