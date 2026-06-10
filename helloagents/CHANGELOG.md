@@ -16,10 +16,16 @@
 - 相关回归：`npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts tests/unit/today-activity-labels.test.ts tests/unit/review-rating.test.ts tests/unit/review-empty-state.test.ts tests/unit/today-remediation-intent.test.ts` 43 项通过，覆盖 Review summary/UI、评分幂等、空态、Today 标签和 Review remediation landing。
 - 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 473 项通过，Next 生产构建生成 31 个静态页面。
 - Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+- GitHub：代码提交 `7b04545 feat: add review no-new-content cue` 已推送到 `origin/main`。
+- 生产部署：已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.365.0-20260610-110144.tar.gz`，rsync 同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，并重启 `ai-learning-platform` 容器。
+- 远端门禁：容器内 `npm ci --include=dev`、`npm run prisma:generate`、Review / Today 非 DB 相关回归 42 项、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、`npm run build` 通过，随后 `npm prune --omit=dev`。
+- 远端边界：包含 `review-rating.test.ts` 的远端相关回归有 1 项失败于生产容器缺本地测试库 `localhost:65432`；该 DB 写入幂等测试已由本地完整门禁覆盖，未作为远端发布门禁。
+- 生产验收：`https://learn.roky.chat/api/health` 返回 200/ok；登录态只读 smoke 访问 `/review` 后可见 `复习中心` 和 `卡片`；远端源码确认包含 `今天先不要学新内容，建议复习和修复。`。
+- 清理：本地 `/tmp/roky_deploy.pem`、`/tmp/roky_known_hosts` 和远端 `/tmp/roky_review_token.txt`、`/tmp/roky_review.html` 均已删除确认。
 
 ### Not Covered
 
-- 本条仍在执行中；GitHub push、生产部署、远端门禁和生产 smoke 待本切片后续步骤补充。
+- 未执行完整 Playwright 移动端截图矩阵或写入型生产 smoke；本切片不包含数据库迁移、Review 评分排期变更、路由保护变更、Preview 写保护变更、Today remediation 写入流程变更、移动底部导航重构或 More Sheet 变更。`npm ci` / `npm prune` 仍报告既有 3 个 moderate 告警，未纳入本轮范围。
 
 ## [0.364.0] - 2026-06-10
 

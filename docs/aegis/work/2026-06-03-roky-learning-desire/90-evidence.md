@@ -8,14 +8,19 @@
 | `npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts tests/unit/today-activity-labels.test.ts tests/unit/review-rating.test.ts tests/unit/review-empty-state.test.ts tests/unit/today-remediation-intent.test.ts` | pass, 43 tests | Related regression covers Review summary/UI, rating idempotency, empty state, Today labels, and Review remediation landing. |
 | `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates before push; full unit suite passed 473 tests, route audit reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
 | `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py bundle --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform --work 2026-06-03-roky-learning-desire`, `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py check --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform` | fail, structural debt | Aegis helper still reports known Markdown-only workspace debt: missing `task-intent-draft.json` for the current work and current/historical work markdown records not indexed. This is method-pack structure debt, not a product UI validation failure. |
+| `git push origin main` | pass | Code commit `7b04545 feat: add review no-new-content cue` pushed to `origin/main`. |
+| Production backup and deploy | pass | Created `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.365.0-20260610-110144.tar.gz`, rsynced code to `118.25.15.72:/home/ubuntu/ai-learning-platform`, pruned dev dependencies after validation, and restarted container `ai-learning-platform`. |
+| Remote container gates | pass with DB test boundary | In container: `npm ci --include=dev`, `npm run prisma:generate`, Review / Today non-DB related regression 42 tests, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, and `npm run build` passed. The broader remote related command including `review-rating.test.ts` failed only because production lacks the local test DB at `localhost:65432`; that DB write test passed locally in the full gate. |
+| `curl https://learn.roky.chat/api/health` and authenticated `/review` readonly smoke | pass | Health returned 200/ok. Authenticated readonly smoke loaded `/review` and saw `复习中心` and `卡片`; remote source contains `今天先不要学新内容，建议复习和修复。`. The completion cue is client-state after review interaction, so production smoke used source verification instead of writing review ratings. |
+| Temporary secret cleanup | pass | Local `/tmp/roky_deploy.pem` and `/tmp/roky_known_hosts` are absent; remote `/tmp/roky_review_token.txt` and `/tmp/roky_review.html` are absent. |
 
 Changed surface:
 
 - Reduce Chaos Review No New Content Cue layer: `src/server/review/session-summary.ts`, `tests/unit/review-session-summary.test.ts`, `tests/unit/learning-ui-components.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/review.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
 
-Not covered yet:
+Not covered:
 
-- GitHub push, production deployment, remote gates, and production smoke are still pending for this slice.
+- Full Playwright mobile screenshot matrix and write-type production smoke were not run. This slice does not include database migrations, review scheduling changes, route protection changes, Preview write-protection changes, Today remediation write-flow changes, mobile bottom-nav rewrites, or More Sheet changes. `npm ci` / `npm prune` still report the existing 3 moderate dependency advisories and were not part of this slice.
 
 ## Reduce Chaos Current Mission Companion Copy
 

@@ -84,6 +84,8 @@
 - Reduce Chaos Review Mobile Sticky Actions：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/review-empty-state.test.ts tests/unit/review-rating.test.ts` RED/GREEN 后 31 项通过，覆盖移动端 sticky 操作区、Review 空态和评分幂等。
 - Reduce Chaos Review No New Content Cue：`npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` RED 失败于高遗忘率 summary/UI 缺少 `今天先不要学新内容，建议复习和修复。`，GREEN 后 29 项通过。
 - 2026-06-10 Reduce Chaos Review No New Content Cue 本地门禁通过：相关 Review/Today 回归 43 项、`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test` 473 项、`npm run build`。
+- 2026-06-10 Reduce Chaos Review No New Content Cue 生产上线：备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.365.0-20260610-110144.tar.gz`，同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，容器内非 DB Review/Today 定向测试 42 项、审计、lint 和 build 通过，随后重启 `ai-learning-platform`。
+- 2026-06-10 Reduce Chaos Review No New Content Cue 生产 smoke：`https://learn.roky.chat/api/health` 返回 200/ok；登录态只读访问 `/review` 可见 `复习中心` 和 `卡片`；远端源码确认包含 `今天先不要学新内容，建议复习和修复。`。
 - 2026-06-10 本地最终门禁通过：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test` 463 项、`npm run build`。
 - 2026-06-10 生产上线：备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.354.0-20260610-014015.tar.gz`，同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，容器内非 DB Review 定向测试 30 项和 `npm run build` 通过，随后重启 `ai-learning-platform`。
 - 2026-06-10 生产 smoke：`https://learn.roky.chat/api/health` 返回 200/ok；390px 移动视口密码登录 `/review` 后页面可见，并检测到 `aria-label="复习移动操作"`；远端源码确认包含 `sticky bottom-16 z-20`。

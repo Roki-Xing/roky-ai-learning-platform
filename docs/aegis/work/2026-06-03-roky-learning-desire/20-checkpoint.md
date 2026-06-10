@@ -9,13 +9,13 @@
 - [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/review.md`、`helloagents/CHANGELOG.md` 初始记录。
 - [√] 运行相关回归。
 - [√] 运行本地完整门禁。
-- [ ] 提交并推送 GitHub。
-- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产只读 smoke。
-- [ ] 补生产部署证据并清理临时 SSH key / 登录态临时文件。
+- [√] 提交并推送 GitHub：`7b04545 feat: add review no-new-content cue`。
+- [√] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产只读 smoke。
+- [√] 补生产部署证据并清理临时 SSH key / 登录态临时文件。
 
 ## Current Resume State Hint
 
-从 `ai-learning-platform` 根目录继续。当前切片是 `0.365.0 Reduce Chaos Review No New Content Cue`：只改 `/review` 高遗忘率完成总结的读侧文案、源码级测试和文档记录；不要改 Review 评分排期、队列过滤、数据库 schema/migration、认证策略、Preview 写保护、生产 env/provider 密钥、Today remediation 写入流程或其他页面主流程。已完成 RED/GREEN、相关回归、本地完整门禁和初始文档同步；GitHub push、生产部署、远端门禁和生产 smoke 仍在执行中。
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.365.0 Reduce Chaos Review No New Content Cue`：只改 `/review` 高遗忘率完成总结的读侧文案、源码级测试和文档记录；不要改 Review 评分排期、队列过滤、数据库 schema/migration、认证策略、Preview 写保护、生产 env/provider 密钥、Today remediation 写入流程或其他页面主流程。已完成 RED/GREEN、相关回归、本地完整门禁、GitHub push、生产部署、远端门禁、生产 health、登录态只读 `/review` smoke、远端源码 cue 验证和临时敏感文件清理。
 
 ## Current Drift Check
 
@@ -23,7 +23,7 @@
 - Compatibility：不新增迁移，不触碰生产 env、provider 密钥、Preview 写保护、认证策略或写入型流程；只改服务层 summary 文案和对应 UI 测试。
 - New fallback/owner：没有新增外部 owner、adapter 或兼容 fallback；Review session summary owner 仍为 `src/server/review/session-summary.ts`。
 - Retirement：旧的高遗忘率描述里 `先补弱再开新内容` 容易继续鼓励当日开新课；已替换为今天先不学新内容、优先复习和修复。
-- Decision：in-progress; RED/GREEN、相关回归、本地完整门禁和 Aegis helper 结构检查已完成，GitHub push、生产部署、远端门禁和生产 smoke 待完成。Aegis helper 仍失败于既有 Markdown-only 结构债，归类为方法包结构债，不是产品 UI 验证失败。
+- Decision：complete; RED/GREEN、相关回归、本地完整门禁、Aegis helper 结构检查、GitHub push、生产部署、远端门禁、生产 health、登录态只读 `/review` smoke、远端源码 cue 验证和临时敏感文件清理均已完成。完整 Playwright 移动端截图矩阵、写入型生产 smoke、数据库迁移、Review 评分排期变更、路由保护变更、Preview 写保护变更、Today remediation 写入流程变更、移动底部导航重构、More Sheet 变更和既有 `npm audit` moderate 告警保持未覆盖边界。Aegis helper 仍失败于既有 Markdown-only 结构债，归类为方法包结构债，不是产品 UI 验证失败。
 
 ## Completed Slice: Reduce Chaos Current Mission Companion Copy
 
