@@ -146,7 +146,7 @@ export function CurrentMissionCard(props: {
                 />
               </div>
               {props.progress.steps.length > 0 ? (
-                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-6">
                   {props.progress.steps.map((step) => (
                     <div
                       key={step.label}

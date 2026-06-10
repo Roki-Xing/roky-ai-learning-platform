@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.367.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Current Mission Reading Step]** 按指导文件第 3.3、第 4.2、第 14.5 和第 20.9 继续优化首页 Daily Command Center，把 Book Companion 从 `实践` 混合状态里拆成今日闭环的独立 `阅读` 步骤。
+  - `CurrentMissionProgressStep` 新增 `阅读` label，首页 `当前任务` 进度从 `今日闭环 X/5` 扩展为 `今日闭环 X/6`。
+  - `buildCurrentMissionProgress()` 现在把 active book session 渲染为 `阅读:current`，同时保留 `实践` 作为项目任务步骤，避免 Books 继续混在项目实践里。
+  - `CurrentMissionCard` 的步骤网格从五列改为 6 步响应式布局，移动端两列、平板三列、桌面六列，防止新增阅读步骤后挤压。
+  - 本切片只改读侧 Current Mission 进度模型、任务卡布局、测试和文档；不新增数据库迁移，不新增读书完成写入，不改变 Next Best Action 优先级、Books 静态数据、项目任务、认证策略、Preview 写保护、生产 env/provider 密钥或任何写入行为边界。
+
+### Verified
+
+- RED：`npm test -- tests/unit/current-mission.test.ts` 首次失败于 `CurrentMissionProgress` 仍为 5 步，active book session 仍把 `实践` 标成 current。
+- GREEN：`npm test -- tests/unit/current-mission.test.ts` 13 项通过，覆盖 `阅读` 单独步骤、active book session 时 `阅读:current`、任务卡六步渲染和完整 `aria-label`。
+- 相关回归：`npm test -- tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts tests/unit/books-companion.test.ts tests/unit/learning-motivation.test.ts` 71 项通过，覆盖 Current Mission、Next Best Action、首页、Books、学习动机和共享学习 UI。
+- 本地完整门禁：`git diff --check`、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 475 项通过，Next 生产构建生成 31 个静态页面。
+- Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+
+### Not Covered
+
+- 未执行完整 Playwright 移动端截图矩阵、真实移动设备 smoke 或写入型生产 smoke；本切片不包含数据库迁移、真实 PDF 上传、OCR、AI provider 调用、课程反馈持久化或 Curriculum Planner 写入。
+
 ## [0.366.0] - 2026-06-10
 
 ### Changed

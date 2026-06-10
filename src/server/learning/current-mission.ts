@@ -27,7 +27,7 @@ export type CurrentMissionProgress = {
 };
 
 export type CurrentMissionProgressStep = {
-  label: "学习" | "复习" | "表达" | "修复" | "实践";
+  label: "学习" | "复习" | "表达" | "修复" | "实践" | "阅读";
   state: "done" | "current" | "todo";
   text: string;
 };
@@ -307,7 +307,8 @@ export function buildCurrentMissionProgress(
   );
   const repairDone =
     input.openMisconceptionCount === 0 && input.codeFeedbackNeedsAttentionCount === 0;
-  const hasPracticeTask = Boolean(input.activeProject || input.activeBookSession);
+  const hasPracticeTask = Boolean(input.activeProject);
+  const hasReadingTask = Boolean(input.activeBookSession);
 
   const rawSteps: Array<{
     label: CurrentMissionProgressStep["label"];
@@ -339,11 +340,29 @@ export function buildCurrentMissionProgress(
       done: false,
       text: hasPracticeTask ? "进行中" : "待实践",
     },
+    {
+      label: "阅读",
+      done: false,
+      text: hasReadingTask ? "进行中" : "待阅读",
+    },
   ];
-  const firstTodoIndex = rawSteps.findIndex((step) => !step.done);
-  const steps = rawSteps.map((step, index): CurrentMissionProgressStep => ({
+  const currentLabel =
+    !learningDone
+      ? "学习"
+      : !reviewDone
+        ? "复习"
+        : !expressionDone
+          ? "表达"
+          : !repairDone
+            ? "修复"
+            : hasPracticeTask
+              ? "实践"
+              : hasReadingTask
+                ? "阅读"
+                : "实践";
+  const steps = rawSteps.map((step): CurrentMissionProgressStep => ({
     label: step.label,
-    state: step.done ? "done" : index === firstTodoIndex ? "current" : "todo",
+    state: step.done ? "done" : step.label === currentLabel ? "current" : "todo",
     text: step.text,
   }));
 

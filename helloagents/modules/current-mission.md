@@ -37,9 +37,9 @@
 
 - 首页：替换原“现在最值得做”块，直接显示 `当前任务`
 - 首页 Current Mission 卡片现在显示轻量元信息：`推荐/重要/轻量`、预计分钟数和陪练/Coach/项目等 companion 标签。
-- 首页 Current Mission 卡片接入 `buildCurrentMissionProgress()`，显示 `今日闭环 X/5`、可访问进度条和 `学习 / 复习 / 表达 / 修复 / 实践` 五步状态。
+- 首页 Current Mission 卡片接入 `buildCurrentMissionProgress()`，显示 `今日闭环 X/6`、可访问进度条和 `学习 / 复习 / 表达 / 修复 / 实践 / 阅读` 六步状态。
 - `CurrentMissionProgress` 保留 `completed/total` 兼容字段，并新增 `steps`；每一步包含中文 label、`done/current/todo` 状态和短文案，例如 `已完成`、`3 张到期`、`待表达`、`已清空`、`进行中`。
-- 五步状态只读派生自现有 DailyPlan、到期卡片、笔记/语音、误区/代码反馈、项目/同读任务；不新增数据库表、migration 或真实完成写入。
+- 六步状态只读派生自现有 DailyPlan、到期卡片、笔记/语音、误区/代码反馈、项目任务和 active book session；Books 不再混在 `实践` 步骤里，前置任务清空且有 active book session 时 `阅读` 成为当前步骤。不新增数据库表、migration 或真实完成写入。
 - 首页 Current Mission 卡片新增 `afterComplete` 轻量链接，说明完成当前动作后应该去哪里，例如 `完成后去复习`、`完成后去语音反思`、`读完后生成笔记/卡片`。
 - 首页 Current Mission 卡片新增 `companionCopy` 短伴随提示，首页固定传入 `今天不用做很多事，先完成当前任务就够了。`，用于降低打开首页后的选择压力；不新增入口、不改变 Current Mission 排序或数据合约。
 - 首页首屏现在是 `首页主任务` 区，只保留 `CurrentMissionCard`，避免与 `学习会话`、`学习状态`、`补弱焦点`、`今日能量`、`今日三件事`、`常用入口` 等模块竞争。
@@ -125,6 +125,8 @@
 - Reduce Chaos Learning Sessions：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` 43 项通过，覆盖 10 种 session 类型、统一字段、首页接线、组件渲染、移动端 CTA 和说明型文案防回退。
 - Reduce Chaos Current Mission Handoff：`npm test -- tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts` RED 首次失败于 `afterComplete` 缺失、任务卡未渲染完成后路径、首页主任务区仍混入 `LearningSessionStrip` 和 `LearningMomentumStrip`；GREEN 后 20 项通过。
 - Reduce Chaos Current Mission Handoff related regression：`npm test -- tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts` 56 项通过。
+- 0.367.0 Reduce Chaos Current Mission Reading Step：`npm test -- tests/unit/current-mission.test.ts` RED 首次失败于 `CurrentMissionProgress` 仍为 5 步；GREEN 后 13 项通过，覆盖 `阅读` 单独步骤、active book session 时 `阅读:current` 和任务卡 `aria-label` 六步摘要。
+- 0.367.0 Reduce Chaos Current Mission Reading Step related regression：`npm test -- tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts tests/unit/books-companion.test.ts tests/unit/learning-motivation.test.ts` 71 项通过。
 - `npm run lint`
 - `npm run build`
 

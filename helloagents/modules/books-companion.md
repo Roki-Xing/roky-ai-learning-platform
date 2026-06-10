@@ -13,7 +13,7 @@
 5. AI 伴读提供 `解释选区`、`总结当前页`、`保存为 Note`、`生成 Flashcards`、`送 Coach`。
 6. 移动端阅读页将 AI 伴读放入底部 Sheet，并把 `打开 AI 伴读` 放进 `AI 伴读移动操作` sticky 操作区，入口按钮满足 44px 触控高度。
 7. `/books` 进入全局导航的 `学习动作` 分组，并出现在移动端 `更多` Sheet。
-8. active book session 接入 Current Mission；主课、复习、误区、代码反馈、笔记、语音复盘和项目任务都清空后，当前任务推荐继续读书。
+8. active book session 接入 Current Mission；主课、复习、误区、代码反馈、笔记、语音复盘和项目任务都清空后，当前任务推荐继续读书，并在今日闭环里单独显示 `阅读`。
 
 ## 数据与边界
 
@@ -63,3 +63,4 @@
 - 2026-06-10 Books Mobile Sticky Companion：`npm test -- tests/unit/books-companion.test.ts` RED 首次失败于阅读页缺少 `aria-label="AI 伴读移动操作"` 和 sticky 底部操作区；GREEN 后 3 项通过，覆盖移动端 sticky Sheet 入口、`bg-background/95`、`backdrop-blur` 和 44px 触控按钮。
 - 2026-06-10 Books Mobile Sticky Companion 本地收尾：`npm test -- tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts tests/unit/auth-policy.test.ts` 38 项通过；`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test` 464 项、`npm run build` 均通过。
 - 2026-06-10 Books Mobile Sticky Companion 生产上线：代码提交 `8d13f7a` 已推送；生产备份 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.355.0-20260610-015857.tar.gz` 已生成；容器内定向测试 38 项、路由审计、学习审计、lint 和 build 通过；重启后 `https://learn.roky.chat/api/health` 返回 200/ok，390px 登录态 `/books/ai-engineering` smoke 检测到 sticky `AI 伴读移动操作` 和可打开的伴读 Sheet。
+- 2026-06-10 Current Mission Reading Step：`npm test -- tests/unit/current-mission.test.ts` RED 首次失败于今日闭环仍为 5 步；GREEN 后 13 项通过。相关回归 `npm test -- tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts tests/unit/books-companion.test.ts tests/unit/learning-motivation.test.ts` 71 项通过，覆盖 active book session 时 `阅读` 单独成为当前步骤。

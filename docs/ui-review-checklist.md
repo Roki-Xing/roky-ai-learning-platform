@@ -26,7 +26,7 @@
 - 首页 `当前任务` 应显示完成后的轻量路径提示，例如 `完成后去复习`、`完成后去语音反思` 或 `读完后生成笔记/卡片`
 - 首页 `当前任务` 若推荐处理未解决误区，应显示 `N 个未解决误区`，不应显示英文 `open misconception`
 - 首页首屏 `首页主任务` 只应包含 `当前任务`、今日进度条、完成后路径提示和一个主 CTA，不应并排展示 `学习会话`、`学习状态`、`补弱焦点`、`今日能量`、`常用入口` 或多个工具快捷 CTA。
-- 首页 `当前任务` 的今日进度应显示 `学习 / 复习 / 表达 / 修复 / 实践` 五步状态，并保留可访问 `progressbar` 摘要。
+- 首页 `当前任务` 的今日进度应显示 `学习 / 复习 / 表达 / 修复 / 实践 / 阅读` 六步状态，并保留可访问 `progressbar` 摘要；有 active book session 且前置任务清空时，`阅读` 应成为当前步骤，不应继续混入 `实践`。
 - 首页 `当前任务` 应显示短学习伴随提示 `今天不用做很多事，先完成当前任务就够了。`，提示应跟随 Current Mission 首屏，不应替代任务原因、完成后路径或主 CTA。
 - 首页次级动作应默认折叠在 `今天还可以`，包含写笔记、说出理解、推进项目和查看路径等入口；每条 `打开` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - 首页 section header action，例如 `今日学习` 顶部 CTA，在手机端应是全宽大触控目标，且共享 section action wrapper 不应把手机端 action 固定为 `shrink-0`
@@ -504,7 +504,7 @@
 - 移动端阅读应提供底部 Sheet 入口 `打开 AI 伴读`
 - 移动端阅读页的 `打开 AI 伴读` 应位于 `AI 伴读移动操作` sticky 操作区，至少包含 `sticky bottom-16 z-20`、`bg-background/95`、`backdrop-blur` 和 `min-h-11 w-full`，桌面端继续使用右侧伴读面板
 - Books 应接入 `Coach`、`Note`、`Flashcard`、`Mistake`、`Weekly`、`Project`、`Glossary`、`Radar`、`Current Mission` 和 `Path`
-- Current Mission 有活跃读书任务时应推荐 `今天继续读《AI Engineering》第 12-14 页`，并把今日闭环扩展为 5 步
+- Current Mission 有活跃读书任务时应推荐 `今天继续读《AI Engineering》第 12-14 页`，并把今日闭环扩展为 6 步，单独显示 `阅读`
 
 ## Project Portfolio `/projects/portfolio`
 

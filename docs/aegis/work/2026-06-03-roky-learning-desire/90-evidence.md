@@ -2153,6 +2153,28 @@ Not covered:
 
 继续时执行本切片覆盖扫描、`git diff --check`、`npm run lint`、全量 `npm test`、`npm run build` 和 Aegis helper bundle/check；保持生产/SSH/部署/密钥边界不动。
 
+## Reduce Chaos Current Mission Reading Step
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/current-mission.test.ts` | fail then pass, 13 tests | RED first failed because `CurrentMissionProgress` still returned 5 steps and active book reading still surfaced through the `实践` current step. GREEN passed after adding the standalone `阅读` step, active book `阅读:current`, and the six-step task-card `aria-label`. |
+| `npm test -- tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts tests/unit/books-companion.test.ts tests/unit/learning-motivation.test.ts` | pass, 71 tests | Related regression after Current Mission Reading Step; covers Current Mission, Next Best Action, Home, Books, learning motivation, and shared learning UI. |
+| `git diff --check` | pass | Whitespace check passed after code, test, UI checklist, module docs, changelog, checkpoint, and evidence updates. |
+| `npm run audit:routes` | pass | Route audit reported 21 pages, 17 navigation entries, and no missing core pages, pages without navigation, or navigation entries without a page. |
+| `npm run audit:learning` | pass | Learning audit reported no missing required files and no manual migrations missing from docs. |
+| `npm run lint` | pass | ESLint passed after the six-step progress model and responsive task-card layout change. |
+| `npm test` | pass, 475 tests | Full unit suite passed after adding the Current Mission reading step. |
+| `npm run build` | pass | Next 16.2.6 production build compiled, TypeScript passed, and 31 static pages were generated. |
+| `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py bundle --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform --work 2026-06-03-roky-learning-desire`, `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py check --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform` | fail, structural debt | Aegis helper still reports known Markdown-only workspace debt: missing `task-intent-draft.json` for the current work and current/historical work markdown records not indexed. This is method-pack structure debt, not a product UI validation failure. |
+
+Changed surface:
+
+- Reduce Chaos Current Mission Reading Step layer: `src/server/learning/current-mission.ts`, `src/components/learning/current-mission-card.tsx`, `tests/unit/current-mission.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/current-mission.md`, `helloagents/modules/books-companion.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered:
+
+- Full Playwright mobile matrix, real mobile-device screenshots, write-type production smoke, database migration, real PDF upload, OCR, AI provider calls, and Curriculum Planner persistence were not performed for this slice.
+
 ## Phase E Projects Type Filter Mobile Touch Targets
 
 | Evidence | Result | Notes |

@@ -97,13 +97,14 @@ test("current mission progress summarizes the daily learning loop", async () => 
 
   assert.equal(progress.label, "今日闭环");
   assert.equal(progress.completed, 3);
-  assert.equal(progress.total, 5);
+  assert.equal(progress.total, 6);
   assert.deepEqual(progress.steps, [
     { label: "学习", state: "done", text: "已完成" },
     { label: "复习", state: "current", text: "3 张到期" },
     { label: "表达", state: "done", text: "已表达" },
     { label: "修复", state: "done", text: "已清空" },
     { label: "实践", state: "todo", text: "待实践" },
+    { label: "阅读", state: "todo", text: "待阅读" },
   ]);
 });
 
@@ -178,13 +179,14 @@ test("current mission recommends active book reading before light exploration", 
   assert.equal(mission.estimatedMinutes, 15);
   assert.match(mission.reason, /读完后生成 3 张卡片/);
   assert.equal(signals.find((signal) => signal.label === "同读书籍")?.value, "AI Engineering 36%");
-  assert.equal(progress.total, 5);
+  assert.equal(progress.total, 6);
   assert.deepEqual(progress.steps.map((step) => `${step.label}:${step.state}`), [
     "学习:done",
     "复习:done",
     "表达:done",
     "修复:done",
-    "实践:current",
+    "实践:todo",
+    "阅读:current",
   ]);
 });
 
@@ -339,13 +341,14 @@ test("current mission card renders heading, signal summary, and action", () => {
       progress: {
         label: "今日闭环",
         completed: 2,
-        total: 5,
+        total: 6,
         steps: [
           { label: "学习", state: "done", text: "已完成" },
           { label: "复习", state: "current", text: "2 张到期" },
           { label: "表达", state: "todo", text: "待表达" },
           { label: "修复", state: "todo", text: "待修复" },
           { label: "实践", state: "todo", text: "待实践" },
+          { label: "阅读", state: "todo", text: "待阅读" },
         ],
       },
     }),
@@ -368,13 +371,13 @@ test("current mission card renders heading, signal summary, and action", () => {
   assert.match(markup, /20 分钟/);
   assert.match(markup, /AI 陪练/);
   assert.match(markup, /今日闭环/);
-  for (const label of ["学习", "复习", "表达", "修复", "实践"]) {
+  for (const label of ["学习", "复习", "表达", "修复", "实践", "阅读"]) {
     assert.match(markup, new RegExp(label));
   }
   assert.match(markup, /2 张到期/);
   assert.match(markup, /待表达/);
   assert.match(markup, /role="progressbar"/);
-  assert.match(markup, /aria-label="今日闭环：学习 已完成，复习 2 张到期，表达 待表达，修复 待修复，实践 待实践"/);
+  assert.match(markup, /aria-label="今日闭环：学习 已完成，复习 2 张到期，表达 待表达，修复 待修复，实践 待实践，阅读 待阅读"/);
 });
 
 test("current mission page wiring uses localized learner-facing headings", () => {
