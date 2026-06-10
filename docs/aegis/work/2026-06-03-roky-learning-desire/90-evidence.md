@@ -1,5 +1,22 @@
 # Evidence
 
+## Reduce Chaos Today Course Feedback Prompt
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/today-completion-next-actions.test.ts` | fail then pass, 11 tests | RED first failed because the completed Today card lacked `课程反馈`, the three feedback option groups, and the `Curriculum Planner` signal copy. GREEN passed after adding the completed-only feedback prompt to `LearningCompletionCard`. |
+| `npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/learning-ui-components.test.ts tests/unit/today-activity-labels.test.ts tests/unit/daily-generation-prompt.test.ts` | pass, 48 tests | Related regression covers Today completion card actions, shared learning UI, Today labels, and daily generation prompt contracts. |
+| `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Full local gates after the course feedback prompt update; full unit suite passed 475 tests, route audit reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
+| `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py bundle --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform --work 2026-06-03-roky-learning-desire`, `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py check --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform` | fail, structural debt | Aegis helper still reports the existing Markdown-only workspace debt: missing `task-intent-draft.json` and current/historical work markdown not indexed. This is a method-pack issue, not a product validation failure. |
+
+Changed surface:
+
+- Reduce Chaos Today Course Feedback Prompt layer: `src/components/learning/learning-completion-card.tsx`, `tests/unit/today-completion-next-actions.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/today-focus-mode.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered:
+
+- Course feedback persistence, Curriculum Planner scoring consumption, production write-type smoke, and full Playwright mobile screenshot matrix are not covered by this read-side slice.
+
 ## Reduce Chaos Review No New Content Cue
 
 | Evidence | Result | Notes |

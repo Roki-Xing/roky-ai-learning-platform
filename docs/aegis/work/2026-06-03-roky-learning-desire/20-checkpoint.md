@@ -1,6 +1,31 @@
 # Todo Checkpoint
 
-## Current Slice: Reduce Chaos Review No New Content Cue
+## Current Slice: Reduce Chaos Today Course Feedback Prompt
+
+- [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 18.3 和第 20.13：完成课程后应询问难度、帮助度和后续偏好，作为 Curriculum Planner 后续信号。
+- [√] RED：扩展 `tests/unit/today-completion-next-actions.test.ts`，先失败于完成态 `LearningCompletionCard` 缺少 `课程反馈`、三组反馈选项和 `Curriculum Planner` 信号文案。
+- [√] GREEN：`LearningCompletionCard` 只在 `今日已完成` 时显示轻量课程反馈区，未完成态继续隐藏该反馈区。
+- [√] 运行定向 RED/GREEN。
+- [√] 运行相关回归。
+- [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/today-focus-mode.md`、`helloagents/CHANGELOG.md` 初始记录。
+- [√] 运行本地完整门禁。
+- [√] 运行 Aegis helper 结构检查并记录既有 Markdown-only 结构债。
+- [ ] 提交并推送 GitHub。
+- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产只读 smoke。
+
+## Current Resume State Hint
+
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.366.0 Reduce Chaos Today Course Feedback Prompt`：只改 `/today` 完成态读侧课程反馈提示、源码级测试和文档记录；不要新增数据库迁移，不写生产反馈数据，不改变 Curriculum Planner scoring、DailyPlan 生成、认证策略、Preview 写保护、生产 env/provider 密钥或其它写入行为。已完成 RED/GREEN、相关回归、文档同步、本地完整门禁和 Aegis helper 结构检查；Aegis helper 失败仍是既有 Markdown-only 结构债。下一步提交推送、生产部署和只读 smoke。
+
+## Current Drift Check
+
+- Scope：仍服务 Roky Learn reduce-chaos 主线，把 `/today` 完成态从“下一步行动”推进为同时收集后续选题需要的轻量反馈信号。
+- Compatibility：不新增迁移，不触碰生产 env、provider 密钥、Preview 写保护、认证策略、Planner scoring、DailyPlan 生成或写入型流程；只改完成卡展示层和对应测试。
+- New fallback/owner：没有新增外部 owner、adapter 或兼容 fallback；Today 完成卡展示 owner 仍为 `src/components/learning/learning-completion-card.tsx`。
+- Retirement：此前完成态只展示完成 Hub、语音反思、项目实践和下一步 actions，缺少课程反馈信号；本切片补足信号提示但不假装已经持久化到 Planner。
+- Decision：continue; RED/GREEN、相关回归、文档同步、本地完整门禁和 Aegis helper 结构检查已完成，等待 GitHub push、生产部署和生产只读 smoke。
+
+## Completed Slice: Reduce Chaos Review No New Content Cue
 
 - [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 6.4：忘得很多时 `/review` 不应继续推荐新内容，而应提示先复习和修复。
 - [√] RED：扩展 Review Session Summary / ReviewTrainer 测试，先失败于高遗忘率 summary 和完成态 UI 缺少 `今天先不要学新内容，建议复习和修复。`。

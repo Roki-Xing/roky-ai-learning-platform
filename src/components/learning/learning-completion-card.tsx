@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, FolderKanban, Mic2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, FolderKanban, MessageSquareText, Mic2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
@@ -36,6 +36,21 @@ function metricToneClass(tone: string) {
 }
 
 const completionCtaClassName = "min-h-11 w-full sm:w-auto sm:shrink-0";
+
+const courseFeedbackGroups = [
+  {
+    label: "难度",
+    options: ["太简单", "刚好", "太难"],
+  },
+  {
+    label: "帮助度",
+    options: ["有帮助", "一般", "没帮助"],
+  },
+  {
+    label: "后续偏好",
+    options: ["想深入", "跳过类似主题"],
+  },
+];
 
 export function LearningCompletionCard(props: {
   completion: TodayCompletionNextActions;
@@ -85,6 +100,40 @@ export function LearningCompletionCard(props: {
             ))}
           </div>
         </div>
+      ) : null}
+
+      {props.completion.statusLabel === "今日已完成" ? (
+        <section
+          aria-label="课程反馈"
+          className="mt-4 rounded-lg border border-sky-200 bg-sky-50/50 p-3"
+        >
+          <div className="flex flex-wrap items-start gap-2">
+            <MessageSquareText className="mt-0.5 size-4 text-sky-700" aria-hidden="true" />
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-sky-950">课程反馈</div>
+              <div className="mt-1 text-xs leading-5 text-muted-foreground">
+                给后续选题和 Curriculum Planner 一个轻量信号。
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2">
+            {courseFeedbackGroups.map((group) => (
+              <div key={group.label} className="grid gap-2 sm:grid-cols-[5rem_1fr] sm:items-center">
+                <div className="text-xs font-medium text-sky-950">{group.label}</div>
+                <div className="flex flex-wrap gap-2" aria-label={group.label}>
+                  {group.options.map((option) => (
+                    <span
+                      key={option}
+                      className="inline-flex min-h-9 items-center rounded-md border border-sky-200 bg-background/80 px-3 py-1 text-xs font-medium text-sky-950"
+                    >
+                      {option}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       ) : null}
 
       {props.completion.recommendedVoiceReflection ? (

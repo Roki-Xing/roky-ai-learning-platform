@@ -179,6 +179,60 @@ test("learning completion card renders ordered next actions", () => {
   assert.match(markup, /href="\/coach\?lessonId=lesson-4&amp;mode=concept_question"/);
 });
 
+test("learning completion card asks for course feedback after completion", () => {
+  const completion = buildTodayCompletionNextActions({
+    planStatus: "completed",
+    lessonId: "lesson-feedback",
+    lessonDueFlashcardCount: 0,
+    totalDueFlashcardCount: 0,
+    noteCount: 1,
+    voiceNoteCount: 1,
+    thoughtReviewCount: 1,
+    hasCodeSubmission: true,
+    activeProject: null,
+  });
+
+  const markup = renderToStaticMarkup(
+    React.createElement(LearningCompletionCard, { completion }),
+  );
+
+  assert.match(markup, /课程反馈/);
+  assert.match(markup, /给后续选题和 Curriculum Planner/);
+  assert.match(markup, /难度/);
+  assert.match(markup, /太简单/);
+  assert.match(markup, /刚好/);
+  assert.match(markup, /太难/);
+  assert.match(markup, /帮助度/);
+  assert.match(markup, /有帮助/);
+  assert.match(markup, /一般/);
+  assert.match(markup, /没帮助/);
+  assert.match(markup, /后续偏好/);
+  assert.match(markup, /想深入/);
+  assert.match(markup, /跳过类似主题/);
+});
+
+test("learning completion card hides course feedback before completion", () => {
+  const completion = buildTodayCompletionNextActions({
+    planStatus: "planned",
+    lessonId: "lesson-feedback-pending",
+    lessonDueFlashcardCount: 0,
+    totalDueFlashcardCount: 0,
+    noteCount: 0,
+    voiceNoteCount: 0,
+    thoughtReviewCount: 0,
+    hasCodeSubmission: false,
+    activeProject: null,
+  });
+
+  const markup = renderToStaticMarkup(
+    React.createElement(LearningCompletionCard, { completion }),
+  );
+
+  assert.doesNotMatch(markup, /课程反馈/);
+  assert.doesNotMatch(markup, /太简单/);
+  assert.doesNotMatch(markup, /Curriculum Planner/);
+});
+
 test("learning completion card highlights the active project milestone as today's practice task", () => {
   const completion = buildTodayCompletionNextActions({
     planStatus: "completed",

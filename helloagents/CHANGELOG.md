@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.366.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Today Course Feedback Prompt]** 按指导文件第 18.3 和第 20.13 继续优化 `/today` 完成态，把课程反馈放进学习完成后的主线，而不是新增独立入口。
+  - `LearningCompletionCard` 在 `今日已完成` 后显示轻量 `课程反馈` 区，展示难度、帮助度和后续偏好三组信号：`太简单 / 刚好 / 太难`、`有帮助 / 一般 / 没帮助`、`想深入 / 跳过类似主题`。
+  - 未完成状态继续只提示 `完成沉淀`，不显示课程反馈，避免用户在完成前分心。
+  - 本切片只补完成态读侧提示和回归保护；不新增数据库迁移，不写生产反馈数据，不改变 Curriculum Planner 选题逻辑、DailyPlan 生成、认证策略、Preview 写保护、生产 env/provider 密钥或写入行为边界。
+
+### Verified
+
+- RED：`npm test -- tests/unit/today-completion-next-actions.test.ts` 首次失败于完成态缺少 `课程反馈`、三组反馈选项和 `Curriculum Planner` 信号文案。
+- GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 11 项通过，覆盖完成态显示课程反馈、未完成态隐藏课程反馈、完成 Hub、语音反思和项目实践。
+- 相关回归：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/learning-ui-components.test.ts tests/unit/today-activity-labels.test.ts tests/unit/daily-generation-prompt.test.ts` 48 项通过，覆盖 Today 完成态、共享学习 UI、Today 标签和每日生成 prompt。
+- 本地完整门禁：覆盖扫描、`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 475 项通过，Next 生产构建生成 31 个静态页面。
+- Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+
+### Not Covered
+
+- 尚未把课程反馈持久化进数据库或 Curriculum Planner scoring；本切片先建立完成态反馈信号结构和 UI 保护。未执行完整 Playwright 移动端截图矩阵或写入型生产 smoke。
+
 ## [0.365.0] - 2026-06-10
 
 ### Changed
