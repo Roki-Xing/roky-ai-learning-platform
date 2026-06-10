@@ -37,7 +37,9 @@
 
 - 首页：替换原“现在最值得做”块，直接显示 `当前任务`
 - 首页 Current Mission 卡片现在显示轻量元信息：`推荐/重要/轻量`、预计分钟数和陪练/Coach/项目等 companion 标签。
-- 首页 Current Mission 卡片接入 `buildCurrentMissionProgress()`，显示 `今日闭环 X/5` 与可访问进度条；闭环步骤为今日学习完成、到期复习清空、今日笔记、语音复盘、同读书籍。
+- 首页 Current Mission 卡片接入 `buildCurrentMissionProgress()`，显示 `今日闭环 X/5`、可访问进度条和 `学习 / 复习 / 表达 / 修复 / 实践` 五步状态。
+- `CurrentMissionProgress` 保留 `completed/total` 兼容字段，并新增 `steps`；每一步包含中文 label、`done/current/todo` 状态和短文案，例如 `已完成`、`3 张到期`、`待表达`、`已清空`、`进行中`。
+- 五步状态只读派生自现有 DailyPlan、到期卡片、笔记/语音、误区/代码反馈、项目/同读任务；不新增数据库表、migration 或真实完成写入。
 - 首页 Current Mission 卡片新增 `afterComplete` 轻量链接，说明完成当前动作后应该去哪里，例如 `完成后去复习`、`完成后去语音反思`、`读完后生成笔记/卡片`。
 - 首页首屏现在是 `首页主任务` 区，只保留 `CurrentMissionCard`，避免与 `学习会话`、`学习状态`、`补弱焦点`、`今日能量`、`今日三件事`、`常用入口` 等模块竞争。
 - 首页 Current Mission 下方新增 `LearningSessionStrip`，把当前推荐动作、完成后的下一动作和本周会话进度展示为 `当前会话`、`下一会话`、`本周会话`。

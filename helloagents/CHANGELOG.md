@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.363.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Current Mission Daily Loop Steps]** 按指导文件第 3.3 继续优化首页 Daily Command Center，把 Current Mission 的 `今日闭环 X/5` 从单纯数字进度升级为横向五步状态。
+  - `CurrentMissionProgress` 保留 `completed/total`，新增 `steps`，用于表达 `学习 / 复习 / 表达 / 修复 / 实践` 五个闭环动作。
+  - `buildCurrentMissionProgress()` 现在按今日学习状态、到期复习、笔记/语音表达、误区/代码反馈修复、项目或同读实践任务生成 `done/current/todo` 状态与中文短文案。
+  - `CurrentMissionCard` 在进度条下方渲染五个紧凑步骤块，并把 `progressbar` 的可访问名称扩展为完整闭环状态摘要。
+  - 保留 Current Mission 现有优先级、完成后路径、Books active reading、Mistakes focus route、首页首屏收束、移动底部导航、认证策略、Preview 写保护、数据库 schema、生产 env/provider 密钥和所有写入行为边界。
+
+### Verified
+
+- RED：`npm test -- tests/unit/current-mission.test.ts` 首次失败于 `progress.steps` 为 `undefined`，以及 `CurrentMissionCard` 仍只渲染数字进度条、缺少 `学习 / 复习 / 表达 / 修复 / 实践` 五步状态。
+- GREEN：`npm test -- tests/unit/current-mission.test.ts` 13 项通过，覆盖五步状态数据合约、Book Companion 实践当前态、任务卡五步渲染和完整 `aria-label`。
+- 相关回归：`npm test -- tests/unit/current-mission.test.ts tests/unit/home-page-labels.test.ts tests/unit/next-best-action.test.ts tests/unit/learning-ui-components.test.ts tests/unit/learning-path.test.ts tests/unit/weekly-review.test.ts` 69 项通过，覆盖 Current Mission、首页源码契约、Next Best Action、共享学习 UI、Path 和 Weekly 消费方。
+- 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 473 项通过，Next 生产构建生成 31 个静态页面。
+- Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+
+### Not Covered Yet
+
+- GitHub push、生产部署和生产 smoke 尚未执行；本切片不包含数据库迁移、路由保护变更、Preview 写保护变更、移动底部导航重构、More Sheet 变更或写入型生产 smoke。`npm audit` 仍报告既有 3 个 moderate 告警，未纳入本轮范围。
+
 ## [0.362.0] - 2026-06-10
 
 ### Changed

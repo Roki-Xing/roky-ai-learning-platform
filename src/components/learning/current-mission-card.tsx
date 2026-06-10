@@ -35,6 +35,35 @@ function clampProgress(progress: CurrentMissionProgress) {
   };
 }
 
+function progressAriaLabel(progress: CurrentMissionProgress) {
+  if (progress.steps.length === 0) return progress.label;
+  return `${progress.label}：${progress.steps
+    .map((step) => `${step.label} ${step.text}`)
+    .join("，")}`;
+}
+
+function progressStepClass(state: CurrentMissionProgress["steps"][number]["state"]) {
+  switch (state) {
+    case "done":
+      return "border-emerald-200 bg-emerald-50 text-emerald-800";
+    case "current":
+      return "border-amber-200 bg-amber-50 text-amber-800";
+    case "todo":
+      return "border-border bg-background/70 text-muted-foreground";
+  }
+}
+
+function progressStepMarkerClass(state: CurrentMissionProgress["steps"][number]["state"]) {
+  switch (state) {
+    case "done":
+      return "bg-emerald-600";
+    case "current":
+      return "bg-amber-500";
+    case "todo":
+      return "bg-muted-foreground/40";
+  }
+}
+
 export function CurrentMissionCard(props: {
   mission: CurrentMission;
   signals?: CurrentMissionSignal[];
@@ -90,7 +119,7 @@ export function CurrentMissionCard(props: {
             </div>
           ) : null}
           {props.progress && progress ? (
-            <div className="mt-3 grid max-w-md gap-1.5">
+            <div className="mt-3 grid max-w-2xl gap-2">
               <div className="flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
                 <span>{props.progress.label}</span>
                 <span className="tabular-nums">
@@ -99,7 +128,7 @@ export function CurrentMissionCard(props: {
               </div>
               <div
                 role="progressbar"
-                aria-label={props.progress.label}
+                aria-label={progressAriaLabel(props.progress)}
                 aria-valuemin={0}
                 aria-valuemax={progress.total}
                 aria-valuenow={progress.completed}
@@ -110,6 +139,33 @@ export function CurrentMissionCard(props: {
                   style={{ width: `${progress.percent}%` }}
                 />
               </div>
+              {props.progress.steps.length > 0 ? (
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
+                  {props.progress.steps.map((step) => (
+                    <div
+                      key={step.label}
+                      className={cn(
+                        "min-w-0 rounded-md border px-2 py-1.5",
+                        progressStepClass(step.state),
+                      )}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            "size-1.5 shrink-0 rounded-full",
+                            progressStepMarkerClass(step.state),
+                          )}
+                        />
+                        <span className="truncate text-xs font-medium">{step.label}</span>
+                      </div>
+                      <div className="mt-0.5 truncate text-[0.7rem] leading-4">
+                        {step.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
           ) : null}
           <Link

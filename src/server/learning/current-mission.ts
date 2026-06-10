@@ -23,6 +23,13 @@ export type CurrentMissionProgress = {
   label: string;
   completed: number;
   total: number;
+  steps: CurrentMissionProgressStep[];
+};
+
+export type CurrentMissionProgressStep = {
+  label: "学习" | "复习" | "表达" | "修复" | "实践";
+  state: "done" | "current" | "todo";
+  text: string;
 };
 
 export type LearningSessionType =
@@ -293,18 +300,58 @@ export function buildLearningSessions(args: {
 export function buildCurrentMissionProgress(
   input: CurrentMissionInput,
 ): CurrentMissionProgress {
-  const steps = [
-    input.todayPlanStatus === "completed",
-    input.dueFlashcardsCount === 0,
-    Boolean(input.todayLessonId && input.todayNoteCount > 0),
-    Boolean(input.todayLessonId && input.todayVoiceNoteCount > 0),
-    Boolean(input.activeBookSession),
+  const learningDone = input.todayPlanStatus === "completed";
+  const reviewDone = input.dueFlashcardsCount === 0;
+  const expressionDone = Boolean(
+    input.todayLessonId && (input.todayNoteCount > 0 || input.todayVoiceNoteCount > 0),
+  );
+  const repairDone =
+    input.openMisconceptionCount === 0 && input.codeFeedbackNeedsAttentionCount === 0;
+  const hasPracticeTask = Boolean(input.activeProject || input.activeBookSession);
+
+  const rawSteps: Array<{
+    label: CurrentMissionProgressStep["label"];
+    done: boolean;
+    text: string;
+  }> = [
+    {
+      label: "学习",
+      done: learningDone,
+      text: learningDone ? "已完成" : input.todayPlanStatus ? "进行中" : "待开始",
+    },
+    {
+      label: "复习",
+      done: reviewDone,
+      text: reviewDone ? "已清空" : `${input.dueFlashcardsCount} 张到期`,
+    },
+    {
+      label: "表达",
+      done: expressionDone,
+      text: expressionDone ? "已表达" : "待表达",
+    },
+    {
+      label: "修复",
+      done: repairDone,
+      text: repairDone ? "已清空" : "待修复",
+    },
+    {
+      label: "实践",
+      done: false,
+      text: hasPracticeTask ? "进行中" : "待实践",
+    },
   ];
+  const firstTodoIndex = rawSteps.findIndex((step) => !step.done);
+  const steps = rawSteps.map((step, index): CurrentMissionProgressStep => ({
+    label: step.label,
+    state: step.done ? "done" : index === firstTodoIndex ? "current" : "todo",
+    text: step.text,
+  }));
 
   return {
     label: "今日闭环",
-    completed: steps.filter(Boolean).length,
+    completed: rawSteps.filter((step) => step.done).length,
     total: steps.length,
+    steps,
   };
 }
 

@@ -1,5 +1,31 @@
 # Todo Checkpoint
 
+## Current Slice: Reduce Chaos Current Mission Daily Loop Steps
+
+- [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 3.3：首页 Current Mission 的 `今日闭环` 应显示 `学习 / 复习 / 表达 / 修复 / 实践` 五步状态，而不是只有数字进度。
+- [√] RED：扩展 Current Mission 测试，先失败于 `progress.steps` 为 `undefined`、Book Companion 场景缺少五步实践当前态、`CurrentMissionCard` 未渲染五步状态。
+- [√] GREEN：`CurrentMissionProgress` 新增 `steps`，保留 `completed/total` 兼容字段。
+- [√] GREEN：`buildCurrentMissionProgress()` 生成 `学习 / 复习 / 表达 / 修复 / 实践` 五个 `done/current/todo` 状态与中文短文案。
+- [√] GREEN：`CurrentMissionCard` 在进度条下方渲染五步紧凑状态块，并把 `progressbar` 可访问名称扩展成完整闭环摘要。
+- [√] 运行定向 RED/GREEN 和相关回归。
+- [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/current-mission.md`、`helloagents/CHANGELOG.md` 初始记录。
+- [√] 运行本地完整门禁。
+- [ ] 提交并推送 GitHub。
+- [ ] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产 smoke。
+- [ ] 补生产部署证据并清理临时 SSH key / 登录态临时文件。
+
+## Current Resume State Hint
+
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.363.0 Reduce Chaos Current Mission Daily Loop Steps`：只改 Current Mission 读侧进度数据合约、任务卡展示、源码级测试和文档记录；不要改 Next Best Action 排序、数据库 schema/migration、认证策略、Preview 写保护、生产 env/provider 密钥、移动底部导航、More Sheet 或写入型业务流程。已完成 RED/GREEN、相关回归和本地完整门禁；下一步提交推送、生产部署和只读首页 smoke。生产 smoke 只检查首页 Current Mission 可见 `今日闭环`、`学习`、`复习`、`表达`、`修复`、`实践`，不做写入型操作。
+
+## Current Drift Check
+
+- Scope：仍服务 Roky Learn reduce-chaos 主线，把首页 Current Mission 从数字进度继续推进为可读的每日学习闭环。
+- Compatibility：保留 `completed/total` 兼容字段，不新增迁移，不触碰生产 env、provider 密钥、Preview 写保护、认证策略、移动底部导航、More Sheet 或写入型流程；只新增读侧 `steps` 合约和展示层布局调整。
+- New fallback/owner：没有新增外部 owner、adapter 或兼容 fallback；Current Mission progress owner 仍为 `src/server/learning/current-mission.ts` 和 `src/components/learning/current-mission-card.tsx`。
+- Retirement：旧的首页 Current Mission 只显示 `今日闭环 X/5` 和进度条的弱方向感展示已由五步状态块替代；数字进度条继续保留作为摘要和无障碍进度语义。
+- Decision：continue; RED/GREEN、相关回归和本地完整门禁已完成，下一步提交推送并进入部署流程。
+
 ## Current Slice: Reduce Chaos Current Mission Handoff
 
 - [√] 读取 `roky_learn_reduce_chaos_and_book_companion_guidance.md`，确认当前切片对应第 3.1 和第 4.3：首页首屏只突出一个主任务，Current Mission 明确完成后去哪里。
