@@ -9,14 +9,18 @@
 | `npm run audit:routes` | pass | Route audit reports Pages 21, Navigation entries 17, Missing core pages none, Pages without navigation none, Navigation without page none. The audit output includes `今日`, `学习动作`, `知识资产`, and `系统` route groups. |
 | `npm run audit:learning` | pass | Learning system audit reports required files missing none and manual migrations missing from docs none. |
 | `git diff --check`, `npm run lint`, `npm test`, `npm run build` | pass | Final local gates before push; full unit suite passed 471 tests and Next build generated 31 static pages. |
+| `git push origin main` | pass | Code commit `3a4e891 feat: reorganize desktop navigation intent groups` pushed to `origin/main`. |
+| Production backup and deploy | pass | Created `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.361.0-20260610-080805.tar.gz`, rsynced code to `118.25.15.72:/home/ubuntu/ai-learning-platform`, pruned dev dependencies after validation, and restarted container `ai-learning-platform`. |
+| Remote container gates | pass | In container: `npm ci --include=dev`, `npm run prisma:generate`, shared UI / Books / Auth related regression 18 tests, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, and `npm run build` passed. |
+| `curl https://learn.roky.chat/api/health` and desktop navigation login smoke | pass | Health returned 200/ok. Desktop authenticated readonly smoke loaded `/`, saw `Roky Learn`, `今日`, `学习动作`, `知识资产`, `系统`, `今日任务`, `当前路径`, `同读书籍`, and `学习进度`; old desktop groups `学习主线`, `补弱与表达`, and `知识与探索` were absent from the page HTML. |
 
 Changed surface:
 
 - Reduce Chaos Desktop Navigation Intent Groups layer: `src/lib/routes.ts`, `tests/unit/shared-ui-a11y.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/e2e-ui-smoke.md`, `helloagents/modules/books-companion.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
 
-Not covered yet:
+Not covered:
 
-- GitHub push, production deployment, production smoke, and production deploy evidence are still pending for this slice. Full Playwright mobile screenshot matrix and write-type production smoke are not part of this slice.
+- Full Playwright mobile screenshot matrix and write-type production smoke were not run. This slice does not include database migrations, route protection changes, Preview write-protection changes, or mobile bottom-nav rewrites. `npm audit` still reports existing 3 moderate dependency advisories and was not part of this slice.
 
 ## Reduce Chaos Path Stage Reading Materials
 

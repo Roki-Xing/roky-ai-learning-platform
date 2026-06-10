@@ -18,10 +18,14 @@
 - 相关回归：`npm test -- tests/unit/shared-ui-a11y.test.ts tests/unit/books-companion.test.ts tests/unit/auth-policy.test.ts` 18 项通过，覆盖导航分组、Books 导航接线和受保护路由策略。
 - 审计：`npm run audit:routes` 通过，Pages 21、Navigation entries 17、Missing core pages none、Pages without navigation none、Navigation without page none；`npm run audit:learning` 通过，required files missing none、manual migrations missing from docs none。
 - 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 471 项通过，Next 生产构建生成 31 个静态页面。
+- GitHub：代码提交 `3a4e891 feat: reorganize desktop navigation intent groups` 已推送到 `origin/main`。
+- 生产部署：已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.361.0-20260610-080805.tar.gz`，rsync 同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，并重启 `ai-learning-platform` 容器。
+- 远端门禁：容器内 `npm ci --include=dev`、`npm run prisma:generate`、共享 UI/Books/Auth 相关回归 18 项、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、`npm run build` 通过，随后 `npm prune --omit=dev`。
+- 生产验收：`https://learn.roky.chat/api/health` 返回 200/ok；桌面登录态只读 smoke 访问首页后可见 `Roky Learn`、`今日`、`学习动作`、`知识资产`、`系统`、`今日任务`、`当前路径`、`同读书籍`、`学习进度`，且旧分组 `学习主线`、`补弱与表达`、`知识与探索` 未出现在页面 HTML 中。
 
 ### Not Covered
 
-- 生产部署、生产 smoke、完整 Playwright 移动端截图矩阵和写入型生产 smoke 尚未执行；本切片不包含数据库迁移、路由保护变更、Preview 写保护变更或移动底部导航重构。生产部署证据会在上线后追加。
+- 未执行完整 Playwright 移动端截图矩阵或写入型生产 smoke；本切片不包含数据库迁移、路由保护变更、Preview 写保护变更或移动底部导航重构。`npm audit` 仍报告既有 3 个 moderate 告警，未纳入本轮范围。
 
 ## [0.360.0] - 2026-06-10
 
