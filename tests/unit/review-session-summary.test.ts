@@ -42,6 +42,7 @@ test("review session summary recommends coach when forgot and hard dominate", ()
   assert.equal(summary.retentionRate, 25);
   assert.equal(summary.tone, "danger");
   assert.match(summary.title, /补弱/);
+  assert.match(summary.description, /今天先不要学新内容，建议复习和修复。/);
   assert.match(summary.primaryAction.href, /^\/coach\?/);
   assert.equal(summary.weakAreas[0]?.label, "RAG");
   assert.equal(summary.remediationLessonLabel, "RAG");

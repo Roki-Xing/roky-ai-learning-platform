@@ -1,5 +1,22 @@
 # Evidence
 
+## Reduce Chaos Review No New Content Cue
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` | fail then pass, 29 tests | RED first failed because the weak review session summary and ReviewTrainer completion UI lacked `今天先不要学新内容，建议复习和修复。`. GREEN passed after adding the cue to the high-forgetting summary description. |
+| `npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts tests/unit/today-activity-labels.test.ts tests/unit/review-rating.test.ts tests/unit/review-empty-state.test.ts tests/unit/today-remediation-intent.test.ts` | pass, 43 tests | Related regression covers Review summary/UI, rating idempotency, empty state, Today labels, and Review remediation landing. |
+| `git diff --check`, `npm run lint`, `npm run audit:routes`, `npm run audit:learning`, `npm test`, `npm run build` | pass | Final local gates before push; full unit suite passed 473 tests, route audit reports 21 pages with no navigation gaps, learning audit reports no required-file or migration-doc gaps, and Next build generated 31 static pages. |
+| `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py bundle --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform --work 2026-06-03-roky-learning-desire`, `python3 /home/xing-12_26/projects/codex-workspace/CodeShua/references/Aegis/scripts/aegis-workspace.py check --root /home/xing-12_26/projects/codex-workspace/ai-learning-platform` | fail, structural debt | Aegis helper still reports known Markdown-only workspace debt: missing `task-intent-draft.json` for the current work and current/historical work markdown records not indexed. This is method-pack structure debt, not a product UI validation failure. |
+
+Changed surface:
+
+- Reduce Chaos Review No New Content Cue layer: `src/server/review/session-summary.ts`, `tests/unit/review-session-summary.test.ts`, `tests/unit/learning-ui-components.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/review.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered yet:
+
+- GitHub push, production deployment, remote gates, and production smoke are still pending for this slice.
+
 ## Reduce Chaos Current Mission Companion Copy
 
 | Evidence | Result | Notes |

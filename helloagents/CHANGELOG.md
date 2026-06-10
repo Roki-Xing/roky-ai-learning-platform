@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.365.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Review No New Content Cue]** 按指导文件第 6.4 继续优化 `/review` 完成态诊断，在忘得多时明确阻止继续开新内容。
+  - `buildReviewSessionSummary()` 的高遗忘率分支现在在完成总结里显示 `今天先不要学新内容，建议复习和修复。`。
+  - `/review` 完成态 UI 继续复用服务层 summary，让 `复习清空` 后的诊断、建议、Coach、补弱小课和错题中心动作保持同一条学习修复主线。
+  - 保留 Review 队列、评分排期、补弱动作、Today remediation、Mistakes 入口、认证策略、Preview 写保护、数据库 schema、生产 env/provider 密钥和所有写入行为边界。
+
+### Verified
+
+- RED：`npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` 首次失败于高遗忘率 summary description 和 ReviewTrainer 完成态缺少 `今天先不要学新内容，建议复习和修复。`。
+- GREEN：`npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` 29 项通过，覆盖服务层 summary 和 `/review` 完成态 UI 可见文案。
+- 相关回归：`npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts tests/unit/today-activity-labels.test.ts tests/unit/review-rating.test.ts tests/unit/review-empty-state.test.ts tests/unit/today-remediation-intent.test.ts` 43 项通过，覆盖 Review summary/UI、评分幂等、空态、Today 标签和 Review remediation landing。
+- 本地完整门禁：`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test`、`npm run build` 通过；全量单测 473 项通过，Next 生产构建生成 31 个静态页面。
+- Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+
+### Not Covered
+
+- 本条仍在执行中；GitHub push、生产部署、远端门禁和生产 smoke 待本切片后续步骤补充。
+
 ## [0.364.0] - 2026-06-10
 
 ### Changed

@@ -661,6 +661,7 @@ test("review trainer completion summary highlights retention and next action", (
   );
 
   assert.match(markup, /这轮复习暴露了补弱点/);
+  assert.match(markup, /今天先不要学新内容，建议复习和修复。/);
   assert.match(markup, /复习清空/);
   assert.match(markup, /留存 25%/);
   assert.match(markup, /让 Coach 拆解薄弱点/);

@@ -89,6 +89,8 @@ const TYPE_LABELS: Record<string, string> = {
   misconception: "错题卡",
 };
 
+const REVIEW_NO_NEW_CONTENT_CUE = "今天先不要学新内容，建议复习和修复。";
+
 function pct(numerator: number, denominator: number) {
   if (!denominator) return 0;
   return Math.round((numerator / denominator) * 100);
@@ -304,8 +306,8 @@ export function buildReviewSessionSummary(
       ratingBreakdown,
       title: "这轮复习暴露了补弱点",
       description: topWeak
-        ? `留存率 ${retentionRate}%。最弱的是「${topWeak.label}」，先补弱再开新内容。`
-        : `留存率 ${retentionRate}%。先把忘了和模糊的卡片写成自己的理解，再交给 Coach 找概念缺口。`,
+        ? `留存率 ${retentionRate}%。${REVIEW_NO_NEW_CONTENT_CUE} 最弱的是「${topWeak.label}」，先补弱再回到主线。`
+        : `留存率 ${retentionRate}%。${REVIEW_NO_NEW_CONTENT_CUE} 先把忘了和模糊的卡片写成自己的理解，再交给 Coach 找概念缺口。`,
       tone: "danger",
       primaryAction: { href: coachHref, label: "让 Coach 拆解薄弱点" },
       secondaryAction: { href: "/today", label: "回到今日学习" },
