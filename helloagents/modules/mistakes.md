@@ -34,11 +34,12 @@
 - 每条误区和聚焦误区都会显示 `修复流程`，用五步读侧状态机表达 `发现误区 / 让 Coach 解释 / 生成复习卡 / 完成一次复习 / 标记已解决`。
 - `buildMistakeRepairWorkflow()` 根据 `Misconception.status`、`mistake-card:{id}` 卡片数和 `reviewCount` 推导 `已完成 / 当前 / 待办`，不新增数据库字段或迁移。
 - “让 Coach 解释”会把这条误区的上下文预填到 `/coach` 输入框。
+- “做一道同类题”会把误区带到 `/today?mode=remediation&source=mistake...`，显示 `Mistake 同类题短练习` 和 `生成同类题短练习`，让错题修复不只停留在解释和制卡。
 - “生成复习卡”会把误区转成稳定 `mistake-card:{id}` 复习卡，并刷新 `/review`。
 - “标记已解决”会把开放误区更新为 `resolved`，并刷新 `/mistakes`、`/progress`、`/map`、`/path` 和 `/weekly`。
 - 页面级 `打开 Coach`、修复策略卡 `去复习`、筛选表单 `搜索错题` CTA 在手机端复用 `mistakePageCtaClassName = "min-h-11 w-full sm:w-auto"`，桌面端保持自适应宽度。
-- 聚焦误区的 `让 Coach 解释`、`生成复习卡`、`标记已解决` 位于 `aria-label="错题修复移动操作"` 的 sticky 操作区；手机端固定在底部导航上方，使用 `sticky bottom-16 z-20`、`bg-background/95` 和 `backdrop-blur`，桌面端恢复 `sm:static` / `sm:border-0`。
-- 每条误区的 `让 Coach 解释`、`生成复习卡`、`标记已解决`、`回到课程` 修复动作在手机端使用单列 `grid gap-2`，CTA 复用 `mistakeRepairActionCtaClassName = "min-h-11 w-full sm:w-auto"`，桌面端保持 `sm:flex sm:flex-wrap`。
+- 聚焦误区的 `让 Coach 解释`、`做一道同类题`、`生成复习卡`、`标记已解决` 位于 `aria-label="错题修复移动操作"` 的 sticky 操作区；手机端固定在底部导航上方，使用 `sticky bottom-16 z-20`、`bg-background/95` 和 `backdrop-blur`，桌面端恢复 `sm:static` / `sm:border-0`。
+- 每条误区的 `让 Coach 解释`、`做一道同类题`、`生成复习卡`、`标记已解决`、`回到课程` 修复动作在手机端使用单列 `grid gap-2`，CTA 复用 `mistakeRepairActionCtaClassName = "min-h-11 w-full sm:w-auto"`，桌面端保持 `sm:flex sm:flex-wrap`。
 - 误区解决完成态复用 `LearningCelebrationCue` 时，成就徽章显示中文 `掌握证据`，不显示英文 `Mastery signal`。
 
 ## 代码位置
@@ -63,6 +64,8 @@
 - `npm test -- tests/unit/mistakes-view.test.ts tests/unit/learning-ui-components.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts`
 - Reduce Chaos Mistakes Repair Workflow Progress：`npm test -- tests/unit/mistakes-view.test.ts` RED 失败于缺少 `buildMistakeRepairWorkflow()` 和页面 `修复流程` 接线，GREEN 后 14 项通过。
 - Reduce Chaos Mistakes Repair Workflow Progress 相关回归：`npm test -- tests/unit/mistakes-view.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/learning-ui-components.test.ts` 69 项通过。
+- Reduce Chaos Mistake Similar Practice Action：`npm test -- tests/unit/mistakes-view.test.ts` RED 失败于缺少 `buildMistakeSimilarPracticeHref()`、`做一道同类题` 和页面接线，GREEN 后 15 项通过。
+- Reduce Chaos Mistake Similar Practice Action 相关回归：`npm test -- tests/unit/mistakes-view.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` 72 项通过。
 - Reduce Chaos Mistakes Focus Repair RED/GREEN：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/mistakes-view.test.ts` 34 项通过，覆盖 `/mistakes?focus=<id>`、Learning Session 误区修复 href、`当前先修这一条` 和 `错题修复移动操作` sticky 操作区。
 - Phase E Mistakes Header Badge Localization：`npm test -- tests/unit/mistakes-view.test.ts` RED/GREEN 后 11 项通过，覆盖 `badge="错题修复"`，并防止 `badge="Mistakes"` 回退。
 - Phase E Mistakes Header Badge Localization 回归：`npm test -- tests/unit/mistakes-view.test.ts tests/unit/auth-policy.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/learning-ui-components.test.ts` 51 项通过。

@@ -17,6 +17,7 @@ import { prisma } from "@/server/db";
 import {
   buildCoachDraftForMistake,
   buildMistakeRepairWorkflow,
+  buildMistakeSimilarPracticeHref,
   formatMistakeSourceLabel,
   formatMistakeStatusLabel,
   inferMistakeKind,
@@ -396,6 +397,19 @@ export default async function MistakesPage({
               <Button asChild size="sm" className={mistakeRepairActionCtaClassName}>
                 <Link href={buildMistakeCoachHref(focusedMistake)}>让 Coach 解释</Link>
               </Button>
+              <Button asChild size="sm" variant="outline" className={mistakeRepairActionCtaClassName}>
+                <Link
+                  href={buildMistakeSimilarPracticeHref({
+                    id: focusedMistake.id,
+                    lessonId: focusedMistake.lessonId,
+                    lessonTitle: lessonTitleById.get(focusedMistake.lessonId),
+                    summary: focusedMistake.summary,
+                    topicTitle: focusedMistake.topicId ? topicTitleById.get(focusedMistake.topicId) : null,
+                  })}
+                >
+                  做一道同类题
+                </Link>
+              </Button>
               <form action={generateMistakeReviewCardAction}>
                 <input type="hidden" name="mistakeId" value={focusedMistake.id} />
                 <Button
@@ -512,6 +526,19 @@ export default async function MistakesPage({
                       <div className="grid gap-2 sm:flex sm:flex-wrap">
                         <Button asChild size="sm" className={mistakeRepairActionCtaClassName}>
                           <Link href={coachHref}>让 Coach 解释</Link>
+                        </Button>
+                        <Button asChild size="sm" variant="outline" className={mistakeRepairActionCtaClassName}>
+                          <Link
+                            href={buildMistakeSimilarPracticeHref({
+                              id: mistake.id,
+                              lessonId: mistake.lessonId,
+                              lessonTitle,
+                              summary: mistake.summary,
+                              topicTitle,
+                            })}
+                          >
+                            做一道同类题
+                          </Link>
                         </Button>
                         <form action={generateMistakeReviewCardAction}>
                           <input type="hidden" name="mistakeId" value={mistake.id} />

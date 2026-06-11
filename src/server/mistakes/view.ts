@@ -147,6 +147,24 @@ export function buildReviewCardForMistake(record: MistakeReviewCardInput) {
   };
 }
 
+export function buildMistakeSimilarPracticeHref(args: {
+  id: string;
+  lessonId: string;
+  lessonTitle?: string | null;
+  summary: string;
+  topicTitle?: string | null;
+}) {
+  const query = new URLSearchParams({
+    mode: "remediation",
+    source: "mistake",
+    focus: compact(args.summary, 80),
+    mistakeId: args.id,
+    lesson: args.lessonTitle ?? args.lessonId,
+  });
+  if (args.topicTitle) query.set("topic", args.topicTitle);
+  return `/today?${query.toString()}`;
+}
+
 export function buildMistakeRepairWorkflow(args: {
   status: string | null | undefined;
   reviewCardCount: number;

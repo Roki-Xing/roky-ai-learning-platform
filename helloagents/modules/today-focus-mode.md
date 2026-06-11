@@ -38,7 +38,8 @@
 - 今日学习完成后，如果已有 active project 或已完成笔记/语音/Coach 沉淀，完成卡会显示 `下一步：把今天的知识用到项目里`
 - 项目实践推荐区显示 `推荐项目任务`，并复用当前项目里程碑；无 active project 时引导进入 `/projects` 选择小项目
 - 当从 Review Session Summary 点击 `生成补弱小课` 进入 `/today?mode=remediation&source=review&focus=...`，页面顶部显示 `Review 补弱短课` 和 `补弱短课已带入`
-- 补弱短课 Banner 的 `先回到主课`、`生成补弱小课`、`继续复习` CTA 使用手机端单列 `grid gap-2`，按钮保持 `min-h-11 w-full sm:w-auto`
+- 当从 Mistakes 点击 `做一道同类题` 进入 `/today?mode=remediation&source=mistake&focus=...`，页面顶部显示 `Mistake 同类题短练习`、`错题修复中心`、`同类题已带入` 和 `生成同类题短练习`
+- 补弱短课 Banner 的 `先回到主课`、来源相关主动作和返回动作 CTA 使用手机端单列 `grid gap-2`，按钮保持 `min-h-11 w-full sm:w-auto`
 - 今日计划状态、完成提示和今日概览通过展示层 label helper 显示 `已完成`、`待完成` 等中文业务标签；`planned` / `completed` raw status 只保留在状态判断、服务端逻辑和测试输入中
 - 今日计划来源通过展示层 label helper 显示 `AI 生成`、`模板兜底`、`测试计划`、`后台重建` 或 `系统生成`；`deepseek` / `template` 等 raw source 不作为学习者可见标签
 - 今日内容版本在专注模式 overview 和右侧 `今日概览` 中显示为 `内容版本`，缺省 schemaVersion 显示 `未标记`；`schema` 和 `-` fallback 不作为学习者可见标签
@@ -148,6 +149,7 @@
 - Reduce Chaos Today Related Reading Handoff 本地 RED/GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 首次失败于完成卡缺少 `关联阅读`；GREEN 后 12 项通过，覆盖 active book session、`AI Engineering`、`第 12-14 页`、`去同读`、`/books/ai-engineering` 和手机端 CTA 触控 class。
 - `npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/learning-ui-components.test.ts tests/unit/project-mission-workspace.test.ts`
 - `npm test -- tests/unit/today-remediation-intent.test.ts`
+- Reduce Chaos Mistake Similar Practice Action：`npm test -- tests/unit/today-remediation-intent.test.ts` RED 失败于 `source=mistake` 返回 null 和 banner 缺少 `Mistake 同类题短练习`，GREEN 后 6 项通过。
 - `E2E_BASE_URL=http://127.0.0.1:3000 npm run e2e:mobile-matrix`
 - `npm run lint`
 - `npm run build`

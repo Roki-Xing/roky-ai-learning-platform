@@ -2666,3 +2666,22 @@ Changed surface:
 Not covered:
 
 - Production deployment, production smoke, write-type production smoke, database migration, real misconception write smoke, Review scheduling changes, Current Mission ordering changes, Preview write-protection changes, and production env/provider secret changes are not covered for this slice.
+
+## Reduce Chaos Mistake Similar Practice Action
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/mistakes-view.test.ts` | fail then pass, 15 tests | RED first failed because `buildMistakeSimilarPracticeHref()` was missing and `/mistakes` did not show `做一道同类题`. GREEN passed after adding the focused/list action and the Today remediation href builder. |
+| `npm test -- tests/unit/today-remediation-intent.test.ts` | fail then pass, 6 tests | RED first failed because `source=mistake` returned null and the banner did not render `Mistake 同类题短练习`. GREEN passed after adding mistake remediation intent labels, primary action, and return href. |
+| `npm test -- tests/unit/mistakes-view.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` | pass, 72 tests | Related regression covers Mistakes, Today remediation, Current Mission focused repair routing, Next Best Action, Review remediation, and shared learning UI. |
+| `rg -n "Mistake Similar Practice Action\|buildMistakeSimilarPracticeHref\|做一道同类题\|source=mistake\|Mistake 同类题短练习\|同类题已带入\|生成同类题短练习\|0\\.372\\.0" ...` | pass | Coverage scan confirms source, unit tests, UI checklist, Mistakes and Today module docs, changelog, checkpoint, and evidence records are wired to this slice. |
+| `git diff --check`, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, `npm test`, `npm run build` | pass | Final local gates after Mistake Similar Practice Action; full unit suite passed 481 tests, route and learning audits passed, lint passed, and Next production build generated 31 static pages. |
+| `python3 .../aegis-workspace.py bundle --root ... --work 2026-06-03-roky-learning-desire`, `python3 .../aegis-workspace.py check --root ...` | fail, structural debt | Aegis helper still reports known Markdown-only workspace debt: missing `task-intent-draft.json` for the current work and current/historical work markdown records not indexed. This is method-pack structure debt, not a product UI validation failure. |
+
+Changed surface:
+
+- Reduce Chaos Mistake Similar Practice Action layer: `src/server/mistakes/view.ts`, `src/app/mistakes/page.tsx`, `src/server/learning/today-remediation-intent.ts`, `src/components/learning/today-remediation-banner.tsx`, `tests/unit/mistakes-view.test.ts`, `tests/unit/today-remediation-intent.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/mistakes.md`, `helloagents/modules/today-focus-mode.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered:
+
+- Production deployment, production smoke, write-type production smoke, database migration, real misconception write smoke, real similar-practice write/generation, Review scheduling changes, Current Mission ordering changes, Preview write-protection changes, and production env/provider secret changes are not covered for this slice.

@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.372.0] - 2026-06-11
+
+### Changed
+
+- **[Reduce Chaos Mistake Similar Practice Action]** 按指导文件第 7.2 继续优化 `/mistakes`，把 `做一道同类题` 补成真实的 Mistakes → Today 短练习入口。
+  - 新增 `buildMistakeSimilarPracticeHref()`，把误区 id、summary、lesson 和 topic 带到 `/today?mode=remediation&source=mistake...`。
+  - `/mistakes?focus=<id>` 的 sticky 主修复操作区新增 `做一道同类题`，误区清单每条记录也显示同一动作。
+  - `buildTodayRemediationIntent()` 支持 `source=mistake`，Today 顶部显示 `Mistake 同类题短练习`、`错题修复中心` 和 `生成同类题短练习`，返回动作指向 `/mistakes`。
+  - 本切片只改读侧链接、Today remediation 落点、源码级测试和文档；不新增数据库迁移，不改变 `generateMistakeReviewCardAction()`、`markMistakeResolvedAction()`、Preview 写保护、Review 评分、Current Mission 排序或生产 env/provider 密钥。
+
+### Verified
+
+- RED：`npm test -- tests/unit/mistakes-view.test.ts` 首次失败于缺少 `buildMistakeSimilarPracticeHref()`、`做一道同类题` 和页面接线；`npm test -- tests/unit/today-remediation-intent.test.ts` 首次失败于 `source=mistake` 返回 null。
+- GREEN：`npm test -- tests/unit/mistakes-view.test.ts` 15 项通过；`npm test -- tests/unit/today-remediation-intent.test.ts` 6 项通过。
+- 相关回归：`npm test -- tests/unit/mistakes-view.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` 72 项通过，覆盖 Mistakes、Today remediation、Current Mission、Next Best Action、Review 和共享学习 UI。
+- 覆盖扫描：`rg -n "Mistake Similar Practice Action|buildMistakeSimilarPracticeHref|做一道同类题|source=mistake|Mistake 同类题短练习|同类题已带入|生成同类题短练习|0\\.372\\.0" ...` 确认源码、测试、UI checklist、Mistakes/Today 模块文档、CHANGELOG 和 Aegis 记录均接入本切片。
+- 本地完整门禁：`git diff --check`、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 481 项通过，Next 生产构建生成 31 个静态页面。
+- Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+
+### Not Covered
+
+- 尚未执行生产部署、生产 smoke、数据库迁移、真实错题写入 smoke、真实同类题生成写入、Preview 写保护变更或写入型生产 smoke。
+
 ## [0.371.0] - 2026-06-11
 
 ### Changed

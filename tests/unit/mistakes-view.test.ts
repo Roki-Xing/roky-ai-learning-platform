@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   buildCoachDraftForMistake,
+  buildMistakeSimilarPracticeHref,
   buildMistakeRepairWorkflow,
   buildReviewCardForMistake,
   formatMistakeSourceLabel,
@@ -191,7 +192,23 @@ test("mistakes page exposes type filters and repair actions", () => {
   assert.match(source, /reviewCount: true/);
   assert.match(source, /项目实践/);
   assert.match(source, /生成复习卡/);
+  assert.match(source, /做一道同类题/);
+  assert.match(source, /buildMistakeSimilarPracticeHref/);
   assert.match(source, /标记已解决/);
+});
+
+test("buildMistakeSimilarPracticeHref links a mistake to a focused today remediation drill", () => {
+  const href = buildMistakeSimilarPracticeHref({
+    id: "mistake-1",
+    lessonId: "lesson-1",
+    summary: "把 RAG 召回率算错",
+    topicTitle: "LLM / RAG / Agent",
+  });
+
+  assert.equal(
+    href,
+    "/today?mode=remediation&source=mistake&focus=%E6%8A%8A+RAG+%E5%8F%AC%E5%9B%9E%E7%8E%87%E7%AE%97%E9%94%99&mistakeId=mistake-1&lesson=lesson-1&topic=LLM+%2F+RAG+%2F+Agent",
+  );
 });
 
 test("mistakes page keeps the focused repair action sticky on mobile", () => {
@@ -222,10 +239,10 @@ test("mistakes repair actions keep mobile touch targets", () => {
 
   const listIndex = source.indexOf('title="误区清单"');
   assert.notEqual(listIndex, -1);
-  for (const label of ["让 Coach 解释", "生成复习卡", "标记已解决"]) {
+  for (const label of ["让 Coach 解释", "做一道同类题", "生成复习卡", "标记已解决"]) {
     const labelIndex = source.indexOf(label, listIndex);
     assert.notEqual(labelIndex, -1);
-    const ctaWindow = source.slice(Math.max(0, labelIndex - 260), labelIndex + label.length);
+    const ctaWindow = source.slice(Math.max(0, labelIndex - 520), labelIndex + label.length);
     assert.match(ctaWindow, /className=\{mistakeRepairActionCtaClassName\}/);
   }
 

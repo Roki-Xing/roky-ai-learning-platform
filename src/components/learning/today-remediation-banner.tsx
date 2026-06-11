@@ -18,7 +18,7 @@ export function TodayRemediationBanner(props: {
           <div className="flex flex-wrap items-center gap-2">
             <BookOpenCheck className="size-4 text-rose-700" aria-hidden="true" />
             <div className="text-sm font-semibold text-rose-950">{intent.title}</div>
-            <LearningStatusBadge tone="danger">补弱短课已带入</LearningStatusBadge>
+            <LearningStatusBadge tone="danger">{intent.statusLabel}</LearningStatusBadge>
           </div>
           <div className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
             来自 {intent.sourceLabel}：先补「{intent.focusLabel}」，再完成一次短课沉淀。
@@ -38,13 +38,13 @@ export function TodayRemediationBanner(props: {
         </Button>
         <Button asChild size="sm" className="min-h-11 w-full sm:w-auto">
           <Link href="#today-reflection">
-            生成补弱小课
+            {intent.primaryActionLabel}
             <ArrowRight className="size-3.5" />
           </Link>
         </Button>
         <Button asChild size="sm" variant="outline" className="min-h-11 w-full sm:w-auto">
-          <Link href="/review">
-            继续复习
+          <Link href={intent.returnHref}>
+            {intent.returnActionLabel}
             <ArrowRight className="size-3.5" />
           </Link>
         </Button>
