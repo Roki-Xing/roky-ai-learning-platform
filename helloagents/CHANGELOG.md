@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.370.0] - 2026-06-11
+
+### Changed
+
+- **[Reduce Chaos Review Tomorrow Remediation Action]** 按指导文件第 6.3 继续优化 `/review` 完成态修复动作，把 `明天安排补弱` 补成真实的 Review → Today 接续入口。
+  - `buildRemediationLessonHref()` 支持传入 `when=tomorrow`，保留原有 Review remediation query 的 focus、lesson 和 topic 上下文。
+  - `buildRemediationActions()` 在 Coach 解释、生成补弱小课和错题中心之外新增 `明天安排补弱`，链接到 `/today?mode=remediation&source=review...&when=tomorrow`。
+  - `/review` 完成态补弱动作区从三列调整为 `sm:grid-cols-2 xl:grid-cols-4`，避免四个动作在中等宽度下拥挤。
+  - 本切片只改读侧 Review 完成总结、Today remediation 链接参数、源码级测试和文档；不新增数据库迁移，不改变 Review 评分排期、队列过滤、Today remediation 写入流程、认证策略、Preview 写保护、生产 env/provider 密钥或其它写入行为边界。
+
+### Verified
+
+- RED：`npm test -- tests/unit/review-session-summary.test.ts` 首次失败于 `remediationActions` 缺少 `明天安排补弱`。
+- GREEN：`npm test -- tests/unit/review-session-summary.test.ts` 2 项通过，覆盖服务层四个补弱动作和 `when=tomorrow` 参数。
+- 相关回归：`npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` 29 项通过，覆盖服务层 summary 和 `/review` 完成态 UI 中的 `明天安排补弱`、`when=tomorrow` 与四动作网格。
+
+### Not Covered
+
+- 尚未执行生产部署、生产 smoke、数据库迁移、Review 排期变更、Today remediation 写入流程变更或写入型生产 smoke。
+
 ## [0.369.0] - 2026-06-11
 
 ### Changed

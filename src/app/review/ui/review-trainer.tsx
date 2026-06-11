@@ -400,7 +400,7 @@ export function ReviewTrainer(props: {
           {sessionSummary.remediationActions.length ? (
             <div className="mt-4 rounded-lg border bg-rose-50/40 p-3">
               <div className="text-sm font-medium">补弱动作</div>
-              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                 {sessionSummary.remediationActions.map((action) => (
                   <a
                     key={action.label}

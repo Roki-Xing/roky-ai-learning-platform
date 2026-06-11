@@ -39,9 +39,10 @@
    - top weak areas derived from rated card `tags`, `lesson`, and `topic`
    - remediation suggestions and next-step CTA
    - `remediationActions` when this session has any `forgot` or `hard` cards
-11. Weak sessions expose three explicit remediation actions:
+11. Weak sessions expose four explicit remediation actions:
    - `让 Coach 解释这些卡片` links to `/coach` with a prefilled remediation draft.
    - `生成补弱小课` links to `/today?mode=remediation&source=review&focus=...`.
+   - `明天安排补弱` links to `/today?mode=remediation&source=review&focus=...&when=tomorrow`.
    - `查看错题中心` links to `/mistakes`.
 12. `/today?mode=remediation&source=review&focus=...` shows a `Review 补弱短课` banner so the Review handoff has a visible landing instead of a silent query string.
 13. Active review cards stay centered with a bounded width so mobile and desktop layouts share the same focused reading owner.
@@ -83,6 +84,8 @@
 - `npm test -- tests/unit/learning-ui-components.test.ts`
 - Reduce Chaos Review Mobile Sticky Actions：`npm test -- tests/unit/learning-ui-components.test.ts tests/unit/review-empty-state.test.ts tests/unit/review-rating.test.ts` RED/GREEN 后 31 项通过，覆盖移动端 sticky 操作区、Review 空态和评分幂等。
 - Reduce Chaos Review No New Content Cue：`npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` RED 失败于高遗忘率 summary/UI 缺少 `今天先不要学新内容，建议复习和修复。`，GREEN 后 29 项通过。
+- Reduce Chaos Review Tomorrow Remediation Action：`npm test -- tests/unit/review-session-summary.test.ts` RED 失败于 `remediationActions` 缺少 `明天安排补弱`；GREEN 后 2 项通过。
+- Reduce Chaos Review Tomorrow Remediation Action：`npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` 29 项通过，覆盖服务层补弱动作、`when=tomorrow` href 和完成态 UI 四动作布局。
 - 2026-06-10 Reduce Chaos Review No New Content Cue 本地门禁通过：相关 Review/Today 回归 43 项、`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test` 473 项、`npm run build`。
 - 2026-06-10 Reduce Chaos Review No New Content Cue 生产上线：备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.365.0-20260610-110144.tar.gz`，同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，容器内非 DB Review/Today 定向测试 42 项、审计、lint 和 build 通过，随后重启 `ai-learning-platform`。
 - 2026-06-10 Reduce Chaos Review No New Content Cue 生产 smoke：`https://learn.roky.chat/api/health` 返回 200/ok；登录态只读访问 `/review` 可见 `复习中心` 和 `卡片`；远端源码确认包含 `今天先不要学新内容，建议复习和修复。`。

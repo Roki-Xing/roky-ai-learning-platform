@@ -51,11 +51,15 @@ test("review session summary recommends coach when forgot and hard dominate", ()
   assert.deepEqual(summary.remediationActions.map((action) => action.label), [
     "让 Coach 解释这些卡片",
     "生成补弱小课",
+    "明天安排补弱",
     "查看错题中心",
   ]);
   assert.match(summary.remediationActions[0]?.href ?? "", /^\/coach\?/);
   assert.match(summary.remediationActions[1]?.href ?? "", /^\/today\?/);
-  assert.equal(summary.remediationActions[2]?.href, "/mistakes");
+  assert.match(summary.remediationActions[2]?.href ?? "", /^\/today\?/);
+  assert.match(summary.remediationActions[2]?.href ?? "", /when=tomorrow/);
+  assert.match(summary.remediationActions[2]?.description ?? "", /明天/);
+  assert.equal(summary.remediationActions[3]?.href, "/mistakes");
   assert.deepEqual(summary.actionPlan.map((item) => item.title), [
     "先补 RAG",
     "把忘掉的卡片改写成自己的解释",
@@ -90,6 +94,7 @@ test("review session summary keeps progress primary action when retention is str
   assert.deepEqual(summary.remediationActions.map((action) => action.label), [
     "让 Coach 解释这些卡片",
     "生成补弱小课",
+    "明天安排补弱",
     "查看错题中心",
   ]);
   assert.equal(summary.weakAreas[0]?.label, "react state");

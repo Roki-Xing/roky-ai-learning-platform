@@ -672,8 +672,11 @@ test("review trainer completion summary highlights retention and next action", (
   assert.match(markup, /补弱动作/);
   assert.match(markup, /让 Coach 解释这些卡片/);
   assert.match(markup, /生成补弱小课/);
+  assert.match(markup, /明天安排补弱/);
   assert.match(markup, /查看错题中心/);
+  assert.match(markup, /when=tomorrow/);
   assert.match(markup, /href="\/mistakes"/);
+  assert.match(markup, /mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4/);
   assert.match(markup, /mt-4 grid gap-2 sm:flex sm:flex-wrap/);
   for (const label of ["让 Coach 拆解薄弱点", "回到今日学习"]) {
     const labelIndex = markup.indexOf(label);

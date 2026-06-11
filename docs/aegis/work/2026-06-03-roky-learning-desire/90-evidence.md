@@ -2629,3 +2629,22 @@ Changed surface:
 Not covered:
 
 - Production deployment, production smoke, write-type production smoke, database migration, real PDF upload, OCR, AI provider calls, and reading-progress persistence are not covered for this slice.
+
+## Reduce Chaos Review Tomorrow Remediation Action
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/review-session-summary.test.ts` | fail then pass, 2 tests | RED first failed because `remediationActions` did not include `明天安排补弱`. GREEN passed after adding the fourth Review remediation action and `when=tomorrow` to the Today remediation href. |
+| `npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts` | pass, 29 tests | Related focused regression covers Review session summary, the completed Review UI, `明天安排补弱`, `when=tomorrow`, and the four-action grid class `sm:grid-cols-2 xl:grid-cols-4`. |
+| `rg -n "Review Tomorrow Remediation Action\|明天安排补弱\|when=tomorrow\|sm:grid-cols-2 xl:grid-cols-4\|0\\.370\\.0" ...` | pass | Coverage scan confirms source, unit tests, UI checklist, Review module doc, changelog, checkpoint, and evidence records are wired to this slice. |
+| `npm test -- tests/unit/review-session-summary.test.ts tests/unit/learning-ui-components.test.ts tests/unit/review-empty-state.test.ts tests/unit/review-rating.test.ts tests/unit/review-schedule.test.ts tests/unit/today-remediation-intent.test.ts` | pass, 39 tests | Related regression covers Review summary/UI, empty state, rating idempotency, review scheduling, and Today remediation landing. |
+| `git diff --check`, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, `npm test`, `npm run build` | pass | Final local gates after Review Tomorrow Remediation Action; full unit suite passed 477 tests, route and learning audits passed, lint passed, and Next production build generated 31 static pages. |
+| `python3 .../aegis-workspace.py bundle --root ... --work 2026-06-03-roky-learning-desire`, `python3 .../aegis-workspace.py check --root ...` | fail, structural debt | Aegis helper still reports known Markdown-only workspace debt: missing `task-intent-draft.json` for the current work and current/historical work markdown records not indexed. This is method-pack structure debt, not a product UI validation failure. |
+
+Changed surface:
+
+- Reduce Chaos Review Tomorrow Remediation Action layer: `src/server/review/session-summary.ts`, `src/app/review/ui/review-trainer.tsx`, `tests/unit/review-session-summary.test.ts`, `tests/unit/learning-ui-components.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/review.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered:
+
+- Production deployment, production smoke, write-type production smoke, database migration, Review scheduling changes, queue filtering changes, Today remediation write-flow changes, Preview write-protection changes, and production env/provider secret changes are not covered for this slice.

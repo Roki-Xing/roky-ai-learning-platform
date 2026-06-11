@@ -192,7 +192,10 @@ function buildCoachHref(weakAreas: ReviewSessionWeakArea[], counts: ReviewSessio
   return `/coach?${params.toString()}`;
 }
 
-function buildRemediationLessonHref(weakAreas: ReviewSessionWeakArea[]) {
+function buildRemediationLessonHref(
+  weakAreas: ReviewSessionWeakArea[],
+  options: { when?: "tomorrow" } = {},
+) {
   const topWeak = weakAreas[0] ?? null;
   const params = new URLSearchParams({
     mode: "remediation",
@@ -202,6 +205,7 @@ function buildRemediationLessonHref(weakAreas: ReviewSessionWeakArea[]) {
   if (topWeak?.label) params.set("focus", topWeak.label);
   if (topWeak?.lessonTitle) params.set("lesson", topWeak.lessonTitle);
   if (topWeak?.topicTitle) params.set("topic", topWeak.topicTitle);
+  if (options.when) params.set("when", options.when);
 
   return `/today?${params.toString()}`;
 }
@@ -227,6 +231,11 @@ function buildRemediationActions(args: {
       href: buildRemediationLessonHref(weakAreas),
       label: "生成补弱小课",
       description: `把 ${focusLabel} 安排成 Today 的 10 分钟补弱短课。`,
+    },
+    {
+      href: buildRemediationLessonHref(weakAreas, { when: "tomorrow" }),
+      label: "明天安排补弱",
+      description: `明天先用 10 分钟复盘 ${focusLabel}，再决定是否继续开新内容。`,
     },
     {
       href: "/mistakes",
