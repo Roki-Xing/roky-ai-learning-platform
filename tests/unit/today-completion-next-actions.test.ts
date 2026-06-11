@@ -327,3 +327,33 @@ test("learning completion card renders completion hub metrics", () => {
   assert.match(markup, /代码提交/);
   assert.match(markup, /已提交/);
 });
+
+test("learning completion card recommends related book reading after today is complete", () => {
+  const completion = buildTodayCompletionNextActions({
+    planStatus: "completed",
+    lessonId: "lesson-books",
+    lessonDueFlashcardCount: 0,
+    totalDueFlashcardCount: 0,
+    noteCount: 1,
+    voiceNoteCount: 1,
+    thoughtReviewCount: 1,
+    hasCodeSubmission: true,
+    activeProject: null,
+    activeBookSession: {
+      documentId: "ai-engineering",
+      title: "AI Engineering",
+      currentPage: 12,
+      nextPage: 14,
+    },
+  });
+
+  const markup = renderToStaticMarkup(
+    React.createElement(LearningCompletionCard, { completion }),
+  );
+
+  assert.match(markup, /关联阅读/);
+  assert.match(markup, /《AI Engineering》第 12-14 页可以补充今天的主题。/);
+  assert.match(markup, /去同读/);
+  assert.match(markup, /href="\/books\/ai-engineering"/);
+  assert.match(markup, /min-h-11 w-full sm:w-auto/);
+});

@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, FolderKanban, MessageSquareText, Mic2 } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  FolderKanban,
+  MessageSquareText,
+  Mic2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LearningStatusBadge } from "@/components/learning/learning-status-badge";
@@ -154,6 +161,31 @@ export function LearningCompletionCard(props: {
             <Button asChild size="sm" variant="secondary" className={completionCtaClassName}>
               <Link href={props.completion.recommendedVoiceReflection.href}>
                 {props.completion.recommendedVoiceReflection.ctaLabel}
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {props.completion.relatedReading ? (
+        <div className="mt-4 rounded-lg border border-teal-200 bg-teal-50/50 p-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <BookOpen className="size-4 text-teal-700" aria-hidden="true" />
+                <div className="text-sm font-semibold text-teal-950">关联阅读</div>
+                <LearningStatusBadge tone="info">
+                  {props.completion.relatedReading.pageLabel}
+                </LearningStatusBadge>
+              </div>
+              <div className="mt-2 text-sm leading-6 text-muted-foreground">
+                {props.completion.relatedReading.summary}
+              </div>
+            </div>
+            <Button asChild size="sm" variant="secondary" className={completionCtaClassName}>
+              <Link href={props.completion.relatedReading.href}>
+                {props.completion.relatedReading.ctaLabel}
                 <ArrowRight className="size-3.5" />
               </Link>
             </Button>

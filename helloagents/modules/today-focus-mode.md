@@ -34,6 +34,7 @@
 - 今日学习完成后，完成卡显示轻量 `课程反馈` 区，展示难度、帮助度和后续偏好三组信号：`太简单 / 刚好 / 太难`、`有帮助 / 一般 / 没帮助`、`想深入 / 跳过类似主题`；未完成态不显示该区。
 - 今日学习完成后，完成卡显示 `推荐语音反思`，引导用户用 60 秒说明“我今天学了什么 / 哪里还不懂 / 能举什么例子 / 希望 Coach 检查什么”
 - `推荐语音反思` 入口使用 `/voice?lessonId=<id>&mode=daily_understanding`，复用现有 Voice 反思模板
+- 今日学习完成后，如存在 active book session，完成卡显示 `关联阅读`，用 `《AI Engineering》第 12-14 页可以补充今天的主题。` 把今日主题接到 `/books/ai-engineering` 的 `去同读`。
 - 今日学习完成后，如果已有 active project 或已完成笔记/语音/Coach 沉淀，完成卡会显示 `下一步：把今天的知识用到项目里`
 - 项目实践推荐区显示 `推荐项目任务`，并复用当前项目里程碑；无 active project 时引导进入 `/projects` 选择小项目
 - 当从 Review Session Summary 点击 `生成补弱小课` 进入 `/today?mode=remediation&source=review&focus=...`，页面顶部显示 `Review 补弱短课` 和 `补弱短课已带入`
@@ -92,6 +93,7 @@
 - 完成反馈徽章应显示中文成就文案，不应混入 `Session summary`、`Project progress` 或 `Mastery signal`
 - 完成今日学习后，完成卡应显示 `课程反馈`，包含难度、帮助度和后续偏好三组反馈信号；未完成态不应出现课程反馈提示
 - 完成今日学习后，完成卡应显示 `推荐语音反思`、`60 秒`提示，并链接到 `/voice?lessonId=...&mode=daily_understanding`
+- 完成今日学习后，如存在 active book session，完成卡应显示 `关联阅读`、书名、页码范围和 `/books/:id` 的 `去同读` 入口
 - 完成今日学习后，项目实践区应明确显示 `下一步：把今天的知识用到项目里` 和 `推荐项目任务`
 - 今日计划状态和完成提示不应直出 raw `planned` / `completed`；应显示 `已完成`、`待完成`
 - 今日计划来源不应直出 raw `deepseek` / `template`；应显示 `AI 生成`、`模板兜底`、`系统生成`
@@ -143,6 +145,7 @@
 - `npm test -- tests/unit/today-completion-next-actions.test.ts`
 - Reduce Chaos Today Course Feedback Prompt 本地 RED/GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 首次失败于完成态缺少 `课程反馈`、三组反馈选项和 Curriculum Planner 信号文案；GREEN 后 11 项通过。
 - Reduce Chaos Today Course Feedback Prompt 相关回归：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/learning-ui-components.test.ts tests/unit/today-activity-labels.test.ts tests/unit/daily-generation-prompt.test.ts` 48 项通过，覆盖 Today 完成态、共享学习 UI、Today 标签和每日生成 prompt。
+- Reduce Chaos Today Related Reading Handoff 本地 RED/GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 首次失败于完成卡缺少 `关联阅读`；GREEN 后 12 项通过，覆盖 active book session、`AI Engineering`、`第 12-14 页`、`去同读`、`/books/ai-engineering` 和手机端 CTA 触控 class。
 - `npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/learning-ui-components.test.ts tests/unit/project-mission-workspace.test.ts`
 - `npm test -- tests/unit/today-remediation-intent.test.ts`
 - `E2E_BASE_URL=http://127.0.0.1:3000 npm run e2e:mobile-matrix`

@@ -47,6 +47,7 @@ import {
   buildTodayRemediationIntent,
   type TodayRemediationSearchParams,
 } from "@/server/learning/today-remediation-intent";
+import { getActiveBookSession } from "@/server/books/base";
 import {
   formatGlossaryCategoryLabel,
   formatHomeDailyPlanStatusLabel,
@@ -234,6 +235,7 @@ export default async function TodayPage({ searchParams }: TodayPageProps = {}) {
     : null;
   const activeProjectMilestone =
     activeProject?.milestones.find((milestone) => milestone.status !== "completed") ?? null;
+  const activeBookSession = getActiveBookSession();
   const quizStatus = getQuizStageStatus({
     totalCount: quizQuestions.length,
     attemptedCount: attemptedQuizQuestions.length,
@@ -413,6 +415,7 @@ export default async function TodayPage({ searchParams }: TodayPageProps = {}) {
           activeMilestoneTask: activeProjectMilestone?.task ?? null,
         }
       : null,
+    activeBookSession,
   });
   const focusStages: LearningFocusPlayerStage[] = [
     {

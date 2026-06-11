@@ -34,6 +34,13 @@ export type TodayCompletionNextActions = {
     milestoneTask: string | null;
     ctaLabel: string;
   };
+  relatedReading: null | {
+    title: string;
+    pageLabel: string;
+    summary: string;
+    href: string;
+    ctaLabel: string;
+  };
   actions: TodayCompletionAction[];
 };
 
@@ -57,6 +64,12 @@ export type TodayCompletionNextActionsInput = {
     percent: number;
     activeMilestoneTitle: string | null;
     activeMilestoneTask: string | null;
+  };
+  activeBookSession?: null | {
+    documentId: string;
+    title: string;
+    currentPage: number;
+    nextPage: number;
   };
 };
 
@@ -92,6 +105,10 @@ function encodedProjectHref(projectId: string) {
   return `/projects?projectId=${encodeURIComponent(projectId)}`;
 }
 
+function encodedBookHref(documentId: string) {
+  return `/books/${encodeURIComponent(documentId)}`;
+}
+
 export function buildTodayCompletionNextActions(
   input: TodayCompletionNextActionsInput,
 ): TodayCompletionNextActions {
@@ -103,6 +120,7 @@ export function buildTodayCompletionNextActions(
       completionHub: null,
       recommendedVoiceReflection: null,
       projectPractice: null,
+      relatedReading: null,
       actions: [
         {
           label: "完成沉淀",
@@ -233,6 +251,15 @@ export function buildTodayCompletionNextActions(
           ctaLabel: "选择项目",
         }
       : null;
+  const relatedReading = input.activeBookSession
+    ? {
+        title: input.activeBookSession.title,
+        pageLabel: `第 ${input.activeBookSession.currentPage}-${input.activeBookSession.nextPage} 页`,
+        summary: `《${input.activeBookSession.title}》第 ${input.activeBookSession.currentPage}-${input.activeBookSession.nextPage} 页可以补充今天的主题。`,
+        href: encodedBookHref(input.activeBookSession.documentId),
+        ctaLabel: "去同读",
+      }
+    : null;
 
   if (projectPractice && !input.activeProject) {
     actions.push({
@@ -265,6 +292,7 @@ export function buildTodayCompletionNextActions(
     completionHub,
     recommendedVoiceReflection,
     projectPractice,
+    relatedReading,
     actions,
   };
 }

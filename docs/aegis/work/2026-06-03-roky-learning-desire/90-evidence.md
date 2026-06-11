@@ -2611,3 +2611,21 @@ Not covered:
 - Production deployment, production Nginx/DNS/database/secrets, SSH/server changes, and real production Preview token smoke were not performed for this slice.
 
 继续时执行本切片覆盖扫描、`git diff --check`、`npm run lint`、全量 `npm test`、`npm run build` 和 Aegis helper bundle/check；保持生产/SSH/部署/密钥边界不动。
+
+## Reduce Chaos Today Related Reading Handoff
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/today-completion-next-actions.test.ts` | fail then pass, 12 tests | RED first failed because `LearningCompletionCard` did not render `关联阅读`. GREEN passed after adding `relatedReading` to Today completion actions, passing `getActiveBookSession()` from `/today`, and rendering `关联阅读` with `《AI Engineering》第 12-14 页可以补充今天的主题。`, `/books/ai-engineering`, `去同读`, and the shared `min-h-11 w-full sm:w-auto` CTA class. |
+| `npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/learning-path.test.ts tests/unit/weekly-review.test.ts tests/unit/learning-ui-components.test.ts` | pass, 69 tests | Related regression after Today Related Reading Handoff; covers Today completion, Books seed/page contract, Current Mission active reading, Path reading materials, Weekly book chapters, and shared learning UI. |
+| `rg -n "Today Related Reading Handoff\|relatedReading\|关联阅读\|去同读\|AI Engineering\|第 12-14 页\|/books/ai-engineering\|0\\.369\\.0" ...` | pass | Coverage scan confirms source, unit test, UI checklist, Today and Books module docs, changelog, checkpoint, and evidence records are wired to this slice. |
+| `git diff --check`, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, `npm test`, `npm run build` | pass | Final local gates after Today Related Reading Handoff; full unit suite passed 477 tests, route and learning audits passed, lint passed, and Next production build generated 31 static pages with `/today` and `/books/[id]` in the route table. |
+| `python3 .../aegis-workspace.py bundle --root ... --work 2026-06-03-roky-learning-desire`, `python3 .../aegis-workspace.py check --root ...` | fail, structural debt | Aegis helper still reports known Markdown-only workspace debt: missing `task-intent-draft.json` for the current work and current/historical work markdown records not indexed. This is method-pack structure debt, not a product UI validation failure. |
+
+Changed surface:
+
+- Reduce Chaos Today Related Reading Handoff layer: `src/server/learning/today-completion-actions.ts`, `src/components/learning/learning-completion-card.tsx`, `src/app/today/page.tsx`, `tests/unit/today-completion-next-actions.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/today-focus-mode.md`, `helloagents/modules/books-companion.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered:
+
+- Production deployment, production smoke, write-type production smoke, database migration, real PDF upload, OCR, AI provider calls, and reading-progress persistence are not covered for this slice.

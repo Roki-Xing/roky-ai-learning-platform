@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.369.0] - 2026-06-11
+
+### Changed
+
+- **[Reduce Chaos Today Related Reading Handoff]** 按指导文件第 5.4 继续优化 Today 与 Books 的主线连接，把 `读相关书籍页` 做成 `/today` 完成态的真实同读入口。
+  - `TodayCompletionNextActions` 新增 `relatedReading`，从 active book session 派生书名、页码范围、说明文案和 `/books/:id` 链接。
+  - `/today` 将 `getActiveBookSession()` 传入完成后行动规则；当前 active book session 会在完成卡中显示 `关联阅读`。
+  - `LearningCompletionCard` 新增 `关联阅读` 区，展示 `《AI Engineering》第 12-14 页可以补充今天的主题。`，并提供 `去同读` 入口。
+  - 本切片只改读侧 Today 完成态、Books active session 接线、源码级测试和文档；不新增数据库迁移，不写读书进度，不改变 Books 静态数据、Current Mission 排序、Preview 写保护、生产 env/provider 密钥或任何写入行为边界。
+
+### Verified
+
+- RED：`npm test -- tests/unit/today-completion-next-actions.test.ts` 首次失败于完成卡缺少 `关联阅读`。
+- GREEN：`npm test -- tests/unit/today-completion-next-actions.test.ts` 12 项通过，覆盖 active book session、`AI Engineering`、`第 12-14 页`、`去同读`、`/books/ai-engineering` 和手机端 CTA 触控 class。
+- 相关回归：`npm test -- tests/unit/today-completion-next-actions.test.ts tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/learning-path.test.ts tests/unit/weekly-review.test.ts tests/unit/learning-ui-components.test.ts` 69 项通过，覆盖 Today、Books、Current Mission、Path、Weekly 和共享学习 UI。
+- 覆盖扫描：`rg -n "Today Related Reading Handoff|relatedReading|关联阅读|去同读|AI Engineering|第 12-14 页|/books/ai-engineering|0\\.369\\.0" ...` 确认源码、测试、UI checklist、Today/Books 模块文档、CHANGELOG 和 Aegis 记录均接入本切片。
+- 本地完整门禁：`git diff --check`、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 477 项通过，Next 生产构建生成 31 个静态页面。
+- Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+
+### Not Covered
+
+- 尚未执行生产部署、生产 smoke、数据库迁移、真实 PDF 上传、OCR、AI provider 调用或读书进度持久化。
+
 ## [0.368.0] - 2026-06-10
 
 ### Changed
