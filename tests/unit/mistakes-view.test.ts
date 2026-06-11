@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   buildCoachDraftForMistake,
+  buildMistakeRepairWorkflow,
   buildReviewCardForMistake,
   formatMistakeSourceLabel,
   formatMistakeStatusLabel,
@@ -130,12 +131,64 @@ test("buildReviewCardForMistake turns a misconception into an idempotent review 
   assert.deepEqual(card.tags, ["mistake", "project", "术语混淆"]);
 });
 
+test("buildMistakeRepairWorkflow shows the five-step repair state machine", () => {
+  const openWorkflow = buildMistakeRepairWorkflow({
+    status: "open",
+    reviewCardCount: 0,
+    reviewedCardCount: 0,
+  });
+
+  assert.deepEqual(openWorkflow.map((step) => step.label), [
+    "发现误区",
+    "让 Coach 解释",
+    "生成复习卡",
+    "完成一次复习",
+    "标记已解决",
+  ]);
+  assert.deepEqual(openWorkflow.map((step) => step.state), [
+    "current",
+    "todo",
+    "todo",
+    "todo",
+    "todo",
+  ]);
+  assert.match(openWorkflow[0]?.description ?? "", /已进入修复队列/);
+
+  const reviewedWorkflow = buildMistakeRepairWorkflow({
+    status: "active",
+    reviewCardCount: 2,
+    reviewedCardCount: 1,
+  });
+
+  assert.deepEqual(reviewedWorkflow.map((step) => step.state), [
+    "done",
+    "done",
+    "done",
+    "done",
+    "current",
+  ]);
+  assert.match(reviewedWorkflow[3]?.description ?? "", /已复习 1\/2 张/);
+
+  const resolvedWorkflow = buildMistakeRepairWorkflow({
+    status: "resolved",
+    reviewCardCount: 1,
+    reviewedCardCount: 1,
+  });
+
+  assert.equal(resolvedWorkflow.every((step) => step.state === "done"), true);
+});
+
 test("mistakes page exposes type filters and repair actions", () => {
   const source = readFileSync("src/app/mistakes/page.tsx", "utf8");
 
   assert.match(source, /parseMistakeKindFilter/);
   assert.match(source, /focusMistakeId/);
   assert.match(source, /当前先修这一条/);
+  assert.match(source, /buildMistakeRepairWorkflow/);
+  assert.match(source, /修复流程/);
+  assert.match(source, /发现误区/);
+  assert.match(source, /完成一次复习/);
+  assert.match(source, /reviewCount: true/);
   assert.match(source, /项目实践/);
   assert.match(source, /生成复习卡/);
   assert.match(source, /标记已解决/);

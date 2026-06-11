@@ -335,6 +335,8 @@
 - 来源筛选应包含 `小测验`、`代码反馈`、`Coach`、`项目实践`
 - 类型筛选应包含 `全部类型`、`概念`、`代码`、`算法`、`术语`、`事实`
 - 每条误区应显示来源、类型、出现次数、关联课程/主题和关联卡片数
+- 每条误区和聚焦误区应显示 `修复流程`，覆盖 `发现误区 / 让 Coach 解释 / 生成复习卡 / 完成一次复习 / 标记已解决`
+- `修复流程` 应用 `已完成 / 当前 / 待办` 标出 open、active、card_created、reviewed、resolved 的当前进度，避免错题中心只像动作列表
 - Current Mission / Next Best Action 推荐未解决误区时，有具体误区 id 应跳到 `/mistakes?focus=<id>`，缺少 id 时才回退到 `/mistakes`，不应直接跳 `/coach`
 - 带 `focus` 参数进入 `/mistakes` 时，应在清单前显示 `当前先修这一条`，先展示最该修的误区和主修复动作
 - `当前先修这一条` 的手机端主修复动作应位于 `aria-label="错题修复移动操作"` 的 sticky 操作区，至少包含 `sticky bottom-16 z-20`、`bg-background/95`、`backdrop-blur`，并在桌面端恢复 `sm:static` / `sm:border-0`

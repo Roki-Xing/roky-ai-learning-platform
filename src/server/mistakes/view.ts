@@ -16,6 +16,15 @@ type MistakeReviewCardInput = MistakeRecord & {
   lessonId: string;
 };
 
+export type MistakeRepairWorkflowState = "done" | "current" | "todo";
+
+export type MistakeRepairWorkflowStep = {
+  key: "open" | "explained" | "card_created" | "reviewed" | "resolved";
+  label: string;
+  state: MistakeRepairWorkflowState;
+  description: string;
+};
+
 function compact(value: string | null | undefined, max = 280) {
   return (value ?? "").replace(/\s+/g, " ").trim().slice(0, max);
 }
@@ -136,4 +145,71 @@ export function buildReviewCardForMistake(record: MistakeReviewCardInput) {
     tags: ["mistake", record.source ?? "quiz", kind],
     dueAt: new Date(),
   };
+}
+
+export function buildMistakeRepairWorkflow(args: {
+  status: string | null | undefined;
+  reviewCardCount: number;
+  reviewedCardCount: number;
+}): MistakeRepairWorkflowStep[] {
+  const resolved = args.status === "resolved";
+  const hasCard = args.reviewCardCount > 0;
+  const reviewed = args.reviewedCardCount > 0;
+  const explained = args.status === "active" || hasCard || reviewed || resolved;
+  const states: MistakeRepairWorkflowState[] = ["todo", "todo", "todo", "todo", "todo"];
+
+  if (resolved) {
+    states.fill("done");
+  } else if (reviewed) {
+    states[0] = "done";
+    states[1] = "done";
+    states[2] = "done";
+    states[3] = "done";
+    states[4] = "current";
+  } else if (hasCard) {
+    states[0] = "done";
+    states[1] = "done";
+    states[2] = "done";
+    states[3] = "current";
+  } else if (explained) {
+    states[0] = "done";
+    states[1] = "current";
+  } else {
+    states[0] = "current";
+  }
+
+  return [
+    {
+      key: "open",
+      label: "发现误区",
+      state: states[0] ?? "todo",
+      description: "已进入修复队列。",
+    },
+    {
+      key: "explained",
+      label: "让 Coach 解释",
+      state: states[1] ?? "todo",
+      description: explained ? "已进入解释或制卡阶段。" : "先让 Coach 帮你拆开错误原因。",
+    },
+    {
+      key: "card_created",
+      label: "生成复习卡",
+      state: states[2] ?? "todo",
+      description: hasCard ? `已生成 ${args.reviewCardCount} 张错题卡。` : "把正确理解压回复习系统。",
+    },
+    {
+      key: "reviewed",
+      label: "完成一次复习",
+      state: states[3] ?? "todo",
+      description: hasCard
+        ? `已复习 ${args.reviewedCardCount}/${args.reviewCardCount} 张。`
+        : "生成卡片后再完成一次主动回忆。",
+    },
+    {
+      key: "resolved",
+      label: "标记已解决",
+      state: states[4] ?? "todo",
+      description: resolved ? "这条误区已收口。" : "确认能讲清楚后再标记解决。",
+    },
+  ];
 }

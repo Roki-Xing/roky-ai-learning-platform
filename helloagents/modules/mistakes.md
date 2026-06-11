@@ -31,6 +31,8 @@
   - 出现次数
   - 关联课程与主题
   - 关联卡片数
+- 每条误区和聚焦误区都会显示 `修复流程`，用五步读侧状态机表达 `发现误区 / 让 Coach 解释 / 生成复习卡 / 完成一次复习 / 标记已解决`。
+- `buildMistakeRepairWorkflow()` 根据 `Misconception.status`、`mistake-card:{id}` 卡片数和 `reviewCount` 推导 `已完成 / 当前 / 待办`，不新增数据库字段或迁移。
 - “让 Coach 解释”会把这条误区的上下文预填到 `/coach` 输入框。
 - “生成复习卡”会把误区转成稳定 `mistake-card:{id}` 复习卡，并刷新 `/review`。
 - “标记已解决”会把开放误区更新为 `resolved`，并刷新 `/mistakes`、`/progress`、`/map`、`/path` 和 `/weekly`。
@@ -59,6 +61,8 @@
 - `npm test -- tests/unit/mistakes-view.test.ts tests/unit/auth-policy.test.ts`
 - `npm test -- tests/unit/mistakes-view.test.ts tests/unit/auth-policy.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/learning-ui-components.test.ts`
 - `npm test -- tests/unit/mistakes-view.test.ts tests/unit/learning-ui-components.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts`
+- Reduce Chaos Mistakes Repair Workflow Progress：`npm test -- tests/unit/mistakes-view.test.ts` RED 失败于缺少 `buildMistakeRepairWorkflow()` 和页面 `修复流程` 接线，GREEN 后 14 项通过。
+- Reduce Chaos Mistakes Repair Workflow Progress 相关回归：`npm test -- tests/unit/mistakes-view.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/learning-ui-components.test.ts` 69 项通过。
 - Reduce Chaos Mistakes Focus Repair RED/GREEN：`npm test -- tests/unit/next-best-action.test.ts tests/unit/current-mission.test.ts tests/unit/mistakes-view.test.ts` 34 项通过，覆盖 `/mistakes?focus=<id>`、Learning Session 误区修复 href、`当前先修这一条` 和 `错题修复移动操作` sticky 操作区。
 - Phase E Mistakes Header Badge Localization：`npm test -- tests/unit/mistakes-view.test.ts` RED/GREEN 后 11 项通过，覆盖 `badge="错题修复"`，并防止 `badge="Mistakes"` 回退。
 - Phase E Mistakes Header Badge Localization 回归：`npm test -- tests/unit/mistakes-view.test.ts tests/unit/auth-policy.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/learning-ui-components.test.ts` 51 项通过。

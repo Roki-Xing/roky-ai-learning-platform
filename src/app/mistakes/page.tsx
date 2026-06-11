@@ -16,6 +16,7 @@ import { requireUserId } from "@/server/auth/user";
 import { prisma } from "@/server/db";
 import {
   buildCoachDraftForMistake,
+  buildMistakeRepairWorkflow,
   formatMistakeSourceLabel,
   formatMistakeStatusLabel,
   inferMistakeKind,
@@ -74,11 +75,24 @@ function toneForKind(kind: string) {
   return "warning" as const;
 }
 
+function toneForWorkflowState(state: string) {
+  if (state === "done") return "success" as const;
+  if (state === "current") return "warning" as const;
+  return "neutral" as const;
+}
+
 const mistakeRepairActionCtaClassName = "min-h-11 w-full sm:w-auto";
 const mistakePageCtaClassName = "min-h-11 w-full sm:w-auto";
 const mistakeFilterCtaClassName = "min-h-11 w-full sm:w-auto";
 const mistakeFilterRowClassName = "grid gap-2 sm:flex sm:flex-wrap";
 const mistakeSearchInputClassName = "min-h-11";
+const mistakeRepairWorkflowLabels = [
+  "发现误区",
+  "让 Coach 解释",
+  "生成复习卡",
+  "完成一次复习",
+  "标记已解决",
+];
 
 export default async function MistakesPage({
   searchParams,
@@ -170,8 +184,14 @@ export default async function MistakesPage({
       : [],
     lessonIds.length
       ? prisma.flashcard.findMany({
-          where: { userId, lessonId: { in: lessonIds } },
-          select: { lessonId: true },
+          where: {
+            userId,
+            OR: [
+              { lessonId: { in: lessonIds } },
+              { id: { in: mistakes.map((item) => `mistake-card:${item.id}`) } },
+            ],
+          },
+          select: { id: true, lessonId: true, reviewCount: true },
         })
       : [],
   ]);
@@ -179,9 +199,18 @@ export default async function MistakesPage({
   const lessonTitleById = new Map(lessons.map((lesson) => [lesson.id, lesson.title]));
   const topicTitleById = new Map(topics.map((topic) => [topic.id, topic.title]));
   const lessonCardCount = new Map<string, number>();
+  const mistakeReviewCardStats = new Map<string, { total: number; reviewed: number }>();
   for (const card of lessonCards) {
-    if (!card.lessonId) continue;
-    lessonCardCount.set(card.lessonId, (lessonCardCount.get(card.lessonId) ?? 0) + 1);
+    if (card.lessonId) {
+      lessonCardCount.set(card.lessonId, (lessonCardCount.get(card.lessonId) ?? 0) + 1);
+    }
+    if (card.id.startsWith("mistake-card:")) {
+      const mistakeId = card.id.slice("mistake-card:".length);
+      const current = mistakeReviewCardStats.get(mistakeId) ?? { total: 0, reviewed: 0 };
+      current.total += 1;
+      if (card.reviewCount > 0) current.reviewed += 1;
+      mistakeReviewCardStats.set(mistakeId, current);
+    }
   }
   const focusedMistake = focusMistakeId
     ? mistakes.find((item) => item.id === focusMistakeId) ?? null
@@ -341,6 +370,25 @@ export default async function MistakesPage({
               </div>
             </div>
 
+            <div className="rounded-lg border bg-background p-3">
+              <div className="text-sm font-medium">修复流程</div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-5">
+                {buildMistakeRepairWorkflow({
+                  status: focusedMistake.status,
+                  reviewCardCount: mistakeReviewCardStats.get(focusedMistake.id)?.total ?? 0,
+                  reviewedCardCount: mistakeReviewCardStats.get(focusedMistake.id)?.reviewed ?? 0,
+                }).filter((step) => mistakeRepairWorkflowLabels.includes(step.label)).map((step) => (
+                  <div key={step.key} className="rounded-md border bg-muted/10 p-2">
+                    <LearningStatusBadge tone={toneForWorkflowState(step.state)}>
+                      {step.state === "done" ? "已完成" : step.state === "current" ? "当前" : "待办"}
+                    </LearningStatusBadge>
+                    <div className="mt-2 text-sm font-medium">{step.label}</div>
+                    <div className="mt-1 text-xs leading-5 text-muted-foreground">{step.description}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div
               aria-label="错题修复移动操作"
               className="sticky bottom-16 z-20 grid gap-2 rounded-lg border bg-background/95 p-2 shadow-sm backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none sm:flex sm:flex-wrap"
@@ -389,6 +437,12 @@ export default async function MistakesPage({
               const lessonTitle = lessonTitleById.get(mistake.lessonId) ?? "未知课程";
               const topicTitle = mistake.topicId ? topicTitleById.get(mistake.topicId) ?? "未关联主题" : "未关联主题";
               const coachHref = buildMistakeCoachHref(mistake);
+              const repairCardStats = mistakeReviewCardStats.get(mistake.id) ?? { total: 0, reviewed: 0 };
+              const repairWorkflow = buildMistakeRepairWorkflow({
+                status: mistake.status,
+                reviewCardCount: repairCardStats.total,
+                reviewedCardCount: repairCardStats.reviewed,
+              });
 
               return (
                 <div key={mistake.id} className="rounded-lg border bg-card p-4 shadow-sm">
@@ -437,6 +491,22 @@ export default async function MistakesPage({
                         <div className="mt-1 font-medium">{lessonCardCount.get(mistake.lessonId) ?? 0} 张</div>
                         <div className="mt-1 text-xs text-muted-foreground">
                           使用同课卡片把这条误区重新压回复习系统。
+                        </div>
+                      </div>
+                      <div className="rounded-md border bg-background px-3 py-2 text-sm">
+                        <div className="text-xs font-medium text-muted-foreground">修复流程</div>
+                        <div className="mt-2 grid gap-2">
+                          {repairWorkflow.map((step) => (
+                            <div key={step.key} className="flex items-start gap-2">
+                              <LearningStatusBadge tone={toneForWorkflowState(step.state)}>
+                                {step.state === "done" ? "已完成" : step.state === "current" ? "当前" : "待办"}
+                              </LearningStatusBadge>
+                              <div className="min-w-0">
+                                <div className="font-medium">{step.label}</div>
+                                <div className="text-xs text-muted-foreground">{step.description}</div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                       <div className="grid gap-2 sm:flex sm:flex-wrap">

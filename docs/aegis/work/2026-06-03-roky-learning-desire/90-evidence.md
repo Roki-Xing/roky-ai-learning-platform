@@ -2648,3 +2648,21 @@ Changed surface:
 Not covered:
 
 - Production deployment, production smoke, write-type production smoke, database migration, Review scheduling changes, queue filtering changes, Today remediation write-flow changes, Preview write-protection changes, and production env/provider secret changes are not covered for this slice.
+
+## Reduce Chaos Mistakes Repair Workflow Progress
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/mistakes-view.test.ts` | fail then pass, 14 tests | RED first failed because `buildMistakeRepairWorkflow()` was missing and `/mistakes` did not show `修复流程`. GREEN passed after adding the five-step repair workflow and wiring it into focused and list mistake cards. |
+| `npm test -- tests/unit/mistakes-view.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/learning-ui-components.test.ts` | pass, 69 tests | Related regression covers Mistakes, Current Mission focused repair routing, Next Best Action, Review remediation, Today remediation landing, and shared learning UI. |
+| `rg -n "Mistakes Repair Workflow Progress\|buildMistakeRepairWorkflow\|修复流程\|发现误区\|完成一次复习\|mistakeRepairWorkflowLabels\|reviewCount: true\|0\\.371\\.0" ...` | pass | Coverage scan confirms source, unit tests, UI checklist, Mistakes module doc, changelog, checkpoint, and evidence records are wired to this slice. |
+| `git diff --check`, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, `npm test`, `npm run build` | pass | Final local gates after Mistakes Repair Workflow Progress; full unit suite passed 478 tests, route and learning audits passed, lint passed, and Next production build generated 31 static pages. |
+| `python3 .../aegis-workspace.py bundle --root ... --work 2026-06-03-roky-learning-desire`, `python3 .../aegis-workspace.py check --root ...` | fail, structural debt | Aegis helper still reports known Markdown-only workspace debt: missing `task-intent-draft.json` for the current work and current/historical work markdown records not indexed. This is method-pack structure debt, not a product UI validation failure. |
+
+Changed surface:
+
+- Reduce Chaos Mistakes Repair Workflow Progress layer: `src/server/mistakes/view.ts`, `src/app/mistakes/page.tsx`, `tests/unit/mistakes-view.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/mistakes.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered:
+
+- Production deployment, production smoke, write-type production smoke, database migration, real misconception write smoke, Review scheduling changes, Current Mission ordering changes, Preview write-protection changes, and production env/provider secret changes are not covered for this slice.

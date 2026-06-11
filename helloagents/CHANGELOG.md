@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.371.0] - 2026-06-11
+
+### Changed
+
+- **[Reduce Chaos Mistakes Repair Workflow Progress]** 按指导文件第 7.1 和第 7.2 继续优化 `/mistakes`，把错题误区从动作列表推进为可见修复流程。
+  - 新增 `buildMistakeRepairWorkflow()`，用 `Misconception.status`、`mistake-card:{id}` 卡片数和 `reviewCount` 推导 `发现误区 / 让 Coach 解释 / 生成复习卡 / 完成一次复习 / 标记已解决` 五步状态。
+  - `/mistakes?focus=<id>` 的 `当前先修这一条` 显示 `修复流程`，用 `已完成 / 当前 / 待办` 标出当前修复进度。
+  - 误区清单里的每条误区也显示同一套 `修复流程`，让用户知道下一步是解释、制卡、复习还是标记解决。
+  - 本切片只改读侧流程展示、现有 flashcard `reviewCount` 查询、源码级测试和文档；不新增数据库迁移，不改变 `generateMistakeReviewCardAction()`、`markMistakeResolvedAction()`、Preview 写保护、Current Mission 排序、Review 评分或生产 env/provider 密钥。
+
+### Verified
+
+- RED：`npm test -- tests/unit/mistakes-view.test.ts` 首次失败于缺少 `buildMistakeRepairWorkflow()` 和页面 `修复流程` 接线。
+- GREEN：`npm test -- tests/unit/mistakes-view.test.ts` 14 项通过，覆盖五步修复状态机、`reviewCount` 接线和页面流程文案。
+- 相关回归：`npm test -- tests/unit/mistakes-view.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/review-session-summary.test.ts tests/unit/today-remediation-intent.test.ts tests/unit/learning-ui-components.test.ts` 69 项通过，覆盖 Mistakes、Current Mission、Next Best Action、Review/Today remediation 和共享学习 UI。
+- 覆盖扫描：`rg -n "Mistakes Repair Workflow Progress|buildMistakeRepairWorkflow|修复流程|发现误区|完成一次复习|mistakeRepairWorkflowLabels|reviewCount: true|0\\.371\\.0" ...` 确认源码、测试、UI checklist、Mistakes 模块文档、CHANGELOG 和 Aegis 记录均接入本切片。
+- 本地完整门禁：`git diff --check`、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 478 项通过，Next 生产构建生成 31 个静态页面。
+- Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+
+### Not Covered
+
+- 尚未执行生产部署、生产 smoke、数据库迁移、真实错题写入 smoke、Review 排期变更、Preview 写保护变更或写入型生产 smoke。
+
 ## [0.370.0] - 2026-06-11
 
 ### Changed
