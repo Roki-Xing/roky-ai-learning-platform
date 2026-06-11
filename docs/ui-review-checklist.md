@@ -434,6 +434,8 @@
 - `保存到笔记` CTA 在手机端应是全宽大触控目标，至少包含 `min-h-11` 和 `w-full sm:w-auto`
 - `周记` 保存应写入 Notes 的 standalone note，并继续受 Preview 写保护约束
 - 能看到 `本周学了什么`、`最强领域`、`最弱领域`、`下周建议`
+- 能看到 `本周同读章节`，并展示同读书名、页码范围和回到 `/books/:id` 的入口
+- `本周同读章节` 每个入口在手机端应满足 44px 触控高度，至少包含 `min-h-11`
 - 顶部 `当前任务` 可见，不应显示旧标题 `Current Mission / 当前任务`
 - 能看到 `7 天总览`
 - `7 天总览` 应包含学习天数、完成课程、复习卡片、小测验正确率、代码提交；不应显示 `quiz 正确率`
@@ -454,6 +456,7 @@
 - 能看到 `导出 Weekly Markdown`
 - `导出 Weekly Markdown` 应为只读文本区，内容包含 `# Roky Learn 每周复盘`、`7 天总览`、`AI 周总结` 和 `下周建议`，不应显示英文标题 `# Roky Learn Weekly Report`
 - `导出 Weekly Markdown` 应包含 `本周学习总结`、`本周称号` 和 `周记草稿`
+- `导出 Weekly Markdown` 应包含 `本周同读章节`，并列出同读书名、页码范围和 `/books/:id` 链接
 - `导出 Weekly Markdown` 应包含 `本周最值得修复的 3 个误区`，并列出最多 3 条可优先修复的未解决误区
 - `导出 Weekly Markdown` 只读文本区应使用中文业务可访问名称 `导出 Weekly Markdown 周报`，不应暴露英文 `weekly report markdown`
 - 代码练习和复习保持卡片不应为空白错位
@@ -504,6 +507,7 @@
 - 移动端阅读应提供底部 Sheet 入口 `打开 AI 伴读`
 - 移动端阅读页的 `打开 AI 伴读` 应位于 `AI 伴读移动操作` sticky 操作区，至少包含 `sticky bottom-16 z-20`、`bg-background/95`、`backdrop-blur` 和 `min-h-11 w-full`，桌面端继续使用右侧伴读面板
 - Books 应接入 `Coach`、`Note`、`Flashcard`、`Mistake`、`Weekly`、`Project`、`Glossary`、`Radar`、`Current Mission` 和 `Path`
+- Book chapter 接入 Weekly 后，`/weekly` 应显示 `本周同读章节` 和 `AI Engineering 第 12-14 页`
 - Current Mission 有活跃读书任务时应推荐 `今天继续读《AI Engineering》第 12-14 页`，并把今日闭环扩展为 6 步，单独显示 `阅读`
 
 ## Project Portfolio `/projects/portfolio`

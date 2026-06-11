@@ -244,6 +244,73 @@ test("weekly review snapshot exposes top three mistake repair links", () => {
   assert.doesNotMatch(snapshot.weeklyReportMarkdown, /已解决的历史误区不应挤进前三/);
 });
 
+test("weekly review snapshot includes book chapters in weekly ritual output", async () => {
+  const { getActiveBookSession } = await import("@/server/books/base");
+  const activeBookSession = getActiveBookSession();
+
+  assert.ok(activeBookSession);
+
+  const snapshot = buildWeeklyReviewSnapshot({
+    mission: {
+      title: "继续同读书籍",
+      reason: "本周读书章节需要回到周复盘。",
+      href: "/books/ai-engineering",
+      ctaLabel: "继续阅读",
+      tone: "info",
+    },
+    missionSignals: [],
+    windowLabel: "2026-05-27 ~ 2026-06-02",
+    lessons: [],
+    domains: [],
+    topMistake: null,
+    weeklyBookChapters: [
+      {
+        bookId: activeBookSession.documentId,
+        title: activeBookSession.title,
+        currentPage: activeBookSession.currentPage,
+        nextPage: activeBookSession.nextPage,
+        href: `/books/${activeBookSession.documentId}`,
+      },
+    ],
+    codePractice: {
+      submissionCount: 0,
+      feedbackCount: 0,
+      issueCount: 0,
+      topIssueType: null,
+      latestFeedbackSummary: null,
+    },
+    reviewRetention: {
+      reviewedCount: 0,
+      retainedCount: 0,
+      retentionRate: 0,
+    },
+    dueFlashcardsCount: 0,
+    openMisconceptionsCount: 0,
+    codeFeedbackNeedsAttentionCount: 0,
+    activity: {
+      voiceNotes: 0,
+      coachReviews: 0,
+      completedProjectMilestones: 0,
+      newMisconceptions: 0,
+      resolvedMisconceptions: 0,
+      glossaryReviewed: 0,
+      radarReviewed: 0,
+    },
+  });
+
+  assert.deepEqual(snapshot.weeklyBookChapters, [
+    {
+      bookId: "ai-engineering",
+      title: "AI Engineering",
+      pageRange: "第 12-14 页",
+      href: "/books/ai-engineering",
+    },
+  ]);
+  assert.match(snapshot.weeklyReportMarkdown, /## 本周同读章节/);
+  assert.match(snapshot.weeklyReportMarkdown, /- AI Engineering：第 12-14 页/);
+  assert.match(snapshot.weeklyReportMarkdown, /\/books\/ai-engineering/);
+});
+
 test("weekly code issue type labels stay learner-friendly", () => {
   assert.equal(weeklyCodeIssueTypeLabel("logic"), "逻辑问题");
   assert.equal(weeklyCodeIssueTypeLabel("edge_case"), "边界条件");
@@ -353,6 +420,11 @@ test("weekly page renders overview and fallback AI summary labels", () => {
   assert.match(source, /href=\{mistake\.href\}/);
   assert.match(source, /weeklyMistakeRepairLinkClassName/);
   assert.match(source, /关联课程：\{mistake\.lessonTitle \?\? "未关联课程"\}/);
+  assert.match(source, /本周同读章节/);
+  assert.match(source, /weekly\.weeklyBookChapters\.map/);
+  assert.match(source, /href=\{chapter\.href\}/);
+  assert.match(source, /weeklyBookChapterLinkClassName/);
+  assert.match(source, /chapter\.pageRange/);
   assert.doesNotMatch(source, /错题最多的概念/);
 });
 

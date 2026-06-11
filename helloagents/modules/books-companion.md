@@ -47,6 +47,7 @@
 - 阅读页：`src/app/books/[id]/page.tsx`
 - 任务引擎：`src/server/learning/next-best-action.ts`
 - Current Mission 接线：`src/server/learning/current-mission.ts`
+- Weekly 接线：`src/server/learning/weekly.ts`、`src/app/weekly/page.tsx`
 - 导航：`src/lib/routes.ts`、`src/components/mobile/mobile-bottom-nav.tsx`
 - 鉴权：`src/server/auth/policy.ts`
 - 审计：`scripts/audit-routes.ts`、`scripts/audit-learning-system.ts`
@@ -64,3 +65,4 @@
 - 2026-06-10 Books Mobile Sticky Companion 本地收尾：`npm test -- tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts tests/unit/auth-policy.test.ts` 38 项通过；`git diff --check`、`npm run lint`、`npm run audit:routes`、`npm run audit:learning`、全量 `npm test` 464 项、`npm run build` 均通过。
 - 2026-06-10 Books Mobile Sticky Companion 生产上线：代码提交 `8d13f7a` 已推送；生产备份 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.355.0-20260610-015857.tar.gz` 已生成；容器内定向测试 38 项、路由审计、学习审计、lint 和 build 通过；重启后 `https://learn.roky.chat/api/health` 返回 200/ok，390px 登录态 `/books/ai-engineering` smoke 检测到 sticky `AI 伴读移动操作` 和可打开的伴读 Sheet。
 - 2026-06-10 Current Mission Reading Step：`npm test -- tests/unit/current-mission.test.ts` RED 首次失败于今日闭环仍为 5 步；GREEN 后 13 项通过。相关回归 `npm test -- tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/home-page-labels.test.ts tests/unit/learning-ui-components.test.ts tests/unit/books-companion.test.ts tests/unit/learning-motivation.test.ts` 71 项通过，覆盖 active book session 时 `阅读` 单独成为当前步骤。
+- 2026-06-10 Book Chapter Weekly Recap：`npm test -- tests/unit/weekly-review.test.ts` RED 首次失败于 `snapshot.weeklyBookChapters` 为 `undefined`；GREEN 后 10 项通过。Weekly 现在通过 active book session 显示 `本周同读章节`、`AI Engineering`、`第 12-14 页` 和 `/books/ai-engineering`，导出的 Weekly Markdown 也包含 `本周同读章节`。

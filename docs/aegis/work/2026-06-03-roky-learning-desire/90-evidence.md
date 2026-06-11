@@ -2577,6 +2577,24 @@ Not covered:
 
 - Full Playwright mobile matrix, real mobile screenshots, and production write-type smoke were not performed for this slice. `npm audit` still reports the existing 3 moderate dependency warnings and remains out of scope.
 
+## Reduce Chaos Book Chapter Weekly Recap
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/weekly-review.test.ts` | fail then pass, 10 tests | RED first failed because `snapshot.weeklyBookChapters` was `undefined`. GREEN passed after adding the optional Weekly book-chapter data contract, rendering `本周同读章节` on `/weekly`, and adding the same section to exported Weekly Markdown. |
+| `npm test -- tests/unit/weekly-review.test.ts tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/learning-path.test.ts tests/unit/learning-ui-components.test.ts` | pass, 57 tests | Related regression after Book Chapter Weekly Recap; covers Weekly, Books seed/page contract, Current Mission active reading, Path reading materials, and shared learning UI. |
+| `rg -n "Book Chapter Weekly Recap\|weeklyBookChapters\|weeklyBookChapterLinkClassName\|本周同读章节\|AI Engineering\|第 12-14 页\|/books/ai-engineering\|0\\.368\\.0" ...` | pass | Coverage scan confirms source, unit test, UI checklist, Weekly and Books module docs, changelog, checkpoint, and evidence records are wired to this slice. |
+| `git diff --check`, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, `npm test`, `npm run build` | pass | Final local gates after Book Chapter Weekly Recap; full unit suite passed 476 tests, route and learning audits passed, lint passed, and Next production build generated 31 static pages with `/weekly` and `/books/[id]` in the route table. |
+| `python3 .../aegis-workspace.py bundle --root ... --work 2026-06-03-roky-learning-desire`, `python3 .../aegis-workspace.py check --root ...` | fail, structural debt | Aegis helper still reports known Markdown-only workspace debt: missing `task-intent-draft.json` for the current work and current/historical work markdown records not indexed. This is method-pack structure debt, not a product UI validation failure. |
+
+Changed surface:
+
+- Reduce Chaos Book Chapter Weekly Recap layer: `src/server/learning/weekly.ts`, `src/app/weekly/page.tsx`, `tests/unit/weekly-review.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/weekly.md`, `helloagents/modules/books-companion.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered:
+
+- Production deployment, production smoke, write-type production smoke, database migration, real PDF upload, OCR, AI provider calls, and reading-progress persistence were not performed for this slice.
+
 ## Phase E Admin Recent Plan Governance CTA Mobile Touch Targets
 
 | Evidence | Result | Notes |

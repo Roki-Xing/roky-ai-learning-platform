@@ -16,6 +16,7 @@ import {
 
 const weeklyNextStepLinkClassName = "min-h-11 rounded-md border px-3 py-3 text-sm transition-colors hover:bg-muted/40";
 const weeklyMistakeRepairLinkClassName = "min-h-11 rounded-md border px-3 py-3 text-sm transition-colors hover:bg-muted/40";
+const weeklyBookChapterLinkClassName = "min-h-11 rounded-md border px-3 py-3 text-sm transition-colors hover:bg-muted/40";
 const weeklyReflectionButtonClassName = "min-h-11 w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto";
 const weeklyReflectionPlaceholder = ["我这周最大的收获是...", "", "我下周想重点学..."].join("\n");
 
@@ -185,6 +186,30 @@ export default async function WeeklyPage() {
                   <div className="text-muted-foreground">这周还没有完成正式课程。</div>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-lg">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">本周同读章节</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-2 text-sm">
+              {weekly.weeklyBookChapters.length ? (
+                weekly.weeklyBookChapters.map((chapter) => (
+                  <a
+                    key={`${chapter.bookId}:${chapter.pageRange}`}
+                    href={chapter.href}
+                    className={weeklyBookChapterLinkClassName}
+                  >
+                    <div className="font-semibold">{chapter.title}</div>
+                    <div className="mt-1 text-xs leading-5 text-muted-foreground">
+                      {chapter.pageRange}
+                    </div>
+                  </a>
+                ))
+              ) : (
+                <div className="text-muted-foreground">这周还没有同读章节。</div>
+              )}
             </CardContent>
           </Card>
 

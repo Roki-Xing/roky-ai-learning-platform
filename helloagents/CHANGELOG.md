@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.368.0] - 2026-06-10
+
+### Changed
+
+- **[Reduce Chaos Book Chapter Weekly Recap]** 按指导文件第 9.3 和第 14.2 继续优化 Books 与 Weekly 的连接，把 `Book chapter → Weekly` 从静态资产连接推进为 `/weekly` 的真实读侧总结。
+  - `WeeklyReviewData` 新增 `weeklyBookChapters`，把 active book session 规范化为书名、页码范围和 `/books/:id` 链接。
+  - `/weekly` 新增 `本周同读章节` 卡片，显示 `AI Engineering`、`第 12-14 页` 和回到 `/books/ai-engineering` 的入口。
+  - 导出的 `weeklyReportMarkdown` 新增 `本周同读章节` 小节，避免读书进度只停留在 Books 页面，无法进入每周复盘。
+  - 本切片只改读侧 Weekly 数据合约、页面展示、源码级测试和文档；不新增数据库迁移，不写读书进度，不改变 Books 静态数据、Current Mission 排序、Preview 写保护、生产 env/provider 密钥或任何写入行为边界。
+
+### Verified
+
+- RED：`npm test -- tests/unit/weekly-review.test.ts` 首次失败于 `snapshot.weeklyBookChapters` 为 `undefined`。
+- GREEN：`npm test -- tests/unit/weekly-review.test.ts` 10 项通过，覆盖 `weeklyBookChapters`、`本周同读章节`、`AI Engineering 第 12-14 页`、`/books/ai-engineering`、Markdown 小节和手机端 `weeklyBookChapterLinkClassName`。
+- 相关回归：`npm test -- tests/unit/weekly-review.test.ts tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/learning-path.test.ts tests/unit/learning-ui-components.test.ts` 57 项通过，覆盖 Weekly、Books、Current Mission、Path 和共享学习 UI。
+- 覆盖扫描：`rg -n "Book Chapter Weekly Recap|weeklyBookChapters|weeklyBookChapterLinkClassName|本周同读章节|AI Engineering|第 12-14 页|/books/ai-engineering|0\\.368\\.0" ...` 确认源码、测试、UI checklist、Weekly/Books 模块文档、CHANGELOG 和 Aegis 记录均接入本切片。
+- 本地完整门禁：`git diff --check`、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 476 项通过，Next 生产构建生成 31 个静态页面。
+- Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+
+### Not Covered
+
+- 未执行生产部署、生产只读 smoke、写入型生产 smoke、数据库迁移、真实 PDF 上传、OCR 或 AI provider 调用；本切片先补读侧 Weekly 汇总和回归保护。
+
 ## [0.367.0] - 2026-06-10
 
 ### Changed

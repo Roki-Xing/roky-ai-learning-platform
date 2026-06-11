@@ -12,6 +12,7 @@ import {
   type CurrentMissionProgress,
   type CurrentMissionSignal,
 } from "@/server/learning/current-mission";
+import { getActiveBookSession } from "@/server/books/base";
 import { getOrCreateUserProfile } from "@/server/profile/get-or-create";
 import {
   addDaysUTC,
@@ -70,6 +71,21 @@ export type WeeklyReviewRetention = {
   retentionRate: number;
 };
 
+export type WeeklyBookChapter = {
+  bookId: string;
+  title: string;
+  pageRange: string;
+  href: string;
+};
+
+export type WeeklyBookChapterInput = {
+  bookId: string;
+  title: string;
+  currentPage: number;
+  nextPage: number;
+  href: string;
+};
+
 export type WeeklyActivityMetrics = {
   voiceNotes: number;
   coachReviews: number;
@@ -117,6 +133,7 @@ export type WeeklyReviewData = {
   weakestDomain: ProgressWeakDomainSummary | null;
   topMistake: WeeklyMistakeHighlight | null;
   mistakeRepairQueue: WeeklyMistakeHighlight[];
+  weeklyBookChapters: WeeklyBookChapter[];
   codePractice: WeeklyCodePractice;
   reviewRetention: WeeklyReviewRetention;
   nextWeekPlan: WeeklyRemediationPlan;
@@ -132,6 +149,7 @@ export type WeeklySnapshotInput = {
   domains: WeeklyDomainStat[];
   topMistake: WeeklyMistakeHighlightInput | null;
   mistakeRepairQueue?: WeeklyMistakeHighlightInput[];
+  weeklyBookChapters?: WeeklyBookChapterInput[];
   codePractice: WeeklyCodePractice;
   reviewRetention: WeeklyReviewRetention;
   dueFlashcardsCount: number;
@@ -235,6 +253,15 @@ function isRepairableWeeklyMistake(mistake: WeeklyMistakeHighlightInput) {
   return mistake.status !== "resolved" && mistake.status !== "ignored";
 }
 
+function normalizeWeeklyBookChapter(chapter: WeeklyBookChapterInput): WeeklyBookChapter {
+  return {
+    bookId: chapter.bookId,
+    title: chapter.title,
+    pageRange: `第 ${chapter.currentPage}-${chapter.nextPage} 页`,
+    href: chapter.href,
+  };
+}
+
 function buildWeeklyAiSummary(args: {
   strongestDomain: WeeklyDomainHighlight | null;
   weakestDomain: ProgressWeakDomainSummary | null;
@@ -306,6 +333,7 @@ function buildWeeklyReportMarkdown(args: {
   weakestDomain: ProgressWeakDomainSummary | null;
   topMistake: WeeklyMistakeHighlight | null;
   mistakeRepairQueue: WeeklyMistakeHighlight[];
+  weeklyBookChapters: WeeklyBookChapter[];
   codePractice: WeeklyCodePractice;
   reviewRetention: WeeklyReviewRetention;
   aiSummary: WeeklyAiSummary;
@@ -330,6 +358,11 @@ function buildWeeklyReportMarkdown(args: {
         )
         .join("\n")
     : "本周还没有需要优先修复的误区。";
+  const bookChapterLines = args.weeklyBookChapters.length
+    ? args.weeklyBookChapters
+        .map((chapter) => `- ${chapter.title}：${chapter.pageRange}（${chapter.href}）`)
+        .join("\n")
+    : "- 本周还没有同读章节。";
 
   return [
     "# Roky Learn 每周复盘",
@@ -361,6 +394,10 @@ function buildWeeklyReportMarkdown(args: {
     "## 本周课程",
     "",
     lessonLines,
+    "",
+    "## 本周同读章节",
+    "",
+    bookChapterLines,
     "",
     "## 领域与错题",
     "",
@@ -439,6 +476,7 @@ export function buildWeeklyReviewSnapshot(
     .filter(isRepairableWeeklyMistake)
     .slice(0, 3);
   const topMistake = mistakeRepairQueue[0] ?? (input.topMistake ? normalizeWeeklyMistake(input.topMistake) : null);
+  const weeklyBookChapters = (input.weeklyBookChapters ?? []).map(normalizeWeeklyBookChapter);
   const nextWeekPlan = buildWeeklyRemediationPlan({
     weakDomains,
     dueFlashcardsCount: input.dueFlashcardsCount,
@@ -473,6 +511,7 @@ export function buildWeeklyReviewSnapshot(
       weakestDomain,
       topMistake,
       mistakeRepairQueue,
+      weeklyBookChapters,
       codePractice: input.codePractice,
       reviewRetention: input.reviewRetention,
       aiSummary,
@@ -483,6 +522,7 @@ export function buildWeeklyReviewSnapshot(
     weakestDomain,
     topMistake,
     mistakeRepairQueue,
+    weeklyBookChapters,
     codePractice: input.codePractice,
     reviewRetention: input.reviewRetention,
     nextWeekPlan,
@@ -807,6 +847,7 @@ export async function getWeeklyReviewData(userId: string) {
   } satisfies WeeklyReviewRetention;
   const glossaryReviewed = knowledgeReviewLogs.filter((log) => tagsOf(log.flashcard.tags).includes("glossary")).length;
   const radarReviewed = knowledgeReviewLogs.filter((log) => tagsOf(log.flashcard.tags).includes("radar")).length;
+  const activeBookSession = getActiveBookSession();
 
   return buildWeeklyReviewSnapshot({
     mission: currentMission.mission,
@@ -844,6 +885,17 @@ export async function getWeeklyReviewData(userId: string) {
         : null,
       status: misconception.status,
     })),
+    weeklyBookChapters: activeBookSession
+      ? [
+          {
+            bookId: activeBookSession.documentId,
+            title: activeBookSession.title,
+            currentPage: activeBookSession.currentPage,
+            nextPage: activeBookSession.nextPage,
+            href: `/books/${activeBookSession.documentId}`,
+          },
+        ]
+      : [],
     codePractice: {
       submissionCount: codeSubmissions.length,
       feedbackCount: codeFeedback.length,
