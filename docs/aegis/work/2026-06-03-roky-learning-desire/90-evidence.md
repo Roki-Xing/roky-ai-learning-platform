@@ -9,14 +9,19 @@
 | `rg -n "Path Visual Stage Map\|PathStageMap\|阶段地图\|pathStageMapNodeClassName\|详细指标\|0\\.373\\.0\|完成 / 当前 / 锁定 / 补弱\|Reduce Chaos Path Visual" ...` | pass | Coverage scan confirms source, unit test, UI checklist, Path module doc, changelog, checkpoint, and evidence records are wired to this slice. |
 | `git diff --check`, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, `npm test`, `npm run build` | pass | Full local gates after Path Visual Stage Map. Full unit suite passed 482 tests; route audit reports 21 pages with no navigation gaps; learning audit reports no required-file or migration-doc gaps; Next build generated 31 static pages. |
 | `aegis-workspace.py bundle`, `aegis-workspace.py check` | fail, structural debt | Existing Markdown-only Aegis workspace debt remains: current work lacks `task-intent-draft.json`, and current/historical work markdown records are not indexed. This is a method-pack structure issue, not a product UI validation failure. |
+| `git push origin main` | pass | Code commit `3ce5687 feat: add path visual stage map / 添加学习路径阶段地图` pushed to `origin/main`. |
+| Production backup and deploy | pass | Created `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.373.0-20260613-214337.tar.gz`, rsynced code to `118.25.15.72:/home/ubuntu/ai-learning-platform`, pruned dev dependencies after validation, and restarted container `ai-learning-platform`. |
+| Remote container gates | pass | In container: `npm ci --include=dev`, `npm run prisma:generate`, Path / Current Mission / Next Best Action / Weekly / Learning UI related regression 64 tests, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, and `npm run build` passed. |
+| `curl https://learn.roky.chat/api/health` and 390px login smoke for `/path` | pass | Public health returned 200/ok. Authenticated readonly `/path` smoke saw `学习路径`, `阶段地图`, `详细指标`, and all node states `完成 / 当前 / 锁定 / 补弱`. The smoke intentionally performed no production writes. |
+| Temporary secret cleanup | pass | Local `/tmp/roky_deploy.pem`, `/tmp/roky_known_hosts`, health temp file, and path temp files are absent. |
 
 Changed surface:
 
 - Reduce Chaos Path Visual Stage Map layer: `src/app/path/page.tsx`, `tests/unit/learning-path.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/path.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
 
-Not covered yet:
+Not covered:
 
-- GitHub push, production deploy, production smoke, full Playwright mobile screenshot matrix, schema/migration changes, path scoring changes, Books recommendation changes, and write-type production smoke are not covered yet.
+- Full Playwright mobile screenshot matrix, schema/migration changes, path scoring changes, Books recommendation changes, Preview write-protection changes, and write-type production smoke are not covered. Remote `npm ci` / `npm prune` still report existing dependency advisories; after prune the remaining report is 3 moderate advisories.
 
 ## Reduce Chaos Today Course Feedback Prompt
 

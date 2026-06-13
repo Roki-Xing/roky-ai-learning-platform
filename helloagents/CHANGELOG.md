@@ -18,10 +18,14 @@
 - 覆盖扫描：`rg -n "Path Visual Stage Map|PathStageMap|阶段地图|pathStageMapNodeClassName|详细指标|0\\.373\\.0|完成 / 当前 / 锁定 / 补弱|Reduce Chaos Path Visual" ...` 确认源码、测试、UI checklist、Path 模块文档、CHANGELOG 和 Aegis 记录均接入本切片。
 - 本地完整门禁：`git diff --check`、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 482 项通过，Next 生产构建生成 31 个静态页面。
 - Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+- GitHub：代码提交 `3ce5687 feat: add path visual stage map / 添加学习路径阶段地图` 已推送到 `origin/main`。
+- 生产部署：已备份 `/home/ubuntu/ai-learning-platform` 到 `/home/ubuntu/deploy-backups/ai-learning-platform-before-0.373.0-20260613-214337.tar.gz`，rsync 同步到 `118.25.15.72:/home/ubuntu/ai-learning-platform`，并重启 `ai-learning-platform` 容器。
+- 远端门禁：在容器内通过 `npm ci --include=dev`、`npm run prisma:generate`、Path / Current Mission / Next Best Action / Weekly / Learning UI 相关回归 64 项、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、`npm run build`，随后 `npm prune --omit=dev`。
+- 生产验收：公网 `https://learn.roky.chat/api/health` 返回 200/ok；390px 登录态只读 `/path` smoke 可见 `学习路径`、`阶段地图`、`详细指标` 和 `完成 / 当前 / 锁定 / 补弱` 状态；临时 SSH key 和 known_hosts 已清理。
 
 ### Not Covered
 
-- 尚未执行生产部署、生产 smoke、数据库迁移、学习路径 scoring 变更、真实写入型 smoke、完整 Playwright 移动端截图矩阵或 Preview 写保护变更。
+- 未执行数据库迁移、学习路径 scoring 变更、真实写入型 smoke、完整 Playwright 移动端截图矩阵或 Preview 写保护变更。远端 `npm ci` / `npm prune` 仍报告既有依赖告警，prune 后为 3 个 moderate。
 
 ## [0.372.0] - 2026-06-11
 

@@ -11,12 +11,12 @@
 - [√] 同步 `docs/ui-review-checklist.md`、`helloagents/modules/path.md`、`helloagents/CHANGELOG.md` 初始记录。
 - [√] 运行覆盖扫描和本地完整门禁。
 - [√] 运行 Aegis helper 结构检查并记录既有 Markdown-only 结构债。
-- [ ] 提交并推送 GitHub。
-- [ ] 生产部署和 `learn.roky.chat` 只读 smoke 待本地门禁后执行。
+- [√] 提交并推送 GitHub：`3ce5687 feat: add path visual stage map / 添加学习路径阶段地图`。
+- [√] 部署到 `118.25.15.72` 的 `ai-learning-platform` 容器，并完成 `learn.roky.chat` 生产只读 `/path` smoke。
 
 ## Current Resume State Hint
 
-从 `ai-learning-platform` 根目录继续。当前切片是 `0.373.0 Reduce Chaos Path Visual Stage Map`：只改 `/path` 展示层、源码级测试和文档记录；不要新增数据库迁移，不改变学习路径排序、stage scoring、Books 推荐规则、Current Mission 排序、认证策略、Preview 写保护、生产 env/provider 密钥或写入型业务流程。已完成 RED/GREEN、相关回归、文档同步、覆盖扫描、本地完整门禁和 Aegis helper 结构检查；Aegis helper 失败仍是既有 Markdown-only 结构债。下一步提交推送、生产部署和只读 smoke。
+从 `ai-learning-platform` 根目录继续。当前切片是 `0.373.0 Reduce Chaos Path Visual Stage Map`：只改 `/path` 展示层、源码级测试和文档记录；不要新增数据库迁移，不改变学习路径排序、stage scoring、Books 推荐规则、Current Mission 排序、认证策略、Preview 写保护、生产 env/provider 密钥或写入型业务流程。已完成 RED/GREEN、相关回归、文档同步、覆盖扫描、本地完整门禁、Aegis helper 结构检查、GitHub push、生产部署、远端门禁、公网 health、登录态只读 `/path` smoke 和临时敏感文件清理。
 
 ## Current Drift Check
 
@@ -24,7 +24,7 @@
 - Compatibility：不新增迁移，不触碰生产 env、provider 密钥、Preview 写保护、认证策略、学习路径排序、stage scoring、Books 推荐规则或写入型流程；只改 `/path` 页面展示和对应测试。
 - New fallback/owner：没有新增外部 owner、adapter 或兼容 fallback；阶段数据 owner 仍为 `src/server/learning/path.ts`，Books 桥接 owner 仍为 `path-reading.ts`，本切片新增的 `PathStageMap` 是页面展示组件。
 - Retirement：旧的阶段卡默认展开 `为什么要过这一阶段`、`当前信号`、criteria 和 blockers，导致 `/path` 更像指标报告；本切片将深层指标收进 `详细指标`，默认层只保留地图所需核心信息。
-- Decision：continue; RED/GREEN、相关回归、文档同步、覆盖扫描、本地完整门禁和 Aegis helper 结构检查已完成，等待 GitHub push、生产部署和只读 smoke。Aegis helper 仍失败于既有 Markdown-only 结构债，归类为方法包结构债，不是产品 UI 验证失败。
+- Decision：complete; RED/GREEN、相关回归、文档同步、覆盖扫描、本地完整门禁、Aegis helper 结构检查、GitHub push、生产部署、远端门禁、公网 health、登录态只读 `/path` smoke 和临时敏感文件清理均已完成。完整 Playwright 移动端截图矩阵、写入型生产 smoke、数据库迁移、学习路径 scoring 变更、Books 推荐规则变更、Preview 写保护变更和既有依赖告警保持未覆盖边界。Aegis helper 仍失败于既有 Markdown-only 结构债，归类为方法包结构债，不是产品 UI 验证失败。
 
 ## Completed Slice: Reduce Chaos Review No New Content Cue
 
