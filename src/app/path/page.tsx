@@ -34,11 +34,72 @@ function stageShellClass(status: LearningPathStageStatus) {
   }
 }
 
+function pathStageMapStatusLabel(stage: LearningPathStage) {
+  if (stage.blockers.length > 0 && stage.status !== "completed") return "补弱";
+  switch (stage.status) {
+    case "completed":
+      return "完成";
+    case "current":
+      return "当前";
+    default:
+      return "锁定";
+  }
+}
+
+const pathStageMapNodeClassName = (stage: LearningPathStage) => {
+  if (stage.blockers.length > 0 && stage.status !== "completed") {
+    return "border-amber-300 bg-amber-50 text-amber-900";
+  }
+  switch (stage.status) {
+    case "completed":
+      return "border-emerald-300 bg-emerald-50 text-emerald-900";
+    case "current":
+      return "border-indigo-300 bg-indigo-50 text-indigo-900";
+    default:
+      return "border-border bg-muted/40 text-muted-foreground";
+  }
+};
+
 const pathStageCtaClassName =
   "min-h-11 w-full sm:w-auto inline-flex items-center justify-center rounded-md border px-3 py-2 text-center text-sm font-medium transition-colors hover:bg-background/80";
 
 const pathReadingLinkClassName =
   "min-h-11 w-full sm:w-auto inline-flex items-center justify-center rounded-md border px-3 py-2 text-center text-sm font-medium transition-colors hover:bg-background/80";
+
+function PathStageMap({ stages }: { stages: LearningPathStage[] }) {
+  return (
+    <Card className="rounded-lg">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">阶段地图</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 md:grid-cols-7">
+          {stages.map((stage, index) => (
+            <div key={stage.id} className="grid gap-2 md:grid-rows-[auto_1fr]">
+              <div className="flex items-center gap-2 md:flex-col">
+                <div
+                  className={`flex min-h-11 w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-left transition-colors ${pathStageMapNodeClassName(stage)}`}
+                >
+                  <span className="truncate text-sm font-medium">{stage.title}</span>
+                  <span className="shrink-0 rounded-full bg-background/80 px-2 py-0.5 text-[11px] font-medium">
+                    {pathStageMapStatusLabel(stage)}
+                  </span>
+                </div>
+                {index < stages.length - 1 ? (
+                  <div className="h-px w-5 shrink-0 bg-border md:h-5 md:w-px" aria-hidden="true" />
+                ) : null}
+              </div>
+              <div className="text-xs leading-5 text-muted-foreground">
+                {Math.round(stage.progressRatio * 100)}%
+                {stage.blockers.length > 0 ? ` / 当前阻塞：${stage.blockers.join("、")}` : ""}
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 function StageCard({ stage, index }: { stage: LearningPathStage; index: number }) {
   return (
@@ -55,6 +116,9 @@ function StageCard({ stage, index }: { stage: LearningPathStage; index: number }
           </div>
           <div className="mt-3 text-lg font-semibold">{stage.title}</div>
           <div className="mt-1 text-sm leading-6 text-muted-foreground">{stage.summary}</div>
+          <div className="mt-2 text-xs leading-5 text-muted-foreground">
+            完成标准：{stage.completionStandard}
+          </div>
         </div>
         <a
           href={stage.href}
@@ -72,39 +136,13 @@ function StageCard({ stage, index }: { stage: LearningPathStage; index: number }
         <LearningProgressBar value={stage.progressRatio} label={`阶段进度：${stage.title}`} />
       </div>
 
-      <div className="mt-4 grid gap-3 lg:grid-cols-[1.2fr_minmax(0,1fr)]">
-        <div className="grid gap-2 rounded-md border bg-background/70 p-3">
-          <div className="text-sm font-medium">为什么要过这一阶段</div>
-          <div className="text-xs leading-6 text-muted-foreground">{stage.whyThisStage}</div>
-          <div className="text-xs leading-6 text-muted-foreground">
-            完成标准：{stage.completionStandard}
-          </div>
-        </div>
-
-        <div className="grid gap-2 rounded-md border bg-background/70 p-3">
-          <div className="text-sm font-medium">当前信号</div>
-          <div className="grid gap-1 text-xs text-muted-foreground">
-            <div>已完成主课：{stage.metrics.completedLessons}</div>
-            <div>已复习卡片：{stage.metrics.reviewedFlashcards}</div>
-            <div>
-              测验正确率：{stage.metrics.quizAttempts > 0 ? `${stage.metrics.quizAccuracy}%` : "暂无测验"}
-            </div>
-            <div>代码练习：{stage.metrics.codeSubmissions}</div>
-            <div>到期卡片：{stage.metrics.dueFlashcardCount}</div>
-            <div>活跃误区：{stage.metrics.activeMisconceptions}</div>
-            {stage.metrics.completedMilestones > 0 || stage.metrics.totalMilestones > 0 ? (
-              <div>
-                项目里程碑：{stage.metrics.completedMilestones}/{stage.metrics.totalMilestones}
-              </div>
-            ) : null}
-            {stage.metrics.knowledgeCardsReviewed > 0 ? (
-              <div>广度知识卡：{stage.metrics.knowledgeCardsReviewed}</div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
       <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="rounded-md border bg-background/80 px-3 py-3">
+          <div className="text-sm font-medium">当前阻塞</div>
+          <div className="mt-1 text-xs leading-5 text-muted-foreground">
+            {stage.blockers.length ? stage.blockers.join("、") : "暂无阻塞，保持当前节奏。"}
+          </div>
+        </div>
         <div className="rounded-md border bg-background/80 px-3 py-3">
           <div className="text-sm font-medium">解锁条件</div>
           <div className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -112,7 +150,7 @@ function StageCard({ stage, index }: { stage: LearningPathStage; index: number }
           </div>
         </div>
         <div className="rounded-md border bg-background/80 px-3 py-3">
-          <div className="text-sm font-medium">下一步主题</div>
+          <div className="text-sm font-medium">下一步</div>
           <div className="mt-1 text-xs leading-5 text-muted-foreground">{stage.nextTopic}</div>
         </div>
       </div>
@@ -144,29 +182,52 @@ function StageCard({ stage, index }: { stage: LearningPathStage; index: number }
         </div>
       ) : null}
 
-      <div className="mt-4 grid gap-2 md:grid-cols-3">
-        {stage.criteria.map((criterion) => (
-          <div key={criterion.label} className="rounded-md border bg-background/80 px-3 py-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-sm font-medium">{criterion.label}</div>
-              <Badge variant={criterion.done ? "secondary" : "outline"}>
-                {criterion.current}/{criterion.targetLabel}
-              </Badge>
-            </div>
-            <div className="mt-1 text-xs leading-5 text-muted-foreground">{criterion.helper}</div>
+      <details className="mt-4 rounded-md border bg-background/80 px-3 py-3">
+        <summary className="cursor-pointer text-sm font-medium">详细指标</summary>
+        <div className="mt-3 grid gap-3 lg:grid-cols-[1.2fr_minmax(0,1fr)]">
+          <div className="grid gap-2 rounded-md border bg-card/70 p-3">
+            <div className="text-sm font-medium">为什么要过这一阶段</div>
+            <div className="text-xs leading-6 text-muted-foreground">{stage.whyThisStage}</div>
           </div>
-        ))}
-      </div>
 
-      {stage.blockers.length ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {stage.blockers.map((blocker) => (
-            <LearningStatusBadge key={blocker} tone="warning">
-              {blocker}
-            </LearningStatusBadge>
+          <div className="grid gap-2 rounded-md border bg-card/70 p-3">
+            <div className="text-sm font-medium">当前信号</div>
+            <div className="grid gap-1 text-xs text-muted-foreground">
+              <div>已完成主课：{stage.metrics.completedLessons}</div>
+              <div>已复习卡片：{stage.metrics.reviewedFlashcards}</div>
+              <div>
+                测验正确率：
+                {stage.metrics.quizAttempts > 0 ? `${stage.metrics.quizAccuracy}%` : "暂无测验"}
+              </div>
+              <div>代码练习：{stage.metrics.codeSubmissions}</div>
+              <div>到期卡片：{stage.metrics.dueFlashcardCount}</div>
+              <div>活跃误区：{stage.metrics.activeMisconceptions}</div>
+              {stage.metrics.completedMilestones > 0 || stage.metrics.totalMilestones > 0 ? (
+                <div>
+                  项目里程碑：{stage.metrics.completedMilestones}/{stage.metrics.totalMilestones}
+                </div>
+              ) : null}
+              {stage.metrics.knowledgeCardsReviewed > 0 ? (
+                <div>广度知识卡：{stage.metrics.knowledgeCardsReviewed}</div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          {stage.criteria.map((criterion) => (
+            <div key={criterion.label} className="rounded-md border bg-card/70 px-3 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-medium">{criterion.label}</div>
+                <Badge variant={criterion.done ? "secondary" : "outline"}>
+                  {criterion.current}/{criterion.targetLabel}
+                </Badge>
+              </div>
+              <div className="mt-1 text-xs leading-5 text-muted-foreground">{criterion.helper}</div>
+            </div>
           ))}
         </div>
-      ) : null}
+      </details>
     </div>
   );
 }
@@ -191,6 +252,8 @@ export default async function PathPage() {
           progress={path.missionProgress}
           title="当前任务"
         />
+
+        <PathStageMap stages={path.stages} />
 
         <div className="grid gap-4 xl:grid-cols-2">
           <Card className="rounded-lg">

@@ -38,11 +38,26 @@
    - `项目里程碑`
    - `解锁条件`
    - `下一步主题`
-9. Books-related stages expose `阶段阅读` from `path-reading.ts`, including the book title, page range, summary, and `/books/:id` `去同读` link.
-10. Route card stage badges use Chinese learner-facing labels such as `第 1 阶段`; the next-stage summary badge uses `下一阶段`.
-11. `nextTopic` prefers today’s generated lesson when it belongs to the current stage; otherwise it points at the first unmet stage criterion.
-12. Stage-card action CTAs use `pathStageCtaClassName` with `min-h-11 w-full sm:w-auto`, so each route step is a full-width 44px touch target on mobile and an adaptive-width link on desktop.
-13. Stage reading CTAs use `pathReadingLinkClassName` with `min-h-11 w-full sm:w-auto`, so Books handoff stays reachable on mobile.
+9. `/path` renders a compact `阶段地图` before the route-level question cards, using the seven roadmap stages as visual nodes.
+10. Stage map nodes use Chinese state labels:
+   - `完成`
+   - `当前`
+   - `锁定`
+   - `补弱`
+11. `补弱` is derived from a non-completed stage with active blockers, so the map surfaces due cards, active misconceptions, missing code practice, or missing project kickoff without creating a new data owner.
+12. Stage cards default to the core map information only:
+   - stage name
+   - progress
+   - completion standard
+   - current blocker
+   - unlock condition
+   - next step
+13. Deep signals, stage rationale, and criteria cards live under the `详细指标` `<details>` section, keeping the default route readable on mobile.
+14. Books-related stages expose `阶段阅读` from `path-reading.ts`, including the book title, page range, summary, and `/books/:id` `去同读` link.
+15. Route card stage badges use Chinese learner-facing labels such as `第 1 阶段`; the next-stage summary badge uses `下一阶段`.
+16. `nextTopic` prefers today’s generated lesson when it belongs to the current stage; otherwise it points at the first unmet stage criterion.
+17. Stage-card action CTAs use `pathStageCtaClassName` with `min-h-11 w-full sm:w-auto`, so each route step is a full-width 44px touch target on mobile and an adaptive-width link on desktop.
+18. Stage reading CTAs use `pathReadingLinkClassName` with `min-h-11 w-full sm:w-auto`, so Books handoff stays reachable on mobile.
 
 ## Verification
 
@@ -57,18 +72,24 @@
   - top mission card title visible as `当前任务`, not `Current Mission / 当前任务`
   - current stage visible
   - next stage visible
+  - `阶段地图` visible before the long route card list
+  - stage map node states visible as `完成` / `当前` / `锁定` / `补弱`
   - route card badges visible as `第 n 阶段`, not `Stage n`
   - next-stage badge visible as `下一阶段`, not `Next Stage`
   - `测验正确率` visible
   - `项目里程碑` visible when project progress exists, not `milestone`
   - `解锁条件` visible
   - `下一步主题` visible
+  - `详细指标` visible and deep metrics hidden behind native `<details>` by default
   - `阶段阅读` visible on Books-related stages
   - reading material links visible as `去同读`
   - route card list visible
 
 ## Local Evidence
 
+- Reduce Chaos Path Visual Stage Map:
+  - `npm test -- tests/unit/learning-path.test.ts`: RED 首次失败于缺少 `PathStageMap`；GREEN 后 5 项通过，覆盖 `阶段地图`、`pathStageMapNodeClassName`、`完成 / 当前 / 锁定 / 补弱` 状态和 `详细指标` 折叠区。
+  - `npm test -- tests/unit/learning-path.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/weekly-review.test.ts tests/unit/learning-ui-components.test.ts`: 64 项通过；覆盖 Path、Current Mission、Next Best Action、Weekly 和共享学习 UI 回归。
 - Reduce Chaos Path Stage Reading Materials:
   - `npm test -- tests/unit/learning-path.test.ts`: RED 首次失败于 `readingMaterials` 为 `undefined`、`/path` 缺少 `阶段阅读` 和 `pathReadingLinkClassName`；GREEN 后 4 项通过。
   - `npm test -- tests/unit/learning-path.test.ts tests/unit/books-companion.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/shared-ui-a11y.test.ts`: 33 项通过；覆盖 Path、Books、Current Mission、Next Best Action、移动导航和鉴权导航边界。

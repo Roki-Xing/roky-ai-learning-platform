@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.373.0] - 2026-06-13
+
+### Changed
+
+- **[Reduce Chaos Path Visual Stage Map]** 按指导文件第 8.1 和第 8.2 继续优化 `/path`，把学习路径从长报告推进为可扫读的阶段地图。
+  - 新增 `PathStageMap`，在 `/path` 顶部把 7 个学习阶段渲染为节点式 `阶段地图`。
+  - `阶段地图` 节点显示 `完成`、`当前`、`锁定`、`补弱` 四类中文状态；有 blockers 且未完成的阶段优先标为 `补弱`，并显示 `当前阻塞` 摘要。
+  - 阶段卡默认只显示阶段名、进度、完成标准、当前阻塞、解锁条件、下一步和阶段阅读；`当前信号`、阶段原因和 criteria 明细移入 `详细指标` 原生 `<details>`。
+  - 本切片只改 `/path` 展示层、源码级测试和文档；不新增数据库迁移，不改变学习路径排序、stage scoring、Books 推荐规则、Current Mission 排序、Preview 写保护或生产 env/provider 密钥。
+
+### Verified
+
+- RED：`npm test -- tests/unit/learning-path.test.ts` 首次失败于缺少 `PathStageMap`。
+- GREEN：`npm test -- tests/unit/learning-path.test.ts` 5 项通过，覆盖 `阶段地图`、`pathStageMapNodeClassName`、`完成 / 当前 / 锁定 / 补弱` 状态、`当前阻塞` 和 `详细指标` 折叠区。
+- 相关回归：`npm test -- tests/unit/learning-path.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/weekly-review.test.ts tests/unit/learning-ui-components.test.ts` 64 项通过，覆盖 Path、Current Mission、Next Best Action、Weekly 和共享学习 UI。
+- 覆盖扫描：`rg -n "Path Visual Stage Map|PathStageMap|阶段地图|pathStageMapNodeClassName|详细指标|0\\.373\\.0|完成 / 当前 / 锁定 / 补弱|Reduce Chaos Path Visual" ...` 确认源码、测试、UI checklist、Path 模块文档、CHANGELOG 和 Aegis 记录均接入本切片。
+- 本地完整门禁：`git diff --check`、`npm run audit:routes`、`npm run audit:learning`、`npm run lint`、全量 `npm test`、`npm run build` 通过；全量单测 482 项通过，Next 生产构建生成 31 个静态页面。
+- Aegis helper：`bundle` / `check` 仍失败于既有 Markdown-only 结构债（缺 `task-intent-draft.json`、当前和历史 work markdown 未索引），不属于产品 UI 验证失败。
+
+### Not Covered
+
+- 尚未执行生产部署、生产 smoke、数据库迁移、学习路径 scoring 变更、真实写入型 smoke、完整 Playwright 移动端截图矩阵或 Preview 写保护变更。
+
 ## [0.372.0] - 2026-06-11
 
 ### Changed

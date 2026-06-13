@@ -1,5 +1,23 @@
 # Evidence
 
+## Reduce Chaos Path Visual Stage Map
+
+| Evidence | Result | Notes |
+| --- | --- | --- |
+| `npm test -- tests/unit/learning-path.test.ts` | fail then pass, 5 tests | RED first failed because `/path` lacked `PathStageMap`. GREEN passed after adding the visual `阶段地图`, Chinese node states `完成 / 当前 / 锁定 / 补弱`, blocker summaries, and the `详细指标` details area. |
+| `npm test -- tests/unit/learning-path.test.ts tests/unit/current-mission.test.ts tests/unit/next-best-action.test.ts tests/unit/weekly-review.test.ts tests/unit/learning-ui-components.test.ts` | pass, 64 tests | Related regression covers Path, Current Mission, Next Best Action, Weekly, and shared learning UI. |
+| `rg -n "Path Visual Stage Map\|PathStageMap\|阶段地图\|pathStageMapNodeClassName\|详细指标\|0\\.373\\.0\|完成 / 当前 / 锁定 / 补弱\|Reduce Chaos Path Visual" ...` | pass | Coverage scan confirms source, unit test, UI checklist, Path module doc, changelog, checkpoint, and evidence records are wired to this slice. |
+| `git diff --check`, `npm run audit:routes`, `npm run audit:learning`, `npm run lint`, `npm test`, `npm run build` | pass | Full local gates after Path Visual Stage Map. Full unit suite passed 482 tests; route audit reports 21 pages with no navigation gaps; learning audit reports no required-file or migration-doc gaps; Next build generated 31 static pages. |
+| `aegis-workspace.py bundle`, `aegis-workspace.py check` | fail, structural debt | Existing Markdown-only Aegis workspace debt remains: current work lacks `task-intent-draft.json`, and current/historical work markdown records are not indexed. This is a method-pack structure issue, not a product UI validation failure. |
+
+Changed surface:
+
+- Reduce Chaos Path Visual Stage Map layer: `src/app/path/page.tsx`, `tests/unit/learning-path.test.ts`, `docs/ui-review-checklist.md`, `helloagents/modules/path.md`, `helloagents/CHANGELOG.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/20-checkpoint.md`, `docs/aegis/work/2026-06-03-roky-learning-desire/90-evidence.md`.
+
+Not covered yet:
+
+- GitHub push, production deploy, production smoke, full Playwright mobile screenshot matrix, schema/migration changes, path scoring changes, Books recommendation changes, and write-type production smoke are not covered yet.
+
 ## Reduce Chaos Today Course Feedback Prompt
 
 | Evidence | Result | Notes |

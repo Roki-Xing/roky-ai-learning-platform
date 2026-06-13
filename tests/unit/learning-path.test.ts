@@ -155,6 +155,32 @@ test("path page renders quiz accuracy, unlock condition, and next topic labels",
   assert.doesNotMatch(source, />Next Stage</);
 });
 
+test("path page renders a visual stage map with compact stage cards", () => {
+  const source = readFileSync("src/app/path/page.tsx", "utf8");
+
+  assert.match(source, /function PathStageMap/);
+  assert.match(source, /阶段地图/);
+  assert.match(source, /const pathStageMapNodeClassName/);
+  assert.match(source, /完成/);
+  assert.match(source, /当前/);
+  assert.match(source, /锁定/);
+  assert.match(source, /补弱/);
+  assert.match(source, /stage\.blockers\.length > 0/);
+  assert.match(source, /<PathStageMap stages=\{path\.stages\} \/>/);
+
+  assert.match(source, /<details/);
+  assert.match(source, /详细指标/);
+  assert.match(source, /当前阻塞/);
+  assert.match(source, /下一步/);
+
+  const detailsIndex = source.indexOf("<details");
+  const metricsIndex = source.indexOf("当前信号");
+  const criteriaIndex = source.indexOf("stage.criteria.map");
+  assert.ok(detailsIndex > 0, "stage cards should hide deep metrics behind details");
+  assert.ok(metricsIndex > detailsIndex, "metrics should render inside the detail area");
+  assert.ok(criteriaIndex > detailsIndex, "criteria should render inside the detail area");
+});
+
 test("path stage cards keep mobile touch targets on route CTAs", () => {
   const source = readFileSync("src/app/path/page.tsx", "utf8");
 
